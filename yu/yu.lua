@@ -15,7 +15,7 @@
  
  local function extractDir(p)
 	p=fixpath(p)
-	return string.match(p, ".*/")
+	return string.match(p, ".*/") or ''
 end
  
  local function extractFileName(p)

@@ -1178,7 +1178,7 @@ local __YU_ISTYPE = __YU_RUNTIME.isType
 	local entrycode=string.format([[
 
 return __YU_MODULE_LOADED[%q].__main()
-	]],m.fullname)
+	]],entry.fullname)
 
 	code=code..entrycode
 	return code
