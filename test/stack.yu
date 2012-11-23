@@ -1,0 +1,63 @@
+import 'lua/std.lx'
+
+
+class StackIter
+	field node:StackNode
+	method __next*()
+		if node then
+			local v=node.value
+			node=node.next
+			return v
+		else
+			return nil
+		end
+	end
+end
+
+class StackNode
+	field next:StackNode
+	field value*
+end
+
+class Stack
+	field top:StackNode
+	method push(v*)
+		assert v~=nil
+		local n=StackNode{next=top,value=v}
+		top=n
+	end
+
+	method pop*()
+		local n=top
+		top=top.next
+		return n.value
+	end
+
+	method __iter() => StackIter{node=top}
+end
+
+class Foo
+	method shit() abstract
+end
+
+class Bar extends Foo
+end
+
+local s=Stack()
+for i=1,10 do
+	s.push('No.'..i)
+end
+
+-- for v in s do
+-- 	if not v is string then continue end
+-- 	print(v)
+-- end
+
+while true do
+	local x=s.pop()
+	if x~=nil then 
+		print(x)
+	else
+		break
+	end
+end

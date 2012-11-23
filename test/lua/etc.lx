@@ -1,0 +1,11 @@
+-- __Lua[[
+-- 	function printf(patt,...) 
+-- 			return print(string.format(patt,...))
+-- 	end
+-- ]]
+	
+extern
+	-- func printf(patt$, ...*)
+	func print(...*)
+	func collectgarbage#(op$)
+end

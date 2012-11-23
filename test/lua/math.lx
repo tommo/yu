@@ -1,0 +1,36 @@
+extern
+	
+	func "math.abs" as abs#(a#)
+	
+	func "math.atan2" as atan2#(dy,dx#)
+	func "math.cos" as cos#(d#)
+	func "math.sin" as sin#(d#)
+	func "math.tan" as tan#(d#)
+	func "math.deg" as deg#(arc#)
+	func "math.asin" as asin#(s#)
+	func "math.acos" as acos#(c#)
+	
+	func "math.random" as random#()
+	func "math.randomseed" as randomseed(seed#)
+	
+	func "math.floor" as floor#(n#)
+	func "math.ceil" as ceil#(v#)
+	
+	func "math.sqrt" as sqrt#(v#)
+	func "math.modf" as modf#(a#,b#)
+	
+	-- func "math.max" as max#(a,b#)
+	-- func "math.min" as min#(a,b#)
+	
+	func "math.log"	as log#(v#)
+	func "math.log10" as log10#(v#)
+
+	const pi:=3.14159265358979323846
+	
+end
+
+func max#(a,b#)=> a>b ? a|b
+
+func min#(a,b#)=> a<b ? a|b
+
+

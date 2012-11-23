@@ -1,0 +1,63 @@
+extern 
+	func Graphics(w,h,depth#)
+	func endGraphics()
+	func flip(sync#)
+	func drawRect(x,y,w,h#)
+	func drawOval(x,y,w,h#)
+	func drawLine(x,y,x1,y1#)
+	func MilliSecs#()
+	func KeyHit?(keycode#)
+	func KeyDown?(keycode#)
+	func MouseX#()
+	func MouseY#()
+	func MouseHit?(b#)
+	func MouseDown?(b#)
+	func cls()
+	func drawText(t$,x,y#)
+	func setColor(r,g,b#)
+	func setBlend(b:Blend)
+	func setAlpha(a#)
+	func setClsColor(r,g,b#)
+	
+	class Image
+		func "loadImage" as load(url$)->Image
+		method "drawImage" as draw(x,y#)
+		method "setImageHandle" as setHandle(hx,hy#)
+		method "MidHandleImage" as midHandle()
+		method "ImageWidth" as getWidth#()
+		method "ImageHeight" as getHeight#()
+	end
+	
+	func setRotation(rot#)
+	func setScale(sx,sy#)
+	
+	class BMXImage
+		func "loadImage" as load(url$)->BMXImage
+	end
+	
+end
+
+enum Blend{	none,mask,solid,alpha,light,shade }
+
+func getMousePos()->(x#,y#)
+	return MouseX(), MouseY()
+end
+
+--[[
+class Image
+	field _img:BMXImage
+	func load(url$)->Image
+		local _img=BMXImage.load(url)
+		local img:=new Image()
+		img._img=_img
+		return img
+	end
+	
+	field width#
+		.get=>ImageWidth(_img)
+	field height#
+		.get=>ImageHeight(_img)
+	method draw(x,y#)
+		drawImage(_img,x,y)
+	end
+end]]

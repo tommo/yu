@@ -1,0 +1,239 @@
+import "lua/std.lx"
+
+global seed#=0
+func rand#()
+	seed = (214013 * seed + 2531011) % 4294967296
+	return seed * (1.0 / 4294967296.0)
+end
+
+class Vec
+	field x,y,z#
+	
+	method __new(x,y,z#)
+		self.(x,y,z)=x,y,z
+	end
+	
+	method __add (b:Vec) => Vec(x+b.x,y+b.y,z+b.z)
+	method __sub (b:Vec) => Vec(x-b.x,y-b.y,z-b.z)
+	method __mul (b#) => Vec(x*b,y*b,z*b)
+	
+	method mult(b:Vec)=> Vec(x*b.x,y*b.y,z*b.z)
+	method dot(b:Vec)=> x*b.x + y*b.y + z*b.z
+	method norm() => self*(1/math.sqrt(x*x+y*y+z*z))
+	method cross(b:Vec)=> Vec(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x)
+end
+
+
+
+global Zero=Vec(0,0,0)
+global XAxis=Vec(1,0,0)
+global YAxis=Vec(0,1,0)
+global ZAxis=Vec(0,0,1)
+
+enum Refl{diff,spec,refr}
+
+class Ray
+	field o:Vec
+	field d:Vec
+	method Ray(o, d:Vec) self.(o, d)= o, d end
+end
+
+class Sphere
+	field rad#
+	field p,e,cc,c:Vec
+	field refl:Refl
+	field sqRad#
+	field maxC#
+	
+	method Sphere(rad#,p,e,c:Vec,refl:Refl)
+		sqRad=rad*rad
+		self.rad=rad
+		self.maxC=math.max(math.max(c.x,c.y),c.z)
+		self.cc=c*(1/self.maxC)
+		self .(rad, p,e,c,refl) = rad, p ,e ,c ,refl
+	end
+	
+	method intersect#(r:Ray)
+		const eps = 1e-5
+		
+		local op = p - r.o
+		local b = op.dot(r.d)
+		local det = b * b - op.dot(op) + sqRad
+		
+		if det < 0 then
+			return 0
+		else
+			local dets = math.sqrt(det)
+
+			if b - dets > eps then
+				return b - dets
+			elseif b + dets > eps then
+				return b + dets
+			else
+				return 0
+			end
+		end
+		
+	end
+	
+end
+
+-- ---------------------------------------
+-- -- Scene: radius, position, emission, color, material
+global spheres =
+{
+	Sphere(1e5,  Vec( 1e5+1,40.8,81.6),  Zero, Vec(.75,.25,.25), Refl.diff), --Left
+	Sphere(1e5,  Vec(-1e5+99,40.8,81.6), Zero, Vec(.25,.25,.75), Refl.diff), --Rght
+	Sphere(1e5,  Vec(50,40.8, 1e5),      Zero, Vec(.75,.75,.75), Refl.diff), --Back
+	Sphere(1e5,  Vec(50,40.8,-1e5+170),  Zero, Zero,             Refl.diff), --Frnt
+	Sphere(1e5,  Vec(50, 1e5, 81.6),     Zero, Vec(.75,.75,.75), Refl.diff), --Botm
+	Sphere(1e5,  Vec(50,-1e5+81.6,81.6), Zero, Vec(.75,.75,.75), Refl.diff), --Top
+	Sphere(16.5, Vec(27,16.5,47),        Zero, 	Vec(1,1,1)*.999,  Refl.spec), --Mirr
+	Sphere(16.5, Vec(73,16.5,78),        Zero, 	Vec(1,1,1)*.999,  Refl.refr), --Glas
+	Sphere(600,  Vec(50,681.6-.27,81.6), Vec(12,12,12), Zero,    Refl.diff)  --Lite
+}
+
+
+
+function clamp(x#)=> x < 0 ? 0 | x >1 ? 1 | x
+
+func toInt(x#)=>math.floor(clamp(x)^(1/2.2)*255+0.5)
+
+const t1=1000000000
+
+func intersect(r:Ray) -> (obj:Sphere, t#)
+	local t= t1
+	local obj:Sphere=nil
+	
+	for i, s in spheres do
+		local d = s.intersect(r)
+		if d ~= 0 and d < t then
+			t = d
+			obj = s
+		end
+	end
+	
+	return obj, t
+end
+
+func radiance(r:Ray, depth#) -> Vec
+	local obj:Sphere, t#
+	obj,t = intersect(r)
+	if obj==nil then return Zero end
+	
+	local newDepth=depth+1
+	local isMaxDepth=newDepth>100
+	local isUseRR=newDepth>5
+	local isRR=isUseRR and rand() < obj.maxC
+	
+	if isMaxDepth or (isUseRR and not isRR) then return obj.e end
+	
+	local f=(isUseRR and isRR) ?  obj.cc | obj.c
+	local x=r.o+r.d * t
+	local n=(x - obj.p).norm()
+	local nl=(n.dot(r.d) < 0) ? n | (n*-1)
+	
+	select obj.refl
+		case diff do
+			local r1=2*math.pi*rand()
+			local r2=rand()
+			local r2s=math.sqrt(r2)
+			
+			local w=nl
+			local wo=(math.abs(w.x)>0.1) ? YAxis | XAxis
+			local u= wo.cross(w).norm()
+			local v= w.cross(u)
+			local d=(u*math.cos(r1)*r2s + 
+					  v*math.sin(r1)*r2s +
+					  w*math.sqrt(1-r2)).norm()
+			return obj.e + f.mult(radiance(Ray(x, d), newDepth))
+			
+		case spec do
+			return obj.e + f.mult(radiance( Ray(x, r.d - n * 2 * n.dot(r.d)), newDepth))
+			
+		case refr do
+			local reflRay = Ray(x, r.d - n*(2*n.dot(r.d)))
+			local into = n.dot(nl) > 0
+			local nc, nt = 1, 1.5
+			local nnt = into ? nc/nt | nt/nc
+			local ddn = r.d.dot(nl)
+			local cos2t = 1 - nnt*nnt*(1-ddn*ddn)
+			
+			if cos2t <0 then return obj.e + f.mult(radiance(reflRay, newDepth)) end
+			
+			local tdir = (r.d*nnt - n*( (into ? 1 | -1) * (ddn*nnt + math.sqrt(cos2t)))).norm()
+			local a=nt-nc
+			local b=nt+nc
+			local R0=(a*a)/(b*b)
+			local c=1-(into ? -ddn | tdir.dot(n))
+			local Re=R0+(1-R0)*c*c*c*c*c
+			local Tr=1-Re
+			local P=.25 + .5 * Re
+			local RP = Re/P
+			local TP = Tr/(1-P)
+			local result:Vec
+			
+			if newDepth>2 then
+				if rand() < P then
+					result = radiance(reflRay, newDepth)*RP
+				else
+					result = radiance(Ray(x, tdir), newDepth) *TP
+				end
+			else
+				result = radiance(reflRay, newDepth)*Re + radiance(Ray(x, tdir), newDepth)
+			end
+			
+			return obj.e + f.mult(result)
+	end
+end
+
+local start=os.clock()
+local w,h=256,256
+local samps=5
+
+local cam= Ray(Vec(50,52,295.6), Vec(0, -0.042612, -1).norm())
+local cx= Vec(w*.5135/h,0,0)
+local cy= cx.cross(cam.d).norm()*.5135
+
+local c:Vec[]={}
+print("Rendering "..samps*4.." spp")
+for y=0, h-1 do
+	
+	print("...%"..100*y/(h-1))
+	
+	for x = 0,w-1 do
+		local i=(h-y-1)*w+x
+		c[i]=Zero
+		
+		for sy = 0, 1 do
+			for sx = 0, 1 do
+				local r=Zero
+				for s = 1, samps do
+					local r1,r2=2*rand(), 2*rand()
+					local dx= (r1<1) ? (math.sqrt(r1)-1) | (1-math.sqrt(2-r1))
+					local dy= (r2<1) ? (math.sqrt(r2)-1) | (1-math.sqrt(2-r2))
+					local d= cx*(((sx + .5 +dx)/2+x)/w - .5)+
+							  cy*(((sy + .5 +dy)/2+y)/h - .5)+ cam.d
+					local camRay=Ray(cam.o + d*140, d.norm())
+					
+					r += radiance(camRay,0) *(1.0 / samps)
+				end
+				c[i] += Vec(clamp(r.x),clamp(r.y),clamp(r.z))*.25
+			end
+		end
+	end
+end
+
+print("elapsed ".. os.clock()-start)
+
+local f=io.open("image.ppm","w")
+f.write("P3\n")
+f.write(w.."\n")
+f.write(h.."\n")
+f.write(255.."\n")
+
+for i=0, w*h -1 do
+	f.write(toInt(c[i].x).." "..toInt(c[i].y).." "..toInt(c[i].z).."\n")
+end
+
+f.close()

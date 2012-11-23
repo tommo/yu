@@ -1,0 +1,51 @@
+extern
+	func print(...*)
+end
+
+class Vec
+	field x,y,z#
+	method __new(nx,ny,nz#)
+		x,y,z=nx,ny,nz
+	end
+end
+
+class Sprite
+	field pos=Vec(0,0,0)
+	method update()
+	end
+	
+end
+
+class ImageSprite extends Sprite
+	field img='sprite.png'
+	method setImage(img$)
+		self.img=img
+	end
+
+	method register()
+		print('register image sprite:',img)
+	end
+
+	method __new()
+		img='test'
+		register()
+	end
+end
+
+local s=ImageSprite()
+func rectCenter(w,h#)=>-w/2,-h/2,w/2,h/2
+func double(a,b#)->a#,b#
+	return a*2,b*2
+end
+print(rectCenter(40,80))
+print(double(5,10))
+
+local f:func(),f1:func(a*)
+func foo()
+end
+
+func bar(x*)
+end
+
+f=foo
+f1=bar

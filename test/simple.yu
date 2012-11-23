@@ -1,0 +1,52 @@
+import 'lua/std.lx'
+import 'gfx.lx'
+
+const screenWidth=500
+const screenHeight=500
+
+class Entity
+	field x,y#
+	method onDraw() abstract
+	method onUpdate() abstract
+end
+
+class RectEnt extends Entity
+	field dx,dy#
+	override onUpdate()
+		x=x+dx
+		y=y+dy
+		if x<0 then x=0 dx=-dx end
+		if y<0 then y=0 dy=-dy end
+		if x>screenWidth then x=screenWidth dx=-dx end
+		if y>screenWidth then y=screenWidth dy=-dy end
+	end
+
+	override onDraw()
+		drawOval(x,y,15,15)
+	end
+end
+
+func rand(v#)=>random()*v
+
+Graphics(screenWidth,screenWidth,0)
+local ents:Entity[]={}
+for i=1,3000 do
+	local e1=RectEnt{
+		x=rand(screenWidth),
+		y=rand(screenHeight),
+		dx=rand(5),
+		dy=rand(5)
+	}
+	ents[i]=e1
+end
+setBlend(Blend.alpha)
+setAlpha(0.3)
+while not KeyHit(27) do
+	flip(-1)
+	cls()
+	for i,e in ents do
+		e.onUpdate()
+		setColor(rand(255),rand(255),rand(255))
+		e.onDraw()
+	end
+end

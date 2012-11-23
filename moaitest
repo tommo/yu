@@ -1,0 +1,5 @@
+#bash
+cd /Users/tommo/prj/yu
+rm m_output.lua
+lua test.lua test/moai.yu m_output.lua
+moai m_output.lua

@@ -1,0 +1,71 @@
+signal test()
+extern
+	func print(...*)
+end 
+
+signal buttonHub()
+class Button
+	signal pressed()
+	method realTrigger()
+		self.pressed()
+	end
+end
+
+class Light
+	field state='off'
+	field id#
+	signal stateChanged(state$)
+	method switchState()
+		select state
+			case 'red' then
+				state='yellow'
+			case 'yellow' then
+				state='green'
+			case 'green' then
+				state='red'
+		end
+		stateChanged(state)
+		print('light:'..id..' is '..state)
+	end
+end
+
+class Driver	
+	method waitLight(l:Light)
+		l.stateChanged>>onLightChanged		
+	end
+
+	method onLightChanged(state$)
+		print('I saw the light changed')
+		select state
+			case 'red' then
+				print('Time to stop')
+			case 'yellow' then
+				print('Get ready to go')
+			case 'green' then
+				print('Bon voyage')
+		end
+	end
+end
+
+local l1=Light{id=1,state='red'}
+local l2=Light{id=2,state='red'}
+
+local b1=Button()
+local b2=Button()
+
+local driver = Driver()
+driver.waitLight(l2)
+-- b1.pressed>>b2.pressed
+b1.pressed>>l1.switchState
+b2.pressed>>l2.switchState
+
+-- b1.pressed>>func() print('hello,pressed') end
+
+print('*button 1 press')
+b1.pressed()
+
+print('*button 2 press')
+b2.pressed()
+
+print('*button 1 press')
+b1.pressed()

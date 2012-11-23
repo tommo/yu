@@ -1,0 +1,22 @@
+
+
+-- class Pack<T>
+-- 	field value:T
+	
+-- 	method get()=> value
+
+-- 	method set(v:T) value=v end
+
+-- 	method __new(v:T)
+-- 		value=v
+-- 	end
+
+-- end
+
+
+-- -- local p1=Pack<number> (100)
+-- local p1=Pack(100)
+-- local v=p1.get()
+
+
+local stringList=List<string>()

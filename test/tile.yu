@@ -1,0 +1,134 @@
+import "lua/std.lx"
+
+import "gfx.lx"
+
+const TileSize=20
+enum TileState{
+	open,
+	halfopen,
+	closed}
+
+--asdfasdf
+func lerpf(a,b,k#)=>(1-k)*a+k*b
+
+class Color
+	field r,g,b=255,255,255
+	
+	method lerp(t:Color, k#)->Color
+		return Color(lerpf(r,t.r,k),
+						lerpf(g,t.g, k),
+						lerpf(b,t.b, k))
+	end
+	
+	method __new(r,g,b#)
+		self.r, self.g, self.b = r,g,b
+	end
+	
+	method apply()
+		setColor(r,g,b)
+	end
+	
+end
+
+global Red= Color(255,0,0)
+global Blue= Color(0,0,255)
+global Green= Color(0,255,0)
+
+class Tile
+	field state:TileState
+	field x,y#
+	field c:Color=Blue
+	field targetColor:Color
+	field tw#=0
+	
+	method draw()
+		if targetColor then
+			c=c.lerp(targetColor,0.01)
+		end
+		c.apply()
+		drawRect(x,y, TileSize-1,TileSize-1)
+	end
+	
+	method isHit?(px,py#)
+		return px >x and py>y and px<x+TileSize and py<y+TileSize
+	end
+	
+	method switchState()
+		select state
+			case TileState.open do
+				state=TileState.halfopen
+				targetColor=Green
+				
+			case TileState.halfopen do
+				state=TileState.closed
+				targetColor=Red
+				
+			case TileState.closed do
+				state=TileState.open
+				targetColor=Blue
+				
+		end
+	end
+end
+
+class Board
+	field tiles:Tile[]
+	field w,h#
+	
+	method init(w,h#)
+		tiles={}
+		self.w,self.h=w,h
+		
+		for j=1,h do
+		for i=1,w do		
+			local t= Tile()
+			tiles[(j-1)*w+i] =t
+			t.state=TileState.closed
+			t.x, t.y = (i-1)*TileSize, (j-1)*TileSize
+			t.switchState()
+		end
+		end
+	end
+	
+	method update()
+		
+	end
+	
+	method onClick(x,y#)
+		local t=getTile(x,y)
+		if t then
+			t.switchState()
+		end
+	end
+	
+	method getTile(x,y#) -> Tile
+		local i,j#=floor(x/TileSize)+1, floor(y/TileSize)+1
+		
+		if i<=self.w and j<=self.h and i>0 and j>0 then
+			return self.tiles[(j-1)*self.w+i]
+		end
+		return nil
+	end
+	
+	method draw()
+		for i, t in tiles do
+			t.draw()
+		end
+	end
+end
+
+Graphics(800,600,0)
+
+local b= Board()
+b.init(50,26)
+
+while not KeyHit(27) do
+	flip(-1)
+	cls()
+	--if MouseHit(1) then
+	b.onClick(MouseX(),MouseY())
+	--end
+	b.draw()
+	
+end
+

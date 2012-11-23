@@ -1,0 +1,86 @@
+extern
+	class _thread
+	end
+
+	func print(...*)
+	func 'coroutine.yield' as cyield(f*)->*
+	func 'coroutine.create' as ccreate(f*)->_thread
+	func 'coroutine.resume' as cresume(t:_thread,...*)->?,*
+end
+
+
+-- -- func buildGenerator(from,to#)
+-- -- 	=> spawn func() for i=from , to do yield i end end
+
+
+-- class Thread
+-- 	field _t:_thread
+	
+-- 	method _resume(...*) -> *
+-- 		local suc,result= cresume(self._t,...)
+-- 		return result
+-- 	end
+
+-- 	method __new(f*)
+-- 		_t=ccreate(f)
+-- 	end
+
+-- end
+
+
+-- local t1=Thread(func(x#)
+-- 	print('start from',x)
+-- 	for i=x,10 do
+-- 		local a=cyield(i)
+-- 		print('received',a)
+-- 	end
+-- end)
+
+-- print(t1._resume(2))
+-- for i=1,10 do
+-- 	print(t1._resume(i))
+-- end
+
+
+-- class Light
+-- 	signal switchClick(force#,dir$)
+-- 	field state$
+-- 	method __new()
+-- 		state='off'
+-- 	end
+
+-- 	method onSwitch(f#,...*)
+-- 		if f>=100 then
+-- 			state=state=='off' ? 'on' | 'off'
+-- 			print('switch to',state)
+-- 		else
+-- 			print('press heavier!')
+-- 		end
+-- 		print('extra',...)
+-- 	end	
+-- end
+
+
+-- local l=Light()
+-- -- print(l.state)
+-- -- l.onSwitch()
+-- -- print(l.state)
+
+
+-- l.switchClick>>l.onSwitch
+-- l.switchClick(100,'top')
+-- l.switchClick(90,'down')
+
+
+--  
+
+-- func a(b:func@)
+-- end
+
+
+
+-- func a(b:func#())->#
+-- 	return b()+2
+-- end
+
+-- print(a(func()=>2))

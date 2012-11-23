@@ -1,0 +1,9 @@
+import 'lua/std.lx'
+signal selector_input(option$)
+
+func menu()
+	
+end
+
+local m=spawn menu()
+resume m

@@ -1,0 +1,164 @@
+import "lua/std.lx"
+import "gfx.lx"
+
+
+func randomBetween(minvalue,maxvalue#) => math.random()*(maxvalue-minvalue)+minvalue
+
+global images:={
+	green=Image.load "image/green_ball.png",
+	love=Image.load "image/love_ball.png",
+	mars=Image.load "image/3.png"
+}
+
+class Blob	@{attribute, rename="good", virtual}
+	
+	const minsize, maxsize:=40,80
+	const minspeed,maxspeed:=6,40
+	
+	global maxcolor:=255
+	
+	func randomcolor()=>math.random()*maxcolor
+	
+	field x,y:= 0,0
+	field img:Image=images[
+		math.random()>0.6 ? "love" 
+	  | math.random()>0.5 ? "mars"
+	  | "green" 
+	]
+	
+	field r:=randomcolor()
+	field g:=randomcolor()
+	field b:=randomcolor()
+	
+	
+	field xs,ys:=0, 0.8
+	
+	field size:=randomBetween(minsize,maxsize)
+	
+	method update()
+		
+		x+=xs
+		y+=ys
+		ys+=0.1
+		
+		if x>800-size then
+			xs=-xs*0.2
+			x=800-size
+		elseif x<0 then
+			xs=-xs*0.2 
+			x=0
+		end
+		
+		if y>500-size then
+			ys=-ys*0.2
+			xs*=0.8
+			y=500-size
+		end
+	end
+	
+	method dosomething()
+		local s:=size
+	end
+	
+	method draw()	@{limit=-1}
+		-- setColor(r,g,b)
+		-- setColor(180,2,20)
+		local s:=size
+		-- drawRect(x,y,s,s)
+		setScale(s/img.getWidth(),s/img.getHeight())
+		img.draw(x,y)
+		--drawRect(x,y,5,5)
+	end
+	
+	
+end
+
+class OvalBlob extends Blob
+	const ax:=0.01
+	const ay:=0.2
+	
+	override update()
+		xs+= ax
+		ys+= ay
+		super.update()
+	end
+	
+end
+
+
+class FPSCounter 
+	field frameCount:=0
+	field startTime, totalTime#=0,0
+	
+	method reset()
+		startTime=MilliSecs()
+	end
+	
+	method update()
+		frameCount+=1
+		totalTime=MilliSecs()-startTime+1
+	end
+	
+	field fps#
+	method fps_get() => math.floor(frameCount/totalTime*1000)
+	
+end
+
+
+global fpsCounter:= FPSCounter()
+
+Graphics(800,600,0)
+
+const maxcount:=200
+
+local blobs:Blob[]={}
+for i=1, maxcount do
+	local b:=OvalBlob()
+	b.xs=math.cos(i/50*math.pi)*2
+	b.ys=math.sin(i/50*math.pi)*2
+	blobs[i]=b
+end
+
+local falling:=1
+fpsCounter.reset()
+local ox,oy#
+while not KeyHit(27) do
+	setClsColor(80,50,180)
+	cls()
+	fpsCounter.update()
+	-- setBlend(Blend.alpha)
+	local mx:=MouseX()
+	local my:=MouseY()
+	
+	if MouseDown(1) then
+		local a1:=math.atan2(my-oy,mx-ox)
+		local d:=((my-oy)^2+(mx-ox)^2)/60000
+		if d>1 then d=1 end
+		
+		for i= 1, math.random()*6 do
+			falling=(falling ) % maxcount + 1
+			local a:=(math.random()-0.5)*3.14/20+a1
+			local s:=randomBetween(Blob.minspeed,Blob.maxspeed)*d
+			local b1:=blobs[falling]
+			b1.(x,y,xs,ys) =ox,oy, math.cos(a)* s ,math.sin(a)* s
+			
+		end
+		ox=ox*0.9+mx*0.1
+		oy=oy*0.9+my*0.1
+	else
+		ox,oy = mx,my
+	end
+	setColor(255,255,255)
+	
+	-- for i, b in blobs do
+		-- b.update()
+		-- b.draw()
+	-- end
+	
+	setScale(1,1)
+	setColor(80,80,80)
+	drawRect(0,500,800,100)
+	drawText("fps:"..fpsCounter.fps,0,0)
+	drawText("mem:"..collectgarbage("count"),0,20)
+	flip(MouseDown(2)? 0 | -1)
+end

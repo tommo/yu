@@ -1,0 +1,54 @@
+local tree1:= new QuadTree<Sprite>
+
+local list2:= new List<number>
+
+list2.first
+
+class List<T>
+		
+func add<T>(a:T,b:T)->T
+	return a+b
+end
+
+
+func add<T>(a,b:T)->T
+
+add(5,2)
+
+=> lift 
+1. a->5-> number => add<number>(a,b:number)->number
+2. b?->2 => yes
+3. number+number?->number => yes
+4. validated
+
+
+class Stack<T>
+	field head:StackNode<T>
+	
+	method push(v:T)
+		local nn:=new StackNode<T>{value=v,prev=head}
+		head=nn
+	end
+	
+	method pop()->T
+		local n:=head
+		head=head.prev
+		return n.value
+	end
+end
+
+class StackNode<T>
+	field prev:StackNode<T>
+	field value:T
+end
+
+
+class StackCounted<T> extends Stack<T>
+	field count#
+	
+	inherit push(v:T)
+	end
+	
+	inherit pop
+end
+

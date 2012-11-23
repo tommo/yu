@@ -1,0 +1,27 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+		
+	],
+	"build_systems":
+    [
+        {
+            "name": "Lua",
+            "cmd":["/usr/local/bin/luajit","test.lua","$file"],
+            "working_dir": "${project_path}"
+        },
+        {
+            "name": "Lua-ERRTEST",
+            "cmd":["/usr/local/bin/lua","errortest.lua"],
+            "working_dir": "${project_path}"
+        },
+        {
+            "name": "moai",
+            "cmd": ["open","./moaitest"],
+            "working_dir": "${project_path}"
+        }
+    ]
+}

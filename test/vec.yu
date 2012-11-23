@@ -1,0 +1,25 @@
+import 'lua/std.lx'
+class Vec
+	
+	field x,y#
+
+	method add(v1:Vec)=>Vec{x=x+v1.x,y=y+v1.y}
+	method sub(v1:Vec)=>Vec{x=x-v1.x,y=y-v1.y}
+	method mul(s#)=>Vec{x=x*s,y=y*s}
+	method div(s#)=>Vec{x=x/s,y=y/s}
+
+	method tostring()=>'('..x..','..y..')'
+
+	method __new(x,y#)
+		self.x,self.y=x,y
+	end
+
+	-- method __new(x#)
+	-- 	self.x,self.y=x,0
+	-- end
+end
+
+
+local v=Vec{x=1,y=20}
+
+print(v.tostring())

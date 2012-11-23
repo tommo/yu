@@ -1,0 +1,40 @@
+extern
+	class 'math' as Math
+		func cos#(deg#)
+		func sin#(deg#)
+		func floor#(a#)
+		func ceil#(a#)
+		func sqrt#(a#)
+		func atan#(a#)
+	end	
+
+	class io
+		func open(name$,mode$)->File
+		func write(s$)
+	end
+
+	class File
+		method write(s$)
+		method close()
+		func 'io.open' as open(name,mode$) -> File
+	end
+
+	class os
+		func clock#()
+	end
+
+	func print(...*)
+end
+
+
+local f1=File.open('hello.txt','w')
+f1.write('hello,world')
+f1.write'\n'
+f1.write(os.clock() as string)
+f1.write[[
+	this is a testing output
+	yes
+]]
+f1.close()
+
+print(Math.sin(100))

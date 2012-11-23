@@ -1,0 +1,17 @@
+extern
+	func "io.write" as write(t$)
+	func "io.read" as read$()
+	func "io.open" as open(fn$,mode$)->File
+	func "io.type" as type(f:File)->File
+
+	class File
+		method read$()
+		method write(t$)
+		method close()
+		method flush()
+		method seek(whence$,offset#)
+		
+	end
+	
+	
+end

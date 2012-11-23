@@ -1,0 +1,3 @@
+extern
+	func 'string.format' as format(patt$, ...*)
+end

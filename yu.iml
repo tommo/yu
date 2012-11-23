@@ -1,0 +1,15 @@
+<NotepadPlus>
+    <Session activeView="0">
+        <mainView activeIndex="1">
+            <File firstVisibleLine="920" xOffset="0" scrollWidth="870" startPos="19651" endPos="20031" selMode="0" lang="Lua" encoding="-1" filename="C:\prj\yu\yu\resolver.lua" />
+            <File firstVisibleLine="75" xOffset="0" scrollWidth="560" startPos="1428" endPos="1428" selMode="0" lang="Lua" encoding="-1" filename="C:\prj\yu\yu\visitor.lua" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="287" startPos="580" endPos="580" selMode="0" lang="Lua" encoding="-1" filename="C:\prj\yu\corotest.lua" />
+            <File firstVisibleLine="105" xOffset="0" scrollWidth="469" startPos="3511" endPos="3522" selMode="0" lang="Lua" encoding="-1" filename="C:\prj\yu\yu\type.lua" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="583" startPos="23" endPos="23" selMode="0" lang="Lua" encoding="-1" filename="C:\prj\yu\test\test4.lx" />
+            <File firstVisibleLine="693" xOffset="0" scrollWidth="847" startPos="18428" endPos="18428" selMode="0" lang="Lua" encoding="-1" filename="C:\prj\yu\yu\parser.lua" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="497" startPos="81" endPos="0" selMode="0" lang="Lua" encoding="-1" filename="C:\prj\yu\test\lua\etc.lx" />
+            <File firstVisibleLine="47" xOffset="0" scrollWidth="322" startPos="1069" endPos="1069" selMode="0" lang="Lua" encoding="-1" filename="C:\prj\yu\yu\codegen.lua" />
+        </mainView>
+        <subView activeIndex="0" />
+    </Session>
+</NotepadPlus>

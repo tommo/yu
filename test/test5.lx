@@ -1,0 +1,6 @@
+import 'lua/std.lx'
+import 'test4.lx'
+
+func a()
+	
+end

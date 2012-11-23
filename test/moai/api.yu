@@ -1,0 +1,1174 @@
+--MOAI wrapper for YU language
+--Copyright 2012 Tommo Zhou(tommo.zhou@gmail)
+
+extern
+	class MOAIAction 
+		method clear() -> this:MOAIAction
+		method throttle(throttle#) -> this:MOAIAction
+		method addChild(child:MOAIAction) -> this:MOAIAction
+		method isDone() -> isDone:boolean
+		method start(parent:MOAIAction) -> this:MOAIAction
+		method stop() -> this:MOAIAction
+		method isActive() -> isActive:boolean
+		method isBusy() -> isBusy:boolean
+		func new()->MOAIAction
+	end
+	class MOAIActionMgr 
+		func getRoot() -> root:MOAIAction
+		func setProfilingEnabled(enable?)
+		func setThreadInfoEnabled(enable?)
+		func setRoot(root:MOAIAction)
+		
+	end
+	class MOAIAnim 
+		method setLink(linkID#,curve:MOAIAnimCurve,target:MOAINode,attrID#,asDelta?)
+		method getLength() -> length#
+		method reserveLinks(nLinks#)
+		method apply(t0,t1#)
+		func new()->MOAIAnim
+	end
+	class MOAIAnimCurve 
+		method reserveKeys(nKeys#)
+		method getLength() -> length#
+		method setKey(index,time,value,mode,weight#)
+		method getValueAtTime(time#) -> interpolated#
+		func new()->MOAIAnimCurve
+	end
+	
+	class MOAIBlendMode 
+		-- func new()->MOAIBlendMode
+	end
+	
+	class MOAIBox2DArbiter 
+		method setContactEnabled() -> impulse#
+		method getTangentImpulse() -> impulse#
+		method getNormalImpulse() -> impulse#
+		method getContactNormal() -> x#,y#
+		func new()->MOAIBox2DArbiter
+	end
+	class MOAIBox2DBody 
+		method addEdges(verts#[]) -> Array:MOAIBox2DFixture[]
+		method setTransform(positionX,positionY,angle#)
+		method setAngularDamping(damping#)
+		method applyTorque(torque#)
+		method getAngle() -> angle#
+		method applyAngularImpulse(impulse#)
+		method isFixedRotation() -> isFixedRotation?
+		method getLinearVelocity() -> velocityX#,velocityY#
+		method setLinearVelocity(velocityX,velocityY#)
+		method isBullet() -> isBullet?
+		method setLinearDamping(damping#)
+		method setFixedRotation(fixedRotation?)
+		method getWorldCenter() -> worldX#,worldY#
+		method addCircle(x,y,radius#) -> fixture:MOAIBox2DFixture
+		method getInertia() -> inertia#
+		method setBullet(bullet?)
+		method addRect(xMin,yMin,xMax,yMax#) -> fixture:MOAIBox2DFixture
+		method setAwake(awake?)
+		method applyLinearImpulse(impulseX,impulseY,pointX,pointY#)
+		method setAngularVelocity(omega#)
+		method resetMassData()
+		method destroy()
+		method isActive() -> isActive?
+		method getLocalCenter() -> centerX#,centerY#
+		method isAwake() -> isAwake?
+		method setActive(active?)
+		method setMassData(mass,I,centerX,centerY#)
+		method applyForce(forceX,forceY,pointX,pointY#)
+		method getPosition() -> positionX#,positionY#
+		method getAngularVelocity() -> omega#
+		method addPolygon(verts#[]) -> fixture:MOAIBox2DFixture
+		method getMass() -> Mass#
+		func new()->MOAIBox2DBody
+	end
+	
+	class MOAIBox2DDistanceJoint 
+		method getDampingRatio() -> dampingRatio#
+		method getLength() -> length#
+		method setFrequency(frequency#)
+		method setDampingRatio(dampingRatio#)
+		method setLength(length#)
+		method getFrequency() -> frequency#
+		func new()->MOAIBox2DDistanceJoint
+	end
+	class MOAIBox2DFixture 
+		method destroy()
+		method setSensor(isSensor?)
+		method setRestitution(restitution#)
+		method setFriction(friction#)
+		method setFilter(categoryBits,maskBits,groupIndex#)
+		method getBody() -> body:MOAIBox2DBody
+		method setDensity(density#)
+		method setCollisionHandler(handler:func(a,b,c*),phaseMask,categoryMask#)
+		func new()->MOAIBox2DFixture
+	end
+	class MOAIBox2DFrictionJoint  extends MOAIBox2DJoint
+		method setMaxTorque(maxTorque#)
+		method getMaxForce() -> maxForce#
+		method getMaxTorque() -> maxTorque#
+		method setMaxForce(maxForce#)
+		func new()->MOAIBox2DFrictionJoint
+	end
+	class MOAIBox2DGearJoint extends MOAIBox2DJoint
+		method getJointB() -> jointB:MOAIBox2DJoint
+		method setRatio(ratio#)
+		method getJointA() -> jointA:MOAIBox2DJoint
+		method getRatio() -> ratio#
+		func new()->MOAIBox2DGearJoint
+	end
+	class MOAIBox2DJoint 
+		method destroy()
+		method getReactionForce() -> forceX#,forceY#
+		method getBodyB() -> body:MOAIBox2DBody
+		method getAnchorB()
+		method getReactionTorque() -> reactionTorque#
+		method getAnchorA()
+		method getBodyA() -> body:MOAIBox2DBody
+	end
+
+	class MOAIBox2DMouseJoint  extends MOAIBox2DJoint
+		method getDampingRatio() -> dampingRatio#
+		method getMaxForce() -> macForce#
+		method setTarget(x,y#)
+		method getTarget() -> x#,y#
+		method setDampingRatio(dampingRatio#)
+		method setMaxForce(maxForce#)
+		method setFrequency(frequency#)
+		method getFrequency() -> frequency#
+		func new()->MOAIBox2DMouseJoint
+	end
+	class MOAIBox2DPrismaticJoint  extends MOAIBox2DJoint
+		method setLimit(lower,upper#)
+		method getUpperLimit() -> upperLimit#
+		method setMotorSpeed(motorSpeed#)
+		method getMotorSpeed() -> motorSpeed#
+		method getMotorForce() -> motorForce#
+		method getJointSpeed() -> jointSpeed#
+		method getLowerLimit() -> lowerLimit#
+		method setMaxMotorForce(maxMotorForce#)
+		method setMotorEnabled(enabled?)
+		method setLimitEnabled(enabled?)
+		method isMotorEnabled() -> motorEnabled?
+		method setMotor(speed,max#,forceEnable?)
+		method getJointTranslation() -> jointTranslation#
+		method isLimitEnabled() -> limitEnabled?
+		func new()->MOAIBox2DPrismaticJoint
+	end
+	class MOAIBox2DPulleyJoint  extends MOAIBox2DJoint
+		method getGroundAnchorB() -> x#,y#
+		method getLength2() -> length2#
+		method getRatio() -> ratio#
+		method getGroundAnchorA() -> x#,y#
+		method getLength1() -> length1#
+		func new()->MOAIBox2DPulleyJoint
+	end
+	class MOAIBox2DRevoluteJoint  extends MOAIBox2DJoint
+		method getJointAngle() -> angle#
+		method getUpperLimit() -> upperLimit#
+		method setMaxMotorTorque(maxMotorTorque#)
+		method getMotorSpeed() -> motorSpeed#
+		method isMotorEnabled() -> motorEnabled?
+		method getJointSpeed() -> jointSpeed#
+		method getLowerLimit() -> lowerLimit#
+		method setMotorSpeed(motorSpeed#)
+		method setMotorEnabled(enabled?)
+		method setLimitEnabled(enabled?)
+		method setLimit(lower,upper#)
+		method setMotor(speed,maxMotorTorque#,forceEnable?)
+		method getMotorTorque() -> motorTorque#
+		method isLimitEnabled() -> limitEnabled?
+		func new()->MOAIBox2DRevoluteJoint
+	end
+	class MOAIBox2DRopeJoint  extends MOAIBox2DJoint
+		method setMaxLength()
+		method getMaxLength() -> maxLength#
+		method getLimitState() -> limitState#
+	end
+	class MOAIBox2DWeldJoint  extends MOAIBox2DJoint
+		func new()->MOAIBox2DWeldJoint
+	end
+	class MOAIBox2DWheelJoint  extends MOAIBox2DJoint
+		method setSpringDampingRatio(dampingRatio#)
+		method setMotorSpeed(motorSpeed#)
+		method setMaxMotorTorque(maxMotorTorque#)
+		method getSpringDampingRatio() -> dampingRatio#
+		method getMotorSpeed() -> motorSpeed#
+		method isMotorEnabled() -> motorEnabled?
+		method getJointSpeed() -> jointSpeed#
+		method setSpringFrequencyHz(springFrequencyHz#)
+		method setMotorEnabled(enabled?)
+		method getMaxMotorTorque() -> maxMotorTorque#
+		method getSpringFrequencyHz() -> springFrequency#
+		method setMotor(speed,maxMotorTorque#,forceEnable?)
+		method getJointTranslation() -> jointTranslation#
+		method getMotorTorque() -> torque#
+		func new()->MOAIBox2DWheelJoint
+	end
+	class MOAIBox2DWorld 
+		method addRopeJoint(bodyA,bodyB:MOAIBox2DBody,maxLength,anchorAX,anchorAY,anchorBX,anchorBY#) -> joint:MOAIBox2DJoint
+		method addWeldJoint(bodyA,bodyB:MOAIBox2DBody,anchorX,anchorY#) -> joint:MOAIBox2DJoint
+		method getLinearSleepTolerance() -> linearSleepTolerance#
+		method getAutoClearForces() -> autoClearForces?
+		method getAngularSleepTolerance() -> angularSleepTolerance#
+		method addPrismaticJoint(bodyA,bodyB:MOAIBox2DBody,anchorA,anchorB,axisA,axisB#) -> joint:MOAIBox2DJoint
+		method setAngularSleepTolerance(angularSleepTolerance#)
+		method addMouseJoint(bodyA,bodyB:MOAIBox2DBody,targetX,targetY,maxForce,frequencyHz,dampingRatio#) -> joint:MOAIBox2DJoint
+		method setGravity(gravityX,gravityY#)
+		method setIterations(velocityIteratons,positionIterations#)
+		method addFrictionJoint(bodyA,bodyB:MOAIBox2DBody,anchorX,anchorY,maxForce,maxTorque#) -> joint:MOAIBox2DJoint
+		method addWheelJoint(bodyA,bodyB:MOAIBox2DBody,anchorX,anchorY,axisX,axisY#) -> joint:MOAIBox2DJoint
+		method setUnitsToMeters(unitsToMeters#)
+		method setTimeToSleep(timeToSleep#)
+		method addPulleyJoint(bodyA,bodyB:MOAIBox2DBody,ratio,maxLengthA,maxLengthB#) -> joint:MOAIBox2DJoint
+		method setLinearSleepTolerance(linearSleepTolerance#)
+		method addBody(type,x,y#) -> joint:MOAIBox2DBody
+		method setAutoClearForces(autoClearForces?)
+		method getTimeToSleep() -> timeToSleep#
+		method getGravity() -> gravityX#,gravityY#
+		method addGearJoint(jointA,jointB:MOAIBox2DJoint,ratio#) -> joint:MOAIBox2DJoint
+		method addDistanceJoint(bodyA,bodyB:MOAIBox2DBody,frequencyHz,dampingRatio,collideConnected#) -> joint:MOAIBox2DJoint
+		method addRevoluteJoint(bodyA,bodyB:MOAIBox2DBody,anchorX,anchorY#) -> joint:MOAIBox2DJoint
+		func new()->MOAIBox2DWorld
+	end
+	class MOAIButtonSensor extends MOAISensor 
+		method isUp() -> isUp?
+		method isDown() -> isDown?
+		method up() -> wasReleased?
+		method down() -> wasPressed?
+		method setCallback(callback:function(b#))
+		func new()->MOAIButtonSensor
+	end
+	class MOAICameraAnchor2D extends MOAIProp2D
+		method setRect(xMin,yMin,xMax,yMax#)
+		method setParent(parent:MOAITransformBase)
+		func new()->MOAICameraAnchor2D
+	end
+	class MOAICameraFitter2D extends MOAIProp2D
+		method setDamper(damper#)
+		method snapToTarget(this:MOAICameraFitter2D)
+		method setFitLoc(x,y#,snap?)
+		method getTargetLoc() -> x#,y#
+		method getFitDistance() -> distance#
+		method getFitLoc() -> x#,y#
+		method setBounds(xMin,yMin,xMax,yMax#,this:MOAICameraFitter2D)
+		method getFitScale() -> scale#
+		method setFitMode(mask#)
+		method setFitScale(scale#,snap?)
+		method setCamera(camera:MOAITransform)
+		method clearAnchors()
+		method clearFitMode(mask#)
+		method setViewport(viewport:MOAIViewport)
+		method getFitMode() -> mask#
+		method getTargetScale() -> scale#
+		method setMin(min#)
+		method insertAnchor(anchor:MOAICameraAnchor2D)
+		method removeAnchor(anchor:MOAICameraAnchor2D)
+		func new()->MOAICameraFitter2D
+	end
+	
+	class MOAIColor 
+		method setParent(parent:MOAINode)
+		method seekColor(rGoal,gGoal,bGoal,aGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method setColor(r,g,b,a#)
+		method moveColor(rDelta,gDelta,bDelta,aDelta,length,mode#) -> easeDriver:MOAIEaseDriver
+		func new()->MOAIColor
+	end
+	class MOAICompassSensor extends MOAISensor 
+		method getHeading() -> heading#
+		method setCallback(callback:function(dir#))
+		func new()->MOAICompassSensor
+	end
+	class MOAIThread 
+		func currentThread() -> currentThread:MOAIThread
+		func blockOnAction(blocker:MOAIAction)
+		method run(threadFunc:function())
+		func new()->MOAIThread
+	end
+	class MOAICp 
+		func getContactPersistence() -> persistence#
+		func getCollisionSlop() -> slop#
+		func getBiasCoefficient() -> bias#
+		func setContactPersistence(persistance#)
+		func setCollisionSlop(slop#)
+		func setBiasCoefficient(bias#)
+	end
+	class MOAICpArbiter 
+		method getContactNormal(id#) -> x?,y?
+		method getTotalImpulse() -> x?,y?
+		method getTotalImpulseWithFriction() -> x?,y?
+		method getContactPoint(id#) -> x?,y?
+		method isFirstContact() -> first?
+		method countContacts() -> count#
+		method getContactDepth(id#) -> depth#
+		func new()->MOAICpArbiter
+	end
+	class MOAICpBody 
+		method getRot() -> x#,y#
+		method resetForces()
+		method localToWorld(rx,ry#) -> ax#,ay#
+		method setPos(x,y#)
+		method setTorque(torque#)
+		method isRogue() -> static?
+		method sleepWithGroup(group:MOAICpBody)
+		method addRect(x1,y1,x2,y2#) -> rectangle:MOAICpShape
+		method isStatic() -> static?
+		method setAngVel(angvel#)
+		method getForce() -> x#,y#
+		method isSleeping() -> sleeping?
+		method addSegment(x1,y1,x2,y2,radius#) -> segment:MOAICpShape
+		method getTorque() -> torque#
+		method sleep()
+		method activate()
+		method getAngle() -> angle#
+		method getMass() -> mass#
+		method getAngVel() -> angle#
+		method setForce(forcex,forcey#)
+		method setMoment(moment#)
+		method addCircle(radius,x,y#) -> circle:MOAICpShape
+		
+		method getPos() -> x#,y#
+		method getMoment() -> moment#
+		method setVel(x,y#)
+		method setAngle(angle#)
+		method setRemoveFlag(flag#)
+		method applyImpulse(jx,jy,rx,ry#)
+		method applyForce(fx,fy,rx,ry#)
+		method setMass(mass#)
+		method worldToLocal(ax,ay#) -> rx#,ry#
+		method addPolygon(polygon#[]) -> polygon:MOAICpShape
+		method getVel() -> x#,y#
+		func new()->MOAICpBody
+	end
+	class MOAICpConstraint 
+		func newRotaryLimitJoint(first,second:MOAICpShape,min,max#) -> limit:MOAICpConstraint
+		func newDampedRotarySpring(first,second:MOAICpShape,restAngle,stiffness,damping#) -> spring:MOAICpConstraint
+		func newSimpleMotor(first,second:MOAICpShape,rate#) -> motor:MOAICpConstraint
+		method setMaxBias(bias#)
+		method setBiasCoef(bias#)
+		method setMaxForce(bias#)
+		func newSlideJoint(first,second:MOAICpShape,ax1,ay1,ax2,ay2,min,max#) -> motor:MOAICpConstraint
+		func newGearJoint(first,second:MOAICpShape,phase,ratio#) -> gear:MOAICpConstraint
+		func newGrooveJoint(first,second:MOAICpShape,gx1,gy1,gx2,gy2,ax,ay#) -> groove:MOAICpConstraint
+		method getMaxForce() -> bias#
+		func newPinJoint(first,second:MOAICpShape,ax1,ay1,ax2,ay2#) -> pin:MOAICpConstraint
+		func newPivotJoint(first,second:MOAICpShape,x,y,ax,ay#) -> pivot:MOAICpConstraint
+		func newRatchetJoint(first,second:MOAICpShape,phase,ratchet#) -> ratchet:MOAICpConstraint
+		func newDampedSpring(first,second:MOAICpShape,x1,y1,x2,y2,restAngle,stiffness,damping#) -> spring:MOAICpConstraint
+		method getBiasCoef() -> bias#
+		method getMaxBias() -> bias#
+		func new()->MOAICpConstraint
+	end
+	
+	class MOAICpShape 
+		method isSensor() -> sensor?
+		func momentForCircle(m,r2,ox,oy,r1#) -> moment#
+		func momentForRect(m,x1,y1,x2,y2#) -> moment#
+		func momentForSegment(m,x1,y1,x2,y2#) -> moment#
+		method inside(x,y#) -> inside?
+		method getGroup() -> group#
+		method setElasticity(elasticity#)
+		method setIsSensor(sensor?)
+		method getFriction() -> friction#
+		method getLayers() -> layer#
+		method setFriction(friction#)
+		method setType(type#)
+		method getBody() -> body:MOAICpBody
+		method setSurfaceVel(x,y#)
+		method getSurfaceVel() -> x#,y#
+		func momentForPolygon(m#,polygon#[]) -> moment#
+		method setGroup(group#)
+		func areaForRect(x1,y1,x2,y2#) -> area#
+		method getType() -> type#
+		method setLayers(layer#)
+		method getElasticity() -> elasticity#
+		func areaForCircle(vertices#[]) -> area#
+		func areaForSegment(x1,y1,x2,y2,r#) -> area#
+		func new()->MOAICpShape
+	end
+	class MOAICpSpace 
+		method shapeForPoint(x,y,layers,group#) -> shape:MOAICpShape
+		method insertProp(prop:MOAICpBody)
+		method getGravity() -> xGrav#,yGrav#
+		method getIterations() -> iterations#
+		method rehashShape()
+		method removeProp(prop:MOAICpBody)
+		method getSleepTimeThreshold() -> sleepTimeThreshold#
+		method shapeListForPoint(x,y,layers,group#) -> shapes:MOAICpShape
+		method getDamping() -> damping#
+		method shapeListForRect(xMin,yMin,xMax,yMax,layers,group#) -> shapes:MOAICpShape
+		method setGravity(xGrav,yGrav#)
+		method setDamping(damping#)
+		method shapeListForSegment(x1,y1,x2,y2,layers,group#) -> shapes:MOAICpShape
+		method activateShapesTouchingShape(shape:MOAICpShape)
+		method setCollisionHandler(collisionTypeA,collisionTypeB,mask#,handler:function(a,b,c*))
+		method setIterations(iterations#)
+		method setSleepTimeThreshold(threshold#)
+		method setIdleSpeedThreshold(threshold#)
+		method getIdleSpeedThreshold() -> idleThreshold#
+		method resizeStaticHash(dim,count#)
+		method shapeForSegment(x1,y1,x2,y2,layers,group#) -> shape:MOAICpShape
+		method resizeActiveHash(dim,count#)
+		method getStaticBody() -> staticBody:MOAICpBody
+		method rehashStatic()
+		func new()->MOAICpSpace
+	end
+	class MOAIDataBuffer 
+		func inflate(windowBits#,this:MOAIDataBuffer,data$) -> output$
+		method loadAsync(filename$) -> task:MOAIDataIOAction
+		method save(filename$) -> success?
+		method getString() -> data$
+		func toCppHeader(data:MOAIDataBuffer,name$,columns#) -> output$
+		method base64Encode(data$) -> output$
+		method getSize() -> size#
+		method setString(data$)
+		method saveAsync(filename$) -> task:MOAIDataIOAction
+		func deflate(level,windowBits#,this:MOAIDataBuffer,data$) -> output$
+		method load(filename$) -> success?
+		method base64Decode(data$) -> output$
+		func new()->MOAIDataBuffer
+	end
+	class MOAIDataIOAction 
+		method setCallback(callback:function(data*))
+		func new()->MOAIDataIOAction
+	end
+	class MOAIDebugLines 
+		func showStyle(styleID#,show?)
+		func setStyle(styleID,size,r,g,b,a#)
+	end
+	class MOAIDeck 
+		method setShader(shader:MOAIShader)
+	end
+	
+	class MOAIDeck2D extends MOAIDeck
+	end
+
+	class MOAIDeckRemapper 
+		method setBase(base#)
+		method setRemap(index,remap#)
+		method reserve(size#)
+		func new()->MOAIDeckRemapper
+	end
+	class MOAIDeserializer 
+		func new()->MOAIDeserializer
+	end
+	class MOAIDraw 
+		func drawRay(x,y,dx,dy#)
+		func drawLine()
+		func drawRect(x0,y0,x1,y1#)
+		func drawCircle(x,y,r,steps#)
+		func fillCircle(x,y,r,steps#)
+		func fillEllipse(x,y,xRad,yRad,steps#)
+		func fillRect(x0,y0,x1,y1#)
+		func drawEllipse(x,y,xRad,yRad,steps#)
+		func fillFan()
+		func drawPoints()
+	end
+	class MOAIEaseDriver extends MOAIAction
+		method setLength(length#)
+		method reserveLinks(nLinks#)
+		method setLink(idx#,target:MOAINode,attrID,value,mode#)
+		func new()->MOAIEaseDriver
+	end
+	class MOAIEaseType 
+		
+	end
+	class MOAIEnvironment 
+		func getScreenSize() -> width#,height#
+		func isRetinaDisplay() -> isRetinaDisplay:boolean
+		func getLanguageCode() -> languageCode$
+		func generateGUID() -> GUID$
+		func getCountryCode() -> countryCode$
+		func getConnectionType() -> connectionType$
+		func getCarrierMobileNetworkCode() -> mobileNetworkCode$
+		func getAppID() -> appID$
+		func getOSVersion() -> version$
+		func getCPUABI() -> ABI$
+		func getResourceDirectory() -> resourceDirectory$
+		func getViewSize() -> width#,height#
+		func getDevProduct() -> product$
+		func getOSBrand() -> brand$
+		func getDocumentDirectory() -> documentDirectory$
+		func getCarrierName() -> name$
+		func getAppDisplayName() -> diaplyName$
+		func getAppVersion() -> appVersion$
+		func getDevManufacturer() -> manufacturer$
+		func getUDID() -> UDID$
+		func getDevModel() -> model$
+		func getCarrierMobileCountryCode() -> mobileCountryCode$
+		func getDevBrand() -> brand$
+		func getCacheDirectory() -> cacheDirectory$
+		func getCarrierISOCountryCode() -> isoCode$
+		func getDevName() -> name$
+	end
+	class MOAIEventSource 
+		method setListener(eventID#,callback:function(e*))
+	end
+	class MOAIFileSystem 
+		func checkFileExists(filename$) -> exists?
+		func setWorkingDirectory(path$) -> success?
+		func getAbsoluteFilePath(filename$) -> absolute$
+		func listDirectories(path$) -> diresctories:$[]
+		func getAbsoluteDirectoryPath(path$) -> absolute$
+		func getWorkingDirectory() -> path$
+		func rename(oldPath,newPath$) -> success?
+		func affirmPath(path$)
+		func checkPathExists(path$) -> exists?
+		func mountVirtualDirectory(path,archive$) -> success?
+		func listFiles(path$) -> files:$[]
+		func deleteFile(filename$) -> success?
+		func deleteDirectory(path$) -> success?
+	end
+	class MOAIFont 
+		method loadFromTTF(filename,charCodes$,points,dpi#)
+		method setImage(image:MOAIImage)
+		method getLineScale() -> lineScale#
+		method setTexture(texture:MOAITexture)
+		method getScale() -> size#
+		method getImage() -> image:MOAIImage
+		method load(charCodes,filename$,data:MOAIDataBuffer)
+		method getTexture() -> texture:MOAITexture
+		func new()->MOAIFont
+	end
+	class MOAIFrameBuffer 
+		
+	end
+	
+	class MOAIGfxDevice 
+		func setPenColor(r,g,b,a#)
+		func setClearDepth(clearDepth?)
+		method isProgrammable() -> isProgrammable?
+		func setPointSize(size#)
+		func setPenWidth(width#)
+		func setClearColor(red,green,blue,alpha#,color:MOAIColor)
+	end
+	class MOAIGfxQuad2D extends MOAIDeck2D
+		method setUVRect(xMin,yMin,xMax,yMax#)
+		method setRect(xMin,yMin,xMax,yMax#)
+		method setTexture(texture*,transform#) -> texture:MOAITexture
+		func new()->MOAIGfxQuad2D
+	end
+	class MOAIGfxQuadDeck2D extends MOAIDeck2D
+		method setRect(idx,xMin,yMin,xMax,yMax#)
+		method setQuad(idx,x0,y0,x1,y1,x2,y2,x3,y3#)
+		method setTexture(texture*,transform#) -> texture:MOAITexture
+		method setUVQuad(idx,x0,y0,x1,y1,x2,y2,x3,y3#)
+		method setUVRect(idx,xMin,yMin,xMax,yMax#)
+		method reserve(nQuads#)
+		func new()->MOAIGfxQuadDeck2D
+	end
+	class MOAIGfxQuadListDeck2D extends MOAIDeck2D
+		method setList(idx,basePairID,totalPairs#)
+		method setTexture(texture*,transform#) -> texture:MOAITexture
+		method reserveUVQuads(nUVQuads#)
+		method reservePairs(nPairs#)
+		method reserveLists(nLists#)
+		method setRect(idx,xMin,yMin,xMax,yMax#)
+		method setQuad(idx,x0,y0,x1,y1,x2,y2,x3,y3#)
+		method setUVQuad(idx,x0,y0,x1,y1,x2,y2,x3,y3#)
+		method setPair(idx,uvQuadID,quadID#)
+		method setUVRect(idx,xMin,yMin,xMax,yMax#)
+		method reserveQuads(nQuads#)
+		func new()->MOAIGfxQuadListDeck2D
+	end
+	class MOAIGfxResource 
+		method softRelease(age#) -> True?
+	end
+	
+	class MOAIGlyph 
+		
+	end
+
+	class MOAIGrid 
+		method setTile(xTile,yTile,value#)
+		method setTileFlags(xTile,yTile,mask#)
+		method toggleTileFlags(xTile,yTile,mask#)
+		method clearTileFlags(xTile,yTile,mask#)
+		method getTileFlags(xTile,yTile,mask#) -> tile#
+		method setRow(row#)
+		method getTile(xTile,yTile#) -> tile#
+		func new()->MOAIGrid
+	end
+	class MOAIGridPathGraph 
+		method setGrid(grid:MOAIGrid)
+		func new()->MOAIGridPathGraph
+	end
+	class MOAIGridSpace 
+		method initHexGrid(width,height,radius,xGutter,yGutter#)
+		method locToCoord(x,y#) -> xTile#,yTile#
+		method initDiamondGrid(width,height,tileWidth,tileHeight,xGutter,yGutter#)
+		method wrapCoord(xTile,yTile#) -> xTile#,yTile#
+		method setSize(width,height,cellWidth,cellHeight,xOff,yOff,tileWidth,tileHeight#)
+		method initRectGrid(width,height,tileWidth,tileHeight,xGutter,yGutter#)
+		method initObliqueGrid(width,height,tileWidth,tileHeight,xGutter,yGutter#)
+		method getCellAddr(xTile,yTile#) -> cellAddr#
+		method getCellSize() -> width#,height#
+		method getTileLoc(xTile,yTile,position#) -> x#,y#
+		method setRepeat(repeatX,repeatY?)
+		method getSize() -> width#,height#
+		method setShape(shape#)
+		method getOffset() -> xOff#,yOff#
+		method locToCellAddr(x,y#) -> cellAddr#
+		method cellAddrToCoord(xTile,yTile#) -> cellAddr#
+		method getTileSize() -> width#,height#
+	end
+
+	class MOAIHttpTask 
+		method httpGet(url,useragent$,verbose,blocking?)
+		method httpPost(url,data,useragent$,verbose,blocking?)
+		method setCallback(callback:function(data$))
+		method parseXml() -> parser:MOAIXmlParser
+		method getSize() -> size#
+		method getString() -> text$
+		func new()->MOAIHttpTask
+	end
+	
+	class MOAIImage 
+		method setColor32(x,y,color#)
+		method convertColors(colorFmt#) -> image:MOAIImage
+		method padToPow2() -> image:MOAIImage
+		method bleedRect(xMin,yMin,xMax,yMax#)
+		method copy() -> image:MOAIImage
+		method resizeCanvas(width,height#) -> image:MOAIImage
+		method resize(width,height,filter#) -> image:MOAIImage
+		method getSize() -> width#,height#
+		-- method init(width,height#,One:colorFmt)
+		method getFormat() -> colorFormat#
+		method getColor32(x,y#) -> color#
+		method writePNG(filename$)
+		method copyRect(source:MOAIImage,srcXMin,srcYMin,srcXMax,srcYMax,destXMin,destYMin,destXMax,destYMax,filter#)
+		method copyBits(source:MOAIImage,srcX,srcY,destX,destY,width,height#)
+		method setRGBA(x,y,r,g,b,a#)
+		method load(filename$,transform#)
+		method getRGBA(x,y#) -> r#,g#,b#,a#
+		func new()->MOAIImage
+	end
+	class MOAIIndexBuffer 
+		method release()
+		method setIndex(idx,value#)
+		method reserve(nIndices#)
+		func new()->MOAIIndexBuffer
+	end
+	class MOAIInputDevice 
+		
+	end
+	class MOAIInputMgr 
+		
+	end
+	class MOAIJoystickSensor extends MOAISensor
+		method getVector() -> x#,y#
+		method setCallback(callback:function(x,y#))
+		func new()->MOAIJoystickSensor
+	end
+	class MOAIJsonParser 
+		func decode(input$) -> result*[*]
+		func encode(input*[*]) -> result$
+		
+	end
+	class MOAIKeyboardSensor extends MOAISensor 
+		method keyUp(key$) -> wasReleased?
+		method keyIsDown(key$) -> isDown?
+		method keyIsUp(key$) -> wasReleased?
+		method setCallback(callback:function(key$))
+		method keyDown(key$) -> wasPressed?
+		func new()->MOAIKeyboardSensor
+	end
+	class MOAILayer2D extends MOAIProp2D
+		method setSortMode(sortMode#)
+		method setBox2DWorld(world:MOAIBox2DWorld)
+		method getPartition() -> partition:MOAIPartition
+		method removeProp(prop:MOAIProp)
+		method clear()
+		method setPartition(partition:MOAIPartition)
+		method setFrameBuffer(frameBuffer:MOAITexture)
+		method wndToWorld(x,y#) -> x#,y#
+		method getFitting(xMin,yMin,xMax,yMax,xPad,yPad#) -> x#,y#,s#
+		method worldToWnd(x,y#) -> x#,y#
+		method setCamera(camera:MOAITransformBase)
+		method setViewport(viewport:MOAIViewport)
+		method showDebugLines(showDebugLines:boolean)
+		method setCpSpace(space:MOAICpSpace)
+		method setParallax(xParallax,yParallax#)
+		method getSortMode() -> sortMode#
+		method insertProp(prop:MOAIProp)
+		method setSortScale(x,y,priority#)
+		func new()->MOAILayer2D
+	end
+
+	class MOAILayoutFrame 
+		method setWeight(xWeight,yWeight#)
+		method setMargin(left,top,right,bottom#)
+		-- method setLayout(xLayout,yLayout:enum)
+		-- method setIdealSize(xSize,ySize:enum)
+		method layout()
+		-- method setFit(xFit,yFit:enum)
+	end
+	class MOAILineBrush 
+		
+	end
+	class MOAILocationSensor extends MOAISensor 
+		method getLocation() -> longitude#,latitude#,haccuracy#,altitude#,vaccuracy#,speed#
+		method setCallback(callback:function(a,b,c,d#))
+		func new()->MOAILocationSensor
+	end
+	class MOAILogMessages 
+		
+	end
+	class MOAILogMgr 
+		func log(message$)
+		func setLogLevel(logLevel#)
+		func isDebugBuild() -> isDebugBuild?
+		func registerLogMessage(messageID#,formatString$,level#)
+		func openFile(filename$)
+		func closeFile()
+		
+	end
+	-- class MOAILuaObject 
+	
+	-- end
+	-- class MOAILuaRef 
+	
+	-- end
+	-- class MOAILuaRuntime 
+	
+	-- end
+	-- class MOAILuaState 
+	
+	-- end
+	-- class MOAILuaStateHandle 
+	
+	-- end
+	class MOAIMesh 
+		method setVertexBuffer(vertexBuffer:MOAIVertexBuffer)
+		method setTexture(texture*,transform#) -> texture:MOAITexture
+		func new()->MOAIMesh
+	end
+	class MOAIMotionSensor extends MOAISensor 
+		method getLevel() -> x#,y#,z#
+		method setCallback(callback:function(x,y,z#))
+		func new()->MOAIMotionSensor
+	end
+	class MOAINode 
+		method clearAttrLink(attrID#)
+		method setNodeLink(sourceNode:MOAINode)
+		method seekAttr(attrID,goal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method moveAttr(attrID,delta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method scheduleUpdate()
+		method setAttrLink(attrID#,sourceNode:MOAINode,sourceAttrID#)
+		method forceUpdate()
+		method getAttr(attrID#) -> value#
+		method getAttrLink(attrID#) -> sourceNode:MOAINode,sourceAttrID#
+		method setAttr(attrID,value#)
+		method clearNodeLink(sourceNode:MOAINode)
+	
+	end
+	-- class MOAINodeMgr 
+		
+	-- end
+	-- class MOAIObject 
+	-- 	func new()->MOAIObject
+	-- end
+	class MOAIParser 
+		method traverse()
+		method loadRules(filename$)
+		method loadFile(filename$) -> ast*[*]
+		method loadString(filename$) -> ast*[*]
+		method setCallbacks(onStartNonterminal,onEndNonterminal,onTerminal:function(a,b,c*))
+		func new()->MOAIParser
+	end
+	class MOAIParticleDistanceEmitter 
+		method setDistance(min,max#)
+		method reset()
+		func new()->MOAIParticleDistanceEmitter
+	end
+	class MOAIParticleEmitter 
+		method setAngle(min,max#)
+		method surge(total#)
+		method setRect(xMin,yMin,xMax,yMax#)
+		method setSystem(system:MOAIParticleSystem)
+		method setEmission(min,max#)
+		method setRadius(radius#,outerRadius#)
+		method setMagnitude(min,max#)
+	end
+	class MOAIParticleForce 
+		method initRadial(magnitude#)
+		method initAttractor(radius,magnitude#)
+		method initBasin(radius,magnitude#)
+		method initLinear(x,y#)
+		method setType(type#)
+		func new()->MOAIParticleForce
+	end
+	class MOAIParticlePlugin 
+		method getSize() -> size#
+	end
+	class MOAIParticleScript 
+		method rand(r0,v0,v1#)
+		method randVec(r0,r1,v0,v1#)
+		method vecAngle(r0,v0,v1#)
+		method time(r0#)
+		method ease(r0,v0,v1,easeType#)
+		method atan2rot(r0,v0,v1#)
+		method sub(r0,v0,v1#)
+		method set(r0,v0#)
+		method div(r0,v0,v1#)
+		method packReg(regIdx#)
+		method packConst(constant#)
+		method cycle(r0,v0,v1,v2#)
+		method wrap(r0,v0,v1,v2#)
+		method sprite()
+		method mul(r0,v0,v1#)
+		method easeDelta(r0,v0,v1,easeType#)
+		method add(r0,v0,v1#)
+		func new()->MOAIParticleScript
+	end
+	class MOAIParticleState 
+		method pushForce(force:MOAIParticleForce)
+		method setPlugin(plugin:MOAIParticlePlugin)
+		method setDamping(damping#)
+		method clearForces()
+		method setRenderScript(script:MOAIParticleScript)
+		method setMass(minMass,maxMass#)
+		method setNext(next:MOAIParticleState)
+		method setInitScript(script:MOAIParticleScript)
+		method setTerm(minTerm,maxTerm#)
+		func new()->MOAIParticleState
+	end
+	class MOAIParticleSystem 
+		method setSpriteDeckIdx(index#)
+		method clearSprites()
+		method capParticles(cap?)
+		method capSprites(cap?)
+		method getState() -> state:MOAIParticleState
+		method reserveParticles(nParticles,particleSize#)
+		method pushParticle(x,y,dx,dy#) -> result?
+		method setState(index#,state:MOAIParticleState)
+		method surge(total,x,y,dx,dy#)
+		method setSpriteColor(r,g,b,a#)
+		method reserveStates(nStates#)
+		method pushSprite(x,y,rot,xScale,yScale#) -> result?
+		method reserveSprites(nSprites#)
+		func new()->MOAIParticleSystem
+	end
+	class MOAIParticleTimedEmitter 
+		method setFrequency(min,max#)
+		func new()->MOAIParticleTimedEmitter
+	end
+	class MOAIPartition 
+		method setLayer(layerID,cellSize,xCells,yCells#)
+		method propListForPoint(x,y#)
+		method reserveLayers(nLayers#)
+		method insertProp(prop:MOAIProp)
+		method sortedPropListForRect(xMin,yMin,xMax,yMax#)
+		method removeProp(prop:MOAIProp)
+		method clear()
+		method propListForRect(xMin,yMin,xMax,yMax#)
+		method propForPoint(x,y#) -> prop:MOAIProp
+		func new()->MOAIPartition
+	end
+	class MOAIPartitionCell 
+	end
+	class MOAIPartitionLayer 
+	end
+	class MOAIPartitionResultBuffer 
+	end
+	class MOAIPartitionResultMgr 
+	end
+	class MOAIPathFinder 
+		method setTerrainDeck(terrainDeck:MOAIPathTerrainDeck)
+		method init(startNodeID,targetNodeID#)
+		method findPath(iterations#) -> more?
+		method setTerrainScale(index,deltaScale,penaltyScale#)
+		method setWeight(gWeight,hWeight#)
+		method getPathSize() -> size#
+		method getGraph() -> graph:MOAIPathGraph
+		method setHeuristic(heuristic#)
+		method reserveTerrainWeights(size#)
+		method setFlags(heuristic#)
+		method setGraph(grid:MOAIGrid)
+		method getPathEntry(index#) -> entry#
+		
+	end
+	class MOAIPathGraph 
+		
+	end
+	class MOAIPathTerrainDeck extends MOAIDeck2D
+		method getTerrainVec(idx#)
+		method setMask(idx,mask#)
+		method getMask(idx#) -> mask#
+		method setTerrainVec(idx#)
+		method reserve(deckSize,terrainVecSize#)
+	end
+	class MOAIPointerSensor extends MOAISensor 
+		method setCallback(callback:function(x,y#))
+		method getLoc() -> x#,y#
+		func new()->MOAIPointerSensor
+	end
+	class MOAIProp extends MOAINode
+		method getPriority() -> priority#
+		method setPriority(priority#)
+	end
+	class MOAIProp2D extends MOAITransform
+		method setDeck(deck:MOAIDeck)
+		method setBlendMode(mode#)
+		method setVisible(visible?)
+		method setGrid(grid:MOAIGrid)
+		method setShader(shader:MOAIShader)
+		method setFrame(xMin,yMin,xMax,yMax#)
+		method setGridScale(xScale,yScale#)
+		method getIndex() -> index#
+		method setRemapper(remapper:MOAIDeckRemapper)
+		method setParent(parent:MOAINode)
+		method setUVTransform(transform:MOAITransformBase)
+		method setIndex(index#)
+		method setExpandForSort(expandForSort?)
+		method getGrid() -> grid:MOAIGrid
+		method getRect() -> xMin#,yMin#,xMax#,yMax#
+		method inside(x,y,pad#) -> isInside?
+		func new()->MOAIProp2D
+	end
+	class MOAIQuadBrush 
+		
+	end
+	
+	class MOAIScriptDeck extends MOAIDeck
+		method setDrawCallback(callback:function())
+		method setRect(xMin,yMin,xMax,yMax#)
+		method setRectCallback(callback:function())
+		func new()->MOAIScriptDeck
+	end
+	class MOAIScriptNode extends MOAINode
+		method setCallback(onUpdate:function())
+		method reserveAttrs(nAttributes#)
+		func new()->MOAIScriptNode
+	end
+	class MOAISensor
+		
+	end
+	class MOAISerializer 
+		func serializeToFile(filename$,data*)
+		method serialize(data*)
+		method exportToFile(filename$)
+		func serializeToString(data*) -> serialized$
+		method exportToString() -> result$
+		func new()->MOAISerializer
+	end
+	class MOAISerializerBase 
+	
+	end
+	class MOAIShader 
+		method setVertexAttribute(index#,name$)
+		method clearUniform(idx#)
+		method declareUniform(idx#,name$,type#)
+		method reserveUniforms(nUniforms#)
+		method load(vertexShaderSource,fragmentShaderSource$)
+		func new()->MOAIShader
+	end
+	class MOAIShaderMgr 
+		-- func getShader(shaderID#)
+	end
+	class MOAISim 
+		func setLoopFlags(flags#)
+		func getMemoryUsage() -> usage#[$]
+		func timeToFrames(time#) -> frames#
+		func pushRenderPass(prop:MOAIProp2D)
+		func setStepMultiplier(count#)
+		func getDeviceTime() -> time#
+		func getElapsedFrames() -> frames#
+		func getElapsedTime() -> time#
+		func setLuaAllocLogEnabled(enable?)
+		func popRenderPass()
+		func exitFullscreenMode()
+		func setStep(step#)
+		func getLoopFlags() -> mask#
+		func setTimerError(timerError#)
+		func getDeviceSize() -> width#,height#
+		func setCpuBudget(budget#)
+		func openWindow(title$,width,height#)
+		func getPerformance() -> fps#
+		func setLongDelayThreshold(longDelayThreshold#)
+		func getStep() -> size#
+		func clearLoopFlags(mask#)
+		func setLeakTrackingEnabled(enable:boolean)
+		func setHistogramEnabled(enable:boolean)
+		func forceGarbageCollection()
+		func setBoostThreshold(boostThreshold#)
+		func enterFullscreenMode()
+		func getLuaObjectCount() -> count#
+		func reportHistogram()
+		func pauseTimer(pause?)
+		func framesToTime(frames#) -> time#
+		func reportLeaks(clearAfter:boolean)
+		func clearRenderStack()
+	end
+	class MOAIStretchPatch2D 
+		method reserveRows(nRows#)
+		method setUVRect(idx,xMin,yMin,xMax,yMax#)
+		method setRect(xMin,yMin,xMax,yMax#)
+		method reserveUVRects(nUVRects#)
+		method reserveColumns(nColumns#)
+		method setTexture(texture*,transform#) -> texture:MOAITexture
+		method setColumn(idx,weight#,conStretch?)
+		method setRow(idx,weight#,conStretch?)
+		func new()->MOAIStretchPatch2D
+	end
+	class MOAISurfaceDeck2D 
+		method setSurface(idx,surfaceIdx,x0,y0,x1,y1#)
+		method reserveSurfaceLists(nLists#)
+		method reserveSurfaces(idx,nSurfaces#)
+		func new()->MOAISurfaceDeck2D
+	end
+	class MOAISurfaceSampler2D 
+		
+	end
+	class MOAITextBox  extends MOAIProp2D
+		method getLineSize() -> lineScale#
+		method setLineSpacing(lineSpacing#)
+		method reserveCurves(nCurves#)
+		method setRect(x1,y1,x2,y2#)
+		method clearCurves()
+		method getStringBounds(index,size#) -> xMin#,yMin#,xMax#,yMax#
+		method setTextSize(newTextSize#)
+		method setReveal(reveal#)
+		method more() -> isMore?
+		method setFont(font:MOAIFont)
+		-- method setAlignment(mAlignment:enum)
+		method spool(yFlip?) -> action:MOAIAction
+		method setYFlip(yFlip?)
+		method setCurve(curveID#,curve:MOAIAnimCurve)
+		method setStringColor(index,size,r,g,b,a#)
+		method setString(newStr$)
+		method setSpeed(speed#)
+		method setRightToLeft(rightToLeft?)
+		method revealAll()
+		method nextPage()
+		func new()->MOAITextBox
+	end
+	class MOAITextFrame 
+		
+	end
+	class MOAITextLayout 
+		
+	end
+	class MOAITexture 
+		method getSize() -> width#,height#
+		method initFrameBuffer(width,height#)
+		method setWrap(wrap?)
+		method release()
+		method setFilter(min,mag#)
+		method load(texture*,transform#)
+		method bind()
+		func new()->MOAITexture
+	end
+	class MOAITileDeck2D extends MOAIDeck2D
+		method setSize(width,height,cellWidth,cellHeight,xOff,yOff,tileWidth,tileHeight#)
+		method setRect(xMin,yMin,xMax,yMax#)
+		method setTexture(texture*,transform#) -> texture:MOAITexture
+		func new()->MOAITileDeck2D
+	end
+	class MOAITileFlags 
+		
+	end
+	class MOAITimer 
+		method setMode(mode#)
+		method setCurve(curve:MOAIAnimCurve)
+		method setTime(time#)
+		method getTimesExecuted() -> nTimes#
+		method setSpeed(speed#)
+		method getTime() -> time#
+		method setSpan(startTime,endTime#)
+		func new()->MOAITimer
+	end
+	class MOAITouchSensor extends MOAISensor 
+		method hasTouches() -> hasTouches?
+		method up() -> wasPressed?
+		method isDown() -> isDown?
+		method getActiveTouches() -> idx1#,idxN#
+		method down(idx#) -> wasPressed?
+		method getTouch(id#) -> x#,y#,tapCount#
+		method setCallback(callback:function(i,x,y#))
+		func new()->MOAITouchSensor
+	end
+	class MOAITransform extends MOAITransformBase 
+		method getRot() -> rot#
+		method setLoc(x,y#)
+		method modelToWorld(x,y#) -> x#,y#
+		method addScl(xSclDelta,ySclDelta#)
+		method movePiv(xDelta,yDelta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method seekRot(rGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method worldToModel(x,y#) -> x#,y#
+		method moveLoc(xDelta,yDelta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method setRot(rot#)
+		method getLoc() -> xLoc#,yLoc#
+		method addLoc(xDelta,yDelta#)
+		method getPiv() -> xPiv#,yPiv#
+		method getScl() -> xScl#,yScl#
+		method move(xDelta,yDelta,rDelta,xSclDelta,ySclDelta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method seekPiv(xGoal,yGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method moveRot(rDelta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method addPiv(xDelta,yDelta#)
+		method setScl(xScl,yScl#)
+		method setParent(parent:MOAINode)
+		method seekLoc(xGoal,yGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method seekScl(xSclGoal,ySclGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method setPiv(xPiv,yPiv#)
+		method moveScl(xSclDelta,ySclDelta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method seek(xGoal,yGoal,rGoal,xSclGoal,ySclGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method addRot(rDelta#)
+		func new()->MOAITransform
+	end
+	class MOAITransformBase extends MOAIProp
+		method getWorldScl() -> xScale#,yScale#
+		method getWorldLoc() -> xLoc#,yLoc#
+		method getWorldRot() -> degrees#
+		method getWorldDir() -> xDirection#,yDirection#
+	end
+	-- class curl 
+	-- 	func new()->curl
+	-- end
+	-- class nacl 
+	-- 	func new()->nacl
+	-- end
+	class MOAIVertexBuffer 
+		method setFormat(format:MOAIVertexFormat)
+		method writeInt32(i#)
+		method setPointSize(pointSize#)
+		method writeFloat(f#)
+		method writeInt16(i#)
+		method reserve(size#)
+		method writeInt8(i#)
+		method writeColor32(r,g,b,a#)
+		method setPrimType(primType#)
+		method setPenWidth(penWidth#)
+		method release()
+		method reset()
+		method bless()
+		method reserveVerts(size#)
+		func new()->MOAIVertexBuffer
+	end
+	class MOAIVertexFormat 
+		method declareColor(type#)
+		method declareCoord(type,size#)
+		method declareNormal(type#)
+		method declareUV(type,size#)
+		method declareAttribute(index,type,size#,normalized?)
+		func new()->MOAIVertexFormat
+	end
+	class MOAIVertexFormatMgr 
+		
+	end
+	class MOAIViewport 
+		method setSize(width,height#)
+		method setRotation(rotation#)
+		method setScale(xScale,yScale#)
+		method setOffset(xOff,yOff#)
+		func new()->MOAIViewport
+	end
+	class MOAIWheelSensor extends MOAISensor
+		method getDelta() -> delta#
+		method setCallback(callback:function(d,v#))
+		method getValue() -> value#
+	end
+	class MOAIXmlParser 
+		method parseFile(filename$) -> data*[*]
+		method parseString(filename$) -> data*[*]
+	end
+end 

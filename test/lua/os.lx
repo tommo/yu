@@ -1,0 +1,7 @@
+extern
+	func "os.clock" as clock#()
+	func "os.exit" as exit(code#)
+	func "os.getenv" as getenv$(name$)
+	func "os.execute" as execute(cmd$)
+	func "os.time" as time#()
+end

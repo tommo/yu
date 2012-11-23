@@ -1,0 +1,6 @@
+import 'm1.yu'
+
+func bar(a#)
+	print('bar',a)
+	if a>1 then return foo(a-1) end
+end

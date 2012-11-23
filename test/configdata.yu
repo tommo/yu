@@ -1,0 +1,33 @@
+import 'lua/std.lx'
+
+
+extern
+	class lfs
+		func currentdir$()
+	end
+end
+
+print(lfs.currentdir())
+
+-- import 'lua/std.lx'
+-- -- configdata.yu
+
+-- class Config
+-- 	field posStart,posEnd=0,1
+-- 	field speed=.5
+-- end
+
+-- func applyConfig(config:Config)
+-- 	print('config is')
+-- 	print('pos:',config.posStart,config.posEnd)
+-- 	print('speed:',config.speed)
+-- end
+
+-- applyConfig(
+-- 	{
+-- 		posStart=.5,
+-- 		posEnd=1.5,
+-- 		speed=2
+-- 	}
+-- )
+

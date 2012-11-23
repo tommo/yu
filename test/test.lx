@@ -1,0 +1,167 @@
+import "gfx.lx"
+import "lua/math.lx"
+import "lua/etc.lx"
+
+func randomBetween(minvalue ,maxvalue#) => random()*(maxvalue-minvalue)+minvalue
+
+global milli=0
+
+func c1() => cos(-milli/100)*20
+
+
+local frames=0
+local vsync=false
+
+local text={"hello","world","lux"}
+local k=1
+local t1=MilliSecs()
+
+
+const count=1000
+const width,height=800,650
+const decayrate=0.8
+
+func max(a,b#)=> a>b ? a | b 
+func min(a,b#)=> a<b ? a | b
+
+
+class Entity
+	method update() abstract
+	method draw() abstract
+end
+
+class OtherEntity extends Entity
+	method otherMethod() abstract
+	method draw()
+	end
+end 
+
+class Sprite extends Entity
+	field maxspeed= random()*10+5
+	field x=random()*width
+	field y=random()*height
+	field r=random()*128+128
+	field g=random()*128+100
+	field b=random()*80
+	field xs,ys#
+	field rot=0
+	field px,py=0,0 	
+	
+	method Sprite()
+		xs=random()*maxspeed-maxspeed/2
+		ys=random()*maxspeed-maxspeed/2
+	end
+	
+	method draw()
+		local f=((abs(xs)+abs(ys))/8)^2
+		f=max(1,f)
+		
+		setColor(r*f,g*f,b*(1-f))
+		local s=f*2+1
+		--drawOval(x-s/2,y-s/2,s,s)
+		--drawLine(x,y,px,py)
+		drawRect(x,y,1,1)
+	end
+	
+	method update()
+		ys+=0.4
+		if xs>maxspeed then xs=maxspeed 
+		elseif xs<-maxspeed then xs=-maxspeed end
+		if ys>maxspeed then ys=maxspeed 
+		elseif ys<-maxspeed then ys=-maxspeed end
+		
+		local x1=x+xs
+		local y1=y+ys
+		rot+=1
+		
+		if x1>=width  then
+			x1=width
+			xs=-(xs*decayrate)+randomBetween(-0.2,0.2)*ys
+		elseif x1<=0 then 
+			x1=0
+			xs=-xs*decayrate+randomBetween(-0.2,0.2)*ys
+		end
+		
+		if y1>=height then
+			y1=height
+			ys=-ys*decayrate+randomBetween(-0.2,0.2)*xs
+			
+		-- elseif y1<=0 then 
+			-- y1=0
+			-- ys=-ys*decayrate+randomBetween(-0.2,0.2)*xs
+		end
+		
+		x=x1
+		y=y1
+		draw()
+		px=x
+		py=y
+	end
+	
+end
+
+func dist2(dx,dy#)=>dx*dx+dy*dy
+
+local sprites:Sprite[]={}
+
+for i = 1, count do
+	local s=new Sprite()
+	sprites[i]=s
+end
+
+Graphics(800,600,0)
+
+while not KeyHit(27) do
+	milli=MilliSecs()
+	setAlpha(1)
+	setColor(255,255,255)
+	setBlend(light)
+	
+	local mx,my=MouseX(), MouseY()
+	
+	if MouseDown(1) then
+		for i, s in sprites do
+			s.update()
+			
+			local dx=mx-s.x
+			local dy=my-s.y
+			
+			if dist2(dx,dy)<40000 and random()>0.3 then
+				s.xs=dx/100+s.xs*.99
+				s.ys=dy/100+s.ys*.99
+			else
+				continue
+			end
+			
+		end
+	else
+		for i, s in sprites do
+			s.update()
+		end
+	end
+
+	setBlend(alpha)
+	setColor(255,0,0)
+	drawRect(mx-5,my-5,10,10)
+
+	frames +=1
+
+	if KeyHit(32) then 
+		vsync=not vsync
+		frames=0
+		t1=milli-1
+	end
+	
+	setColor(255,0,0)
+	
+	drawText("fps:"..frames/(milli-t1)*1000,0,0)
+	flip(vsync ? -1 | 0)
+
+	setColor(0,0,0)
+	setAlpha(0.4)
+	drawRect(0,0,width,height)
+	
+end
+
+endGraphics()
+
