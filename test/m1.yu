@@ -1,3 +1,5 @@
+import 'm2.yu'
+
 extern
 	func print(...*)
 end
@@ -6,4 +8,16 @@ class Vec
 	field x,y,z=0,0,0 :{list='ok', last=nil , past='good'}
 end
 
+class TestBase
+	field tester:Tester
+	method report()
+		preReport()
+		tester.report()
+	end
 
+	method getTester()=>tester
+
+	method preReport() abstract
+end
+
+func triple(x#)=>x*3

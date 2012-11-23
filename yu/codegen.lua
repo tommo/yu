@@ -834,6 +834,9 @@ end
 
 
 function generators.varacc(gen,v)
+	local c=getConstNode(v)
+	if c then return codegen(gen,c) end
+
 	local d=v.decl
 	gen:refer(d)
 	gen(getDeclName(d))

@@ -524,8 +524,13 @@ end
 			if not isAssignable(var) then
 				self:err('non-assignable symbol:'..(var.id or var.tag),var)
 			end
+			var.assignId=i
 		end
 		
+		for i,val in ipairs(values) do
+			val.assignId=i
+		end
+
 		--todo: different variable type(member/index/indexoverride)
 		
 		local valtypes,mulretcount=getExprTypeList(values)
@@ -933,6 +938,7 @@ end
 
 ----------------------EXPRESSION
 	function post:varacc(v)
+		
 		if v.vartype=='upvalue' then
 			local pf=self:findParentFunc()
 			if not (pf and pf.tag=='closure' or (pf.tag=='funcdecl' and pf.localfunc)) then
@@ -942,24 +948,77 @@ end
 		end
 
 		local d=self:findSymbol(v.id, v, v.vartype)
-		if not d then self:err("symbol not found:'"..v.id.."'",v ) end
-		
-		if isMemberDecl(d) then 
-			return 'replace', {tag='member',l={tag='self'},id=v.id, decl=d, type=getType(d)}
+
+		if d then 
+			
+			if isMemberDecl(d) then 
+				return 'replace', {tag='member',l={tag='self'},id=v.id, decl=d, type=getType(d)}
+			end
+			
+			self:visitNode(d)
+			
+			v.decl=d
+			local td=getType(d)
+			if td then 
+				v.type=td 
+			else
+				v.type=d.type
+				assert(d.type)
+			end
+			return false
+
+		else --check hint type eg. Enumeration
+			local pnode=self:getParentNode() 
+			local ptag=pnode.tag
+			local hintType
+
+			if ptag=='call' and pnode.l~=v then
+
+				local farg= pnode.l.type.args[v.argId]
+				if farg then
+					local ftype=getType(farg)
+					hintType=ftype
+				end
+
+			elseif ptag=='binop' then 
+				local other= pnode.l==v and pnode.r or pnode.l
+				self:visitNode(other)
+
+				local ftype=getType(other)
+				hintType=ftype
+
+			elseif ptag=='var' then
+				hintType=pnode.type
+				if hintType then hintType=getTypeDecl(hintType) end
+
+			elseif ptag=='assignstmt' then
+				for i,val in ipairs(pnode.values) do
+					if val==v then
+						local var=pnode.vars[i]
+						if var then 
+							hintType=getType(var)
+						end
+						break
+					end
+				end
+			end
+
+			if hintType then
+				local htype=hintType.type
+				if htype==enumMetaType then
+					local enumItem=hintType.scope[v.id]
+					if enumItem then
+						v.type=hintType
+						v.decl=enumItem
+						return false
+					end
+				end
+			end
+
+			--end of hint type eg. Enumeration
 		end
-		
-		self:visitNode(d)
-		
-		v.decl=d
-		local td=getType(d)
-		if td then 
-			v.type=td 
-		else
-			v.type=d.type
-			assert(d.type)
-		end
-		
-		return false
+
+		self:err("symbol not found:'"..v.id.."'",v ) 
 	end
 
 	function post:emitter( e )
@@ -1007,6 +1066,12 @@ end
 			self:err('table argument only valid for object creation',c.arg)
 		end
 		c.type=c.l.decl
+	end
+
+	function pre:call(c)
+		for i,arg in ipairs(c.args) do
+			arg.argId=i
+		end
 	end
 
 	function post:call(c)

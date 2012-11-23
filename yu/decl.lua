@@ -177,31 +177,31 @@ function newDeclCollector()
 			local decl0=scope[name]
 			
 			if decl0 then  --duplicated?
-				local tag0=decl0.tag
-				if tag==tag0 then 
-					if decl0.private ~= decl.private then
-						self:err('function overload must be both private or public',decl)
-					end
-					--TODO:duplicated overloading
-					local dd=decl0
-					local n=1
-					while true do
-						local d1=dd.nextProto
-						if not d1 then
-							dd.nextProto=decl
-							break
-						end
-						n=n+1
-						dd=d1
-					end
-					decl.protoId=n
-				else
+				-- local tag0=decl0.tag
+				-- if tag==tag0 then 
+				-- 	if decl0.private ~= decl.private then
+				-- 		self:err('function overload must be both private or public',decl)
+				-- 	end
+				-- 	--TODO:duplicated overloading
+				-- 	local dd=decl0
+				-- 	local n=1
+				-- 	while true do
+				-- 		local d1=dd.nextProto
+				-- 		if not d1 then
+				-- 			dd.nextProto=decl
+				-- 			break
+				-- 		end
+				-- 		n=n+1
+				-- 		dd=d1
+				-- 	end
+				-- 	decl.protoId=n
+				-- else
 					return self:err(
 						"duplicated declaration:'"..decl.name
 						.."',first defined:"
 						..getTokenPosString(decl0,self.currentModule)
 						,decl,self.currentModule)	
-				end
+				-- end
 				
 			else
 				scope[decl.name]=decl
@@ -433,6 +433,7 @@ function pre.functype(vi,ft)
 		if not ft.typeonly then
 			for i,arg in ipairs(args) do
 				vi:addDecl(arg)
+				arg.argId=i
 				if arg.name=='...' then
 					if i<#args then	vi:err('vararg should only appear at the end',arg) end
 					arg.type={tag='vararg',type=arg.type}

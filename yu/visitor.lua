@@ -133,8 +133,13 @@ visitor.visitNode=visitNode
 visitor.visitEachNode=visitEachNode
 
 
+
 function visitor:err(msg,token,module)
 	return yu.compileErr(msg,token,module or self.currentModule)
+end
+
+function visitor:getParentNode()
+	return self.nodeStack:peek(1)
 end
 
 function visitor:findParentLoop()

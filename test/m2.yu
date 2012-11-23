@@ -1,6 +1,23 @@
 import 'm1.yu'
 
-func bar(a#)
-	print('bar',a)
-	if a>1 then return foo(a-1) end
+class Tester
+	method report()
+		print('tester reports')
+	end
 end
+
+class Test1 extends TestBase
+
+	method preReport()
+		getTester()
+		print('pre report 1')
+	end
+end
+
+
+func double(x#)=>x*2
+
+print(double(triple(10)))
+
+local t=Test1()
+t.tester=Tester()
