@@ -381,7 +381,10 @@ local function getModuleMatch()
 		
 		M= ct(w(v.HeadStmt)^0) * w(v.Block) * cerr(-p(1),"syntax error") / t2('module','heads','block');
 		
-		HeadStmt=cpos(v.Import);
+		HeadStmt=
+			cpos(v.Import)+
+			v.CommonDirective
+			;
 		
 		Import= w(IMPORT) *__* 
 				(	StringS+StringD
