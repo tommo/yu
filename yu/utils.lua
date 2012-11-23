@@ -311,6 +311,19 @@ function newTempVar(t,vtype)
 	return tempvar
 end
 
+function makeMetaData(data)
+	local m={}
+	for i,n in ipairs(data) do
+		local k,v=n.k,n.v
+		if v==nil then 
+			v=true
+		else
+			v=getConst(v)
+		end
+		m[k]=v
+	end
+	return m
+end
 
 _M.getConstNode=getConstNode
 _M.getConst=getConst

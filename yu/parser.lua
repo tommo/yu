@@ -39,17 +39,32 @@ local function resetContext()
 	errors={}
 end
 
+local function checkConst(t)
+	local tag=t and t.tag
+	return tag and tag=='number' or tag=='boolean' or tag=='string' or tag=='nil'
+end
+
 local function parseErr(msg,pos)
 	local lpos=pos-currentLineOffset
 	local m="parse error@"..currentFilePath.."<"..currentLine..":"..lpos..">:"..msg
 	errors[#errors+1]=m
-	end
+end
 	--cmt(p(1),f
 
 local function getModuleMatch()
 
+	local function ccheck(patt,checker,msg)
+		local function checkerfunc(pos,c)
+			if checker(c) then
+				return c
+			else
+				return parseErr(msg,pos)
+			end
+		end
 
-	-- local function tagpos(tag) return cg(cp(),tag) end
+		return (cp()*patt)/checkerfunc
+
+	end
 
 	local function cnot(patt,f) return cg(cp(),'p0')*(patt+(cb'p0'*cp()/f)) end
 
@@ -822,11 +837,16 @@ local function getModuleMatch()
 
 		MetaData=	p':'*BOPEN*__* 
 					(ct(v.MetaItem * __ *(  COMMA *__ * cerr(v.MetaItem,"metadata item expected"))^0)+cnil) *__*
-					cerr(BCLOSE*__,"unclosed metadata body")/t1('meta','data')
+					cerr(BCLOSE*__,"unclosed metadata body")/makeMetaData
 					+cnil
 					;
 					
-		MetaItem=	c(Name) *__* ASSIGN *__* cerr(v.Expr ,"metadata item value expected")/t2('mitem','k','v')
+		MetaItem=	c(Name) *__* ASSIGN *__* 
+				ccheck(
+					cerr(v.Expr ,"metadata item value expected"),
+					checkConst,
+					'metadata item must be constant'
+				)/t2('mitem','k','v')
 				+	c(Name) *__ /t1('mitem','k')
 					;
 		

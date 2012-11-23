@@ -67,6 +67,7 @@ function makeStringConst(s,longstring)
 end
 
 
+
 -----------Default initial value for each type
 booleanType.defaultValue=nilConst
 stringType.defaultValue=nilConst
@@ -759,16 +760,43 @@ end
 function resolveOP(t,node,resolver)
 	local tag=t.tag
 	local r=typeres.op[tag]
-	local cls=yu.getOpClass(node.op)
+	local op=node.op
+	local cls=yu.getOpClass(op)
 	
 	if cls=='equal' then 
 		node.type=booleanType
 		return true
 	elseif cls=='logic' then
-		node.l=convertToBool(node.l)
-		if node.r then node.r=convertToBool(node.r) end
-		node.type=booleanType
-		return true
+		if op=='not' then
+			node.l=convertToBool(node.l)
+			node.type=booleanType
+			return true
+		elseif op=='and' then
+			-- local lt=getType(node.l)
+			local rt=getType(node.r)
+			-- node.notype=lt
+			node.yestype=rt
+			node.type=booleanType
+
+			return true
+		elseif op=='or' then
+			-- local lnotype=node.l.notype
+
+			local lt=getType(node.l)
+			lt=node.l.yestype or lt
+
+			local rt=getType(node.r)
+			local shared=getSharedSuperType(lt,rt)
+
+			if not shared then 
+				node.type=anyType
+			else
+				node.type=shared
+			end
+			
+			return true
+		end
+
 	elseif r and r(t,node,resolver) then 
 		return true 
 	end

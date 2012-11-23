@@ -1,6 +1,8 @@
 
 local args={...}
-
+if MOAISim then
+	os.clock=MOAISim.getDeviceTime
+end
 
 -- setmetatable(_G,{__index=function(t,k) error("undefined symbol:"..k,2) end})
 require "tools.printtable"

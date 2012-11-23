@@ -60,25 +60,38 @@ function newDeclCollector()
 
 		maxDeclId=0,
 		maxClosureId=0,
+		
 		currentNamePrefix="",
+		currentExNamePrefix="",
+
 		currentScope=false,
+
+		-- currentN
 
 		depth=0,
 		
 		pushName=function(self,name)
-			return self.nameStack:push(name)
+			local n=self.currentNamePrefix..name
+			self.currentNamePrefix=n
+			return self.nameStack:push(n)
 		end,
 		
 		popName=function(self)
-			return self.nameStack:pop()
+			local n=self.nameStack:pop() or ''
+			self.currentNamePrefix=n
+			return n
 		end,
 
 		pushExternName=function(self,name)
-			return self.exNameStack:push(name)
+			local n=self.currentExNamePrefix..name
+			self.currentExNamePrefix=n
+			return self.exNameStack:push(n)
 		end,
 		
 		popExternName=function(self)
-			return self.exNameStack:pop()
+			local n=self.exNameStack:pop() or ''
+			self.currentExNamePrefix=n
+			return n
 		end,
 
 		genDeclId=function( self )
@@ -134,7 +147,16 @@ function newDeclCollector()
 
 			
 			local tag=decl.tag
-		
+			if tag=="vardecl" then
+				local meta=decl.meta
+				for i,var in ipairs(decl.vars) do
+					var.vtype=decl.vtype
+					if meta then var.meta=meta end
+					self:addDecl(var,inclass)
+				end
+				return
+			end
+			
 			if tag=="private" then
 				currentScope.private=true
 				return
@@ -142,15 +164,7 @@ function newDeclCollector()
 				currentScope.private=false
 				return
 			end
-			
-			if tag=="vardecl" then
-				for i,var in ipairs(decl.vars) do
-					var.vtype=decl.vtype
-					self:addDecl(var,inclass)
-				end
-				return
-			end
-			
+	
 			if tag=="import" then
 				decl.name=decl.alias
 			end
@@ -164,35 +178,36 @@ function newDeclCollector()
 			
 			if decl0 then  --duplicated?
 				local tag0=decl0.tag
-				-- if tag==tag0 and tag=='methoddecl' and decl.name=='__new' then --only overloading constructor
-				-- 	if decl0.private ~= decl.private then
-				-- 		self:err('function overload must be both private or public',decl)
-				-- 	end
-				-- 	--TODO:duplicated overloading
-				-- 	local dd=decl0
-				-- 	local n=1
-				-- 	while true do
-				-- 		local d1=dd.nextProto
-				-- 		if not d1 then
-				-- 			dd.nextProto=decl
-				-- 			break
-				-- 		end
-				-- 		n=n+1
-				-- 		dd=d1
-				-- 	end
-				-- 	decl.protoId=n
-				-- else
+				if tag==tag0 then 
+					if decl0.private ~= decl.private then
+						self:err('function overload must be both private or public',decl)
+					end
+					--TODO:duplicated overloading
+					local dd=decl0
+					local n=1
+					while true do
+						local d1=dd.nextProto
+						if not d1 then
+							dd.nextProto=decl
+							break
+						end
+						n=n+1
+						dd=d1
+					end
+					decl.protoId=n
+				else
 					return self:err(
 						"duplicated declaration:'"..decl.name
 						.."',first defined:"
 						..getTokenPosString(decl0,self.currentModule)
 						,decl,self.currentModule)	
-				-- end
+				end
 				
 			else
 				scope[decl.name]=decl
 			end
-
+			--
+			--
 			decl.declId=self:genDeclId()
 			decl.refname=decl.name..'_'..(declPrefix[decl.tag] or 'v')..decl.declId
 			-- decl.refname='_'..(declPrefix[decl.tag] or 'v')..decl.declId
@@ -200,20 +215,16 @@ function newDeclCollector()
 			if decl.alias then
 				decl.fullname=decl.alias
 			elseif decl.extern then
-				decl.fullname=makeNamePrefix(self.exNameStack,'.')..name	
+				decl.fullname=self.currentExNamePrefix..'.'..name	
 			else
-				decl.fullname=makeNamePrefix(self.nameStack,'_')..name	
+				decl.fullname=self.currentNamePrefix..'.'..name
 			end
-
 
 			if decl.protoId then
 				decl.fullname=decl.fullname..'_p'..decl.protoId
 			end					
 
 			decl.depth=self.depth
-			
-			
-			
 			-- print("..added decl:",decl.tag,decl.name,decl.fullname,decl.vtype)
 		end
 		

@@ -1,29 +1,9 @@
 extern
 	func print(...*)
 end
--- 	class Texture
--- 	end
--- end
 
-
--- class Sprite
-
--- 	-- private:
-	
--- 		field tex:Texture
-
--- 	public:
-	
--- 		method setTexture(tex:Texture)  :{hidden,good}
-
--- 		end
-
--- 		method getTexture()=>tex
--- end
-
-func test(...*)
-	local a=...
-	print(a)
+class Vec 
+	field x,y,z=0,0,0 :{list='ok', last=nil , past='good'}
 end
 
-test(1,2,3)
+

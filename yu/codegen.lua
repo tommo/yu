@@ -41,14 +41,24 @@ local function isExposable(n)
 	end
 end
 
+local function printMetadata(m)
+	local s=''
+	for k,v in pairs(m) do
+		local i=string.format('%s=%s,',k,v)
+		s=s..i
+	end
+	return '{'..s..'}'
+end
+
 local function getDeclName(d)
 	if d.name=='...' then return '...' end
 	-- return d.refname
 	local tag = d.tag
 	if tag=='var' then
 		local vtype=d.vtype
-		-- if vtype=='local' then return 'l_'..d.name end
-		-- if vtype=='global' then return d.fullname end
+		if vtype=='local' then return d.name end
+		if vtype=='global' then return d.refname end
+
 		if vtype=='const' then return getConst(d.value) end
 		-- if vtype=='field' then 
 		-- 	--TODO: self?
@@ -57,7 +67,7 @@ local function getDeclName(d)
 	elseif tag=='funcdecl' then
 		--TODO:....
 	elseif tag=='arg' then
-		-- return 'l_'..d.name
+		return d.name
 	end
 	return d.refname
 end
@@ -603,6 +613,10 @@ function generators.classdecl(gen,c)
 	gen:appendf('function __YU_LOADER.%s()',getDeclName(c))
 	gen:ii()
 	gen:cr()
+		if c.meta then 
+			gen:appendf('local meta=%s',printMetadata(c.meta))
+			gen:cr()
+		end
 		gen:appendf('local class= __YU_RUNTIME.newClass(%q)',c.name)
 		gen:cr()
 		gen:appendf('__YU_LOADED.%s=class',getDeclName(c))
@@ -951,7 +965,7 @@ function generators.binop(gen,b)
 	local p=getOpPrecedence(b.op)
 	
 	local wrapl= b.l.tag=='binop' and getOpPrecedence(b.l.op)<p 
-	local wrapr= b.r.tag=='binop' and getOpPrecedence(b.r.op)<p
+	local wrapr= b.r.tag=='binop' and getOpPrecedence(b.r.op)<=p
 	
 	
 	if wrapl then 

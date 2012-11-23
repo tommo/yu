@@ -584,6 +584,14 @@
 			}
 		},
 		{
+			"file": "yu/codegen.lua",
+			"settings":
+			{
+				"buffer_size": 21700,
+				"line_ending": "Windows"
+			}
+		},
+		{
 			"file": "test/vec.yu",
 			"settings":
 			{
@@ -603,7 +611,7 @@
 			"file": "output.lua",
 			"settings":
 			{
-				"buffer_size": 1224,
+				"buffer_size": 4732,
 				"line_ending": "Unix"
 			}
 		},
@@ -1028,7 +1036,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 8,
 			"sheets":
 			[
 				{
@@ -1107,7 +1115,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 8556.0,
+						"translation.y": 8565.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1187,7 +1195,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 13.0,
-						"translation.y": 4574.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1245,15 +1253,42 @@
 						"zoom_level": 1.0
 					},
 					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "yu/codegen.lua",
+					"settings":
+					{
+						"buffer_size": 21700,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7969,
+								7973
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 7733.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
 				}
 			]
 		},
 		{
-			"selected": 1,
+			"selected": 6,
 			"sheets":
 			[
 				{
-					"buffer": 8,
+					"buffer": 9,
 					"file": "test/vec.yu",
 					"settings":
 					{
@@ -1291,8 +1326,8 @@
 						"selection":
 						[
 							[
-								1157,
-								1157
+								827,
+								827
 							]
 						],
 						"settings":
@@ -1301,13 +1336,13 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 512.0,
+						"translation.y": 559.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 10,
 					"file": "test/m1.yu",
 					"settings":
 					{
@@ -1334,19 +1369,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 10,
+					"buffer": 11,
 					"file": "output.lua",
 					"settings":
 					{
-						"buffer_size": 1224,
+						"buffer_size": 4732,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1224,
-								1224
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1361,7 +1396,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 11,
+					"buffer": 12,
 					"file": "test/moai/api.yu",
 					"settings":
 					{
@@ -1388,7 +1423,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 12,
+					"buffer": 13,
 					"file": "yu/runtime.lua",
 					"settings":
 					{
@@ -1410,6 +1445,33 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 1712.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 0,
+					"file": "test/moai.yu",
+					"settings":
+					{
+						"buffer_size": 1650,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								454,
+								454
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/yua/Yua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1470,6 +1532,14 @@
 		"selected_items":
 		[
 			[
+				"codeg",
+				"yu/codegen.lua"
+			],
+			[
+				"moai.yu",
+				"test/moai.yu"
+			],
+			[
 				"par",
 				"yu/parser.lua"
 			],
@@ -1500,10 +1570,6 @@
 			[
 				"coro",
 				"test/coro.yu"
-			],
-			[
-				"moai.yu",
-				"test/moai.yu"
 			],
 			[
 				"out",
@@ -1540,10 +1606,6 @@
 			[
 				"test/",
 				"test/m1.yu"
-			],
-			[
-				"codeg",
-				"yu/codegen.lua"
 			],
 			[
 				"vec",
@@ -1942,16 +2004,16 @@
 		"selected_items":
 		[
 			[
+				"",
+				"/Users/tommo/prj/moai/mock/mock.sublime-project"
+			],
+			[
 				"spe",
 				"/Users/tommo/prj/moai/spell/lua/spell.sublime-project"
 			],
 			[
 				"sp",
 				"/Users/tommo/prj/moai/spell/spell.sublime-project"
-			],
-			[
-				"",
-				"/Volumes/win/prj/moai/pongfu/pongfu.sublime-project"
 			]
 		],
 		"width": 380.0

@@ -83,7 +83,9 @@ end
 	end
 	local t1=os.clock()
 	yu.newDeclCollector():visitNode(m)
-	totalDeclTime=totalDeclTime+os.clock()-t1
+	local dt=os.clock()-t1
+	totalDeclTime=totalDeclTime+dt
+	print(string.format('decl time += %d\t%d\t %s',dt*1000,totalDeclTime*1000,m.name))
 	self:addBuildingModule(m)
 	return m
  end
