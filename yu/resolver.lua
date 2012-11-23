@@ -515,7 +515,12 @@ end
 		return false
 	end
 
-	
+	function pre:assignstmt(a)
+		for i,val in ipairs(a.values) do
+			val.assignId=i
+		end
+	end
+
 	function post:assignstmt(a)
 		
 		local vars,values=a.vars,a.values
@@ -524,11 +529,6 @@ end
 			if not isAssignable(var) then
 				self:err('non-assignable symbol:'..(var.id or var.tag),var)
 			end
-			var.assignId=i
-		end
-		
-		for i,val in ipairs(values) do
-			val.assignId=i
 		end
 
 		--todo: different variable type(member/index/indexoverride)
@@ -992,15 +992,11 @@ end
 				if hintType then hintType=getTypeDecl(hintType) end
 
 			elseif ptag=='assignstmt' then
-				for i,val in ipairs(pnode.values) do
-					if val==v then
-						local var=pnode.vars[i]
-						if var then 
-							hintType=getType(var)
-						end
-						break
-					end
+				if v.assignId then
+					local var=pnode.vars[v.assignId]
+					hintType=var and getType(var)
 				end
+
 			end
 
 			if hintType then
@@ -1069,8 +1065,10 @@ end
 	end
 
 	function pre:call(c)
-		for i,arg in ipairs(c.args) do
-			arg.argId=i
+		if c.args then
+			for i,arg in ipairs(c.args) do
+				arg.argId=i
+			end
 		end
 	end
 
