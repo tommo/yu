@@ -1258,7 +1258,7 @@ end
 	
 	function post:seq(t)
 		local vts={}
-		if t.items then
+		if t.items and t.items[1] then
 			for i,item in ipairs(t.items) do
 				local tt=getType(item)
 				if tt.tag=='niltype' then self:err('table item value is nil') end
