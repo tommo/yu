@@ -11,9 +11,15 @@ end
 
 class Sprite
 	field pos=Vec(0,0,0)
+	field size#
 	method update()
 	end
-	
+	method draw()
+		print('drawing')
+	end
+	method __new()
+		print('new sprite')
+	end
 end
 
 class ImageSprite extends Sprite
@@ -26,26 +32,29 @@ class ImageSprite extends Sprite
 		print('register image sprite:',img)
 	end
 
+	method draw()
+		super.draw()
+		print('imagesprite')
+	end
+
+
 	method __new()
 		img='test'
 		register()
 	end
 end
+-- Sprite()
+local i=ImageSprite()
+i.draw()
 
-local s=ImageSprite()
-func rectCenter(w,h#)=>-w/2,-h/2,w/2,h/2
-func double(a,b#)->a#,b#
-	return a*2,b*2
-end
-print(rectCenter(40,80))
-print(double(5,10))
+ImageSprite{size=20}
 
-local f:func(),f1:func(a*)
-func foo()
+
+
+func uploadSprite(sprite:Sprite)
 end
 
-func bar(x*)
-end
 
-f=foo
-f1=bar
+uploadSprite({
+		size=20
+	})

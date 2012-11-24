@@ -658,7 +658,7 @@ function typeres.call.classmeta(t,n,resolver )
 		local msg=''
 		for i, m in ipairs(clas.decls) do
 			if m.abstract then
-				msg=msg..'\n'..m.name..':'..m.type.name
+				msg=msg..'\n'..m.name..' : '..m.type.name
 			end
 		end
 		resolver:err('class has abstract method(s):'..msg,n.l)

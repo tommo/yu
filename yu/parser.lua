@@ -1,3 +1,8 @@
+--[[
+	known issue:
+		nested parenthesis is limited by lpeg, will look for some workaround
+]]
+
 if not rawget(_G,'lpeg')then
 	require "lpeg"
 end
@@ -941,31 +946,25 @@ local function getModuleMatch()
 		Closure	=	FUNCKW * __ *_NA * cerr(v.FuncType, "function type expected" ) * __ * v.FuncBlock/t2('closure','type','block');
 		
 		SeqBody	=	w(BOPEN)* 
-						v.ExprListAllowEndComma
-						-- (ct(v.Expr*(w(COMMA)*cerr(v.Expr,'expression expected'))^0)+cnil) 
-						-- (ct(v.Expr*(w(COMMA)*cerr(v.Expr,'expression expected'))^0)+cnil) 
+						ct(v.Expr * (w(COMMA) * v.Expr)^0 *w(COMMA)^-1 + cnil)
 					* w(BCLOSE) / t1('seq','items')	;
 		
-		ExprListCommaSpan=v.Expr*(w(COMMA)*v.ExprListCommaSpan^0)^0;
-		
-		ExprListAllowEndComma=ct(v.ExprListCommaSpan+cnil);
 
-
-		TableBody=	w(BOPEN)*
-				-- (	v.TableItem* 
-				-- 	(__* (COMMA+SEMI) *__* cerr(v.TableItem,"table item expected"))^0 * __ * (COMMA+SEMI)^-1 *__  
-				-- )^-1 
+		TableBody=	w(BOPEN)*				
 				v.TableItemList
 				* cerr(w(BCLOSE),"unclosed table body") / t1('table','items') ;
 			
 		TableItem = (Ident/makeStringConst + (w(SOPEN)*v.Expr*w(SCLOSE)))
 					* ASSIGN * __* cerr(v.Expr,"table item value expected") / t2('item','key','value');
 
-		TableItemListSpan=v.TableItem*(w(COMMA+SEMI)*v.TableItemListSpan^0)^0;
-		
-		TableItemList=ct(v.TableItemListSpan+cnil);
+		TableItemList=ct(
+			v.TableItem*(w(COMMA+SEMI)*v.TableItem)^0
+			*w(COMMA+SEMI)^-1
+			+cnil);
 		
 	}
+
+	lpeg.setmaxstack(400)
 
 	return Module
 end

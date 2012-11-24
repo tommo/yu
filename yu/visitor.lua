@@ -482,8 +482,8 @@ paths={
 	end,
 	
 	cast=function(vi,a)
-		visitNode(vi,a.l)
-		return visitNode(vi,a.dst)
+		visitNode(vi,a.dst)
+		return visitNode(vi,a.l)
 	end,
 	
 	is=function(vi,a)
