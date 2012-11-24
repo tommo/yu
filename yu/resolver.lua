@@ -173,7 +173,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 		elseif ptag=='var' then
 			hintType=pnode.type		
-			if hintType then 
+			if hintType and hintType.tag~='typeref' then 
 				hintType=getTypeDecl(hintType)
 			end
 
