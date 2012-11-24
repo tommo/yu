@@ -116,7 +116,7 @@ function codeWriter:append(str,s1,...)
  
  local stringrep = string.rep
  function codeWriter:cr()
- 	self:append('\n'..stringrep('\t',self.__indent))
+ 	self:append('--'..self.__line..'\n'..stringrep('\t',self.__indent))
  	self.__line=self.__line+1
  end
 
