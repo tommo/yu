@@ -15,6 +15,14 @@ local post={}
 
 local __searchSeq=0 
 
+local function copyTable(a)
+	local b={}
+	for k,v in pairs(a) do
+		b[k]=v
+	end
+	return b
+end
+
 local function _findExternSymbol(entryModule,name,found)
 	found=found or {}
 	local externModules=entryModule.externModules
@@ -133,6 +141,90 @@ function newResolver()
 	return yu.newVisitor(r)
 end
 
+local	function findHintType(vi,node,parentLevel,keep)
+		parentLevel=parentLevel or 1
+
+		local v=node
+		local pnode=vi.nodeStack:peek(parentLevel) 
+		if not pnode then return end
+		-- print('serach hint',node.tag,node.id,parentLevel,pnode.tag)
+
+
+		local ptag=pnode.tag
+		local hintType
+
+		if ptag=='call' and pnode.l~=v then
+
+			local farg= pnode.l.type.args[v.argId]
+			if farg then
+				local ftype=getType(farg)
+				hintType=ftype
+			end
+		elseif ptag=='tcall' then
+			local t=getType(pnode.l)
+			if t.tag=='classmeta' then hintType=pnode.l.decl end
+
+		elseif ptag=='binop' then 
+			local other= pnode.l==v and pnode.r or pnode.l
+			vi:visitNode(other)
+
+			local ftype=getType(other)
+			hintType=ftype
+
+		elseif ptag=='var' then
+			hintType=pnode.type		
+			if hintType then 
+				hintType=getTypeDecl(hintType)
+			end
+
+		elseif ptag=='assignstmt' then
+			if v.assignId then
+				local var=pnode.vars[v.assignId]
+				hintType=var and getType(var)
+			end
+
+		elseif ptag=='seq' then
+			local t=pnode.type or findHintType(vi,pnode,parentLevel+1)			
+			if t then
+				hintType=getTypeDecl(t.etype)
+			end
+
+		elseif ptag=='table' then
+			return pnode.type or findHintType(vi,pnode,parentLevel+1)
+			--todo:further hint 
+
+		elseif ptag=='item' then
+			local tnode=vi.nodeStack:peek(parentLevel+1) --table node
+			local ttype=tnode.type 
+			local target
+			local key,val=pnode.key,pnode.value
+
+			if ttype and ttype.tag=='tabletype' then
+				table.foreach(ttype,print)
+				if key==v then
+					target=ttype.etype
+				else
+					target=ttype.ktype
+				end
+			elseif val==v then
+				ttype= findHintType(vi,pnode,parentLevel+1)
+				if ttype.tag=='classdecl' then					
+					local member=getClassMemberDecl(ttype,key.v,true)					
+					if member and member.vtype=='field' then
+						target=member.type						
+					end
+				end
+
+			end
+
+			if target then hintType=getTypeDecl(target) end
+			
+		end
+		-- print('result',hintType and hintType.tag, hintType and hintType.name,ptag)
+		return hintType,ptag
+
+	end
+
 	local function makeFuncTypeName( ft )
 		local rt=ft.rettype
 		local argname=''
@@ -159,11 +251,11 @@ end
 
 ----------------TOPLEVEL
 	function pre:any(n)
-		-- print('resoving..',n.tag,n.name or n.id)
+
 		local state=n.resolveState
 		if state=='done' then 
 			return 'skip'
-		elseif state=='resolving' then
+		elseif state=='resolving' then			
 			self:err('cyclic declaration dependecy',n)
 		end
 		
@@ -217,7 +309,7 @@ end
 	end
 	
 	------------------------------CONTROL
-	local stmtExprTable=makeStringCheckTable('new','call','wait','resume','emit')
+	local stmtExprTable=makeStringCheckTable('new','call','wait','resume','emit','tcall')
 	function post:exprstmt(e) 
 		local expr=e.expr
 		if not stmtExprTable[expr.tag] then
@@ -756,7 +848,7 @@ end
 		
 		for k,d0 in pairs(scope0) do
 			if k~='private'	then
-				if d0.tag=='var' and d0.vtype=='field' and d0.value then
+				if d0.tag=='var' and d0.vtype=='field' and d0.value and d0.value.tag~='nil' then
 					defaultValuesCount=defaultValuesCount+1
 					defaultValues[defaultValuesCount]={
 						tag='assignstmt',
@@ -967,37 +1059,8 @@ end
 			end
 			return false
 
-		else --check hint type eg. Enumeration
-			local pnode=self:getParentNode() 
-			local ptag=pnode.tag
-			local hintType
-
-			if ptag=='call' and pnode.l~=v then
-
-				local farg= pnode.l.type.args[v.argId]
-				if farg then
-					local ftype=getType(farg)
-					hintType=ftype
-				end
-
-			elseif ptag=='binop' then 
-				local other= pnode.l==v and pnode.r or pnode.l
-				self:visitNode(other)
-
-				local ftype=getType(other)
-				hintType=ftype
-
-			elseif ptag=='var' then
-				hintType=pnode.type
-				if hintType then hintType=getTypeDecl(hintType) end
-
-			elseif ptag=='assignstmt' then
-				if v.assignId then
-					local var=pnode.vars[v.assignId]
-					hintType=var and getType(var)
-				end
-
-			end
+		else --check hint type for Enumeration/ ObjectConstruction
+			local hintType=findHintType(self,v)
 
 			if hintType then
 				local htype=hintType.type
@@ -1050,7 +1113,7 @@ end
 				if not member then
 					self:err(format('field %q not found in class %q',key,clas.name),item)
 				end
-				if member.tag~='var' and member.vtype~='field' then
+				if member.vtype~='field' then
 					self:err(format('"%s.%s" is not a field',clas.name,key),item)
 				end
 				local vtype=getType(item.value)
@@ -1219,6 +1282,31 @@ end
 	end
 	
 	function post:table(t)
+
+		local hintType,ptag=findHintType(self,t)
+		if hintType and
+			(ptag=='call' or ptag=='var' or ptag=='assignstmt' or ptag=='item' or ptag=='seq')
+		then
+
+			if hintType.type==classMetaType then
+				local classAcc={
+					tag='varacc',
+					type=classMetaType,	
+					decl=hintType,
+					resolveState='done',
+				}
+				local t1=copyTable(t)
+				t1.resolveState=nil
+
+				return 'replace',{
+					tag='tcall',
+					l=classAcc,
+					arg=t1,
+				}				
+			end
+
+		end
+
 		local kts={}
 		for i,item in ipairs(t.items) do
 			local tt=getType(item.key)
@@ -1245,6 +1333,8 @@ end
 		end
 		
 		t.type={tag='tabletype',etype=vt,ktype=kt,name=vt.name..'['..kt.name..']'}
+		
+
 		return true
 	end
 	
@@ -1416,7 +1506,7 @@ end
 		t.etype=getTypeDecl(t.etype)
 		t.ktype=getTypeDecl(t.ktype)
 		t.name=format('%s[%s]',t.etype.name,t.ktype.name)
-
+		t.type=tableMetaType
 	end
 	
 	function post.mulrettype(vi,mt)

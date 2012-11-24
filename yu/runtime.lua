@@ -135,7 +135,7 @@ local function makefinalizer(t)
 end
 
 
-function newObject(obj, clas, finalizer,  constructor, ...)
+function newObject(obj, clas, constructor,finalizer, ...)
 	setmetatable(obj,clas)
 	
 	if constructor then
