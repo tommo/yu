@@ -1,0 +1,17 @@
+extern
+	func print(...*)
+end
+
+-- assert false
+
+-- try
+-- 	throw 'shit'
+-- catch ex* do
+-- 	print(ex)
+-- end
+
+for i=1, 5 do
+	print(i)
+	if i==3 then throw 'shit' end
+end
+

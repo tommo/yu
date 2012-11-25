@@ -1,0 +1,16 @@
+extern
+	func print(...*)
+end
+
+local a,b=1,2
+func double(a,b#)=>a*2,b*2
+local t1={double(a,b)}
+
+for i,v in t1 do
+	print(v)
+end
+
+local c,d,e=double(a,b),9,'good'
+print(c,d,e)
+-- print(d>e)
+

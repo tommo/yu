@@ -1,0 +1,32 @@
+extern
+	func print(...*)
+end
+
+
+class StringSet
+	field _t?[$]={}
+	
+	method set(s$)
+		_t[s]=true
+	end
+	
+	method remove(s$)
+		_t[s]=nil
+	end
+
+	method check(s$)
+		=>_t[s]==true
+
+	method __iter()=>_t
+end
+
+local set1=StringSet{_t={}}
+set1.set('good')
+set1.set(1)
+local set1Has=func(s$)
+	print(@set1.check(s) and 'yes' or 'no')
+end
+
+set1Has('good')
+set1Has('bad')
+

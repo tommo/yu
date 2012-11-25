@@ -1,0 +1,19 @@
+
+class Manager
+	global _mgr:Manager
+	method __new()
+		if _mgr then throw 'manager already created' end
+		_mgr=self
+	end
+end
+
+local m1=Manager()
+
+class Worker
+	field id#
+	method __new(id#)
+		self.id=id
+	end
+end
+
+local w1=Worker(1)

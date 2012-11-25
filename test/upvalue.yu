@@ -1,0 +1,11 @@
+extern
+	func print(...*)
+end
+
+local x=1
+local f1=func() =>	func()
+		print('x=',@x)
+	end
+
+local fx=f1()
+fx()

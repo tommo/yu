@@ -1,0 +1,31 @@
+extern 
+	func print(...*)
+end
+
+enum State{
+	OK,
+	NO,
+	WAIT
+}
+
+func printState(s:State)
+	print('state = ', s==OK and 'OK' or s==WAIT and 'WAIT' or 'NO')
+end
+
+local s,i=State.OK,1
+printState(s)
+s=WAIT
+printState(s)
+
+local flags:State[]={}
+flags[1]=NO
+printState(flags[1])
+
+-- local flags2:State[]={OK,WAIT}
+
+func takeFlags(flags:State[]) 
+	printState(flags[1])
+end
+
+takeFlags({OK,WAIT})
+

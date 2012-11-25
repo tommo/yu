@@ -1,0 +1,22 @@
+extern
+	func print(...*)
+end
+
+class Fruit
+end
+
+class Apple extends Fruit
+end
+
+local a=Apple()
+local b=Fruit()
+local c:Fruit=a
+
+print(a is Apple)
+print(b is Apple)
+
+print(a as Apple)
+print(c as Apple)
+print(b as Apple)
+
+print(c==a)

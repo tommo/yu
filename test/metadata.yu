@@ -1,0 +1,27 @@
+extern
+	func print(...*)
+end
+
+class DataBase
+end
+
+class DataEntry extends DataBase	:{export, database='main'}
+	field name$
+	field id#			:{mainkey}
+
+	method tostring$() final
+		return 'id:'..id
+	end
+end
+
+local e1=DataEntry{
+	id=1,
+	name='John'
+}
+
+print(e1.tostring())
+local func test()
+	global x=1
+end
+local m=1
+test()

@@ -1,0 +1,61 @@
+extern 
+	func	print(...*)
+end
+
+class Person
+	field name$
+	field age#
+end
+
+func greet(p:Person)
+	print('hello', p.name)
+end
+
+greet({name='John'})
+
+local lucy:Person
+lucy={name='Lucy'}
+greet(lucy)
+
+class Vec
+	field x,y#
+	method __new(nx,ny#)
+		x,y=nx,ny
+	end
+
+	method add(v1:Vec)=>Vec{x=x+v1.x,y=y+v1.y}
+	method tostring()=>'('..x..','..y..')'
+end
+
+print(Vec(1,1).add(Vec(2,5)).tostring())
+
+local v:Vec={
+		x=1,
+		y=2
+	}
+
+local vecList:Vec[]={}
+vecList[1]=Vec(1,3)
+vecList[2]={x=3,y=4}
+print(vecList[2].add(vecList[1]).tostring())
+
+
+-- inner class hint
+class Sprite
+	field pos:Vec
+end
+
+func uploadSprite(s:Sprite)
+end
+
+local s1=Sprite{
+	pos={x=1,y=2}
+}
+
+uploadSprite({	--new Sprite
+		pos={				--new Vec
+			x=1,
+			y=2
+		}
+	}
+)

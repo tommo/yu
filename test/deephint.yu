@@ -1,0 +1,57 @@
+extern
+	func print(...*)
+end
+
+class Vec
+	field x,y#
+end
+
+class Sprite
+	field parent:Sprite
+	field pos:Vec
+
+	method showPos()
+		print('i am at',pos.x,pos.y)
+		if parent then
+			print('>my parent says:')
+			parent.showPos()
+		end
+	end
+
+end
+
+class Scene
+	field sprites:Sprite[]={}
+	
+	method showSpritePos()
+		for i,s in sprites do
+			s.showPos()
+		end
+	end
+
+end
+
+-- local s=Sprite{ttype= findHintType(vi,pnode,parentLevel+1)
+-- 			pos={
+-- 				x=1,
+-- 				y=2
+-- 			},
+-- 			parent={
+-- 				pos={
+-- 					x=2,
+-- 					y=2
+-- 				}
+-- 			}
+-- 		}
+
+-- s.showPos()
+
+local scene=Scene{
+	sprites={
+		{	pos={x=1,y=2}	},
+		{	pos={x=3,y=4}	},
+		{	pos={x=8,y=6}	},
+	}
+}
+
+scene.showSpritePos()

@@ -1,0 +1,54 @@
+extern
+	func print(...*)
+end
+
+class QueueNode
+	field value*
+	field prev:QueueNode
+end
+
+class Queue
+	field head:QueueNode
+
+	method push(v*)
+		local node=QueueNode{value=v}
+		node.prev=head
+		head=node
+	end
+
+	method pop()->*
+		local node=head
+		if node then
+			head=head.prev
+			return node.value
+		end
+		return nil
+	end
+
+	method __iter()=>QueueIterator{node=head}
+
+end
+
+class QueueIterator
+	field node:QueueNode
+	method __next()->value*
+		local v*
+		if node then
+			v=node.value
+			node=node.prev
+		end
+		return v
+	end
+end
+
+
+local q=Queue()
+for i=1,10 do
+	q.push('item-'..i)
+end
+-- print(q.pop())
+-- print(q.pop())
+
+for v in q do
+	print(v)
+end
