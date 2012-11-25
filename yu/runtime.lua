@@ -55,6 +55,11 @@ end
 function objectNext( obj )
 	return obj.__next,obj
 end
+
+function cast(obj,t)
+	return isType(obj,t) and obj or nil
+end
+
 -----------SIGNAL
 local signalConnectionTable={}
 local next=next

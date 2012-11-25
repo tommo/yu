@@ -1175,6 +1175,7 @@ local __YU_EXTERN=__YU_RUNTIME.loadExternSymbol
 local __YU_OBJ_NEXT=__YU_RUNTIME.objectNext
 local __YU_MODULE_LOADED, __YU_MODULE_LOADER=__YU_RUNTIME.makeSymbolTable()
 local __YU_ISTYPE = __YU_RUNTIME.isType
+local __YU_CAST = __YU_RUNTIME.cast
 	]]
 
 	code=header..code
