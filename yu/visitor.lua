@@ -71,6 +71,12 @@ local function visitNode(vi,n,list)
 	return true
 end
 
+local function visitOutterNode(vi,n,list) --keep stack state and visit outter node
+	
+	visitNode()
+end
+
+
 local function visitEachNode(vi,l)
 	-- local vit=getmetatable(vi)
 	-- if not vit or  vit.__index~=visitor then

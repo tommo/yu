@@ -21,3 +21,5 @@ print(double(triple(10)))
 
 local t=Test1()
 t.tester=Tester()
+
+local x=origin.x

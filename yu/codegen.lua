@@ -24,6 +24,7 @@ local getConst=getConst
 local format,gsub,unescape = string.format,string.gsub,unescape
 
 local codegen,codegenList
+local insert=table.insert
 
 local function isExposable(n)
 	-- if n.extern then return false end
@@ -44,32 +45,30 @@ end
 local function printMetadata(m)
 	local s=''
 	for k,v in pairs(m) do
-		local i=string.format('%s=%s,',k,v)
+		local i=string.format('%s=%s,',k,tostring(v))
 		s=s..i
 	end
 	return '{'..s..'}'
 end
 
 local function getDeclName(d)
-	if d.name=='...' then return '...' end
 	-- return d.refname
 	local tag = d.tag
 	if tag=='var' then
 		local vtype=d.vtype
 		if vtype=='local' then return d.name end
 		if vtype=='global' then return d.refname end
-
 		if vtype=='const' then return getConst(d.value) end
-		-- if vtype=='field' then 
-		-- 	--TODO: self?
-		-- 	return d.name 
-		-- end
+		if vtype=='field' then return d.name end
+		
 	elseif tag=='funcdecl' then
-		--TODO:....
-	elseif tag=='arg' then
+	elseif tag=='methoddecl' then
 		return d.name
+	elseif tag=='arg' then
+		return d.name	
 	end
-	return d.refname
+
+	return d.name
 end
 
  local codeWriter={}
@@ -85,7 +84,7 @@ end
 			__count=0,
 			__indent=0,
 			__list={str and tostring(str) or ''}, --string buffer part
-			
+			__line_info={},
 			__level=0,
 
 			referedDecls={},		--context part
@@ -116,8 +115,20 @@ function codeWriter:append(str,s1,...)
  
  local stringrep = string.rep
  function codeWriter:cr()
- 	self:append('--'..self.__line..'\n'..stringrep('\t',self.__indent))
+ 	self:append(
+ 		-- '--'..self.__line..
+ 		'\n'..stringrep('\t',self.__indent))
  	self.__line=self.__line+1
+ end
+
+ function codeWriter:mark(node,cr)
+ 	local line=self.__line
+ 	self.__line_info[node]=line
+ 	self:appendf('--mark: <%d> -> %d',line, node.p0 or 0)
+ 	if cr~=false then
+ 		self:cr() 
+ 		self:append'\t'
+ 	end
  end
 
  function codeWriter:ii()--increase indent
@@ -127,10 +138,14 @@ function codeWriter:append(str,s1,...)
  function codeWriter:di()--increase indent
  	self.__indent=self.__indent-1
  end
- 
+
  function codeWriter:tostring()
 	return table.concat(self.__list)
  end
+
+function codeWriter:loadasscript()
+	--todo:
+end
 
 function codeWriter:writefile(file)
 	for i,t in ipairs(self.__list) do
@@ -154,8 +169,16 @@ function codeWriter:refer(d,a,...)
 end
 
 function codeWriter:expose(d,a,...)
-	self.exposeDecls[d]=true
+	insert(self.exposeDecls,d)
 	if a then return self:expose(a,...) end
+end
+
+function codeWriter:clearExpose()
+	self.exposeDecls={}
+end
+
+function codeWriter:makeDebugInfo()
+
 end
 
 local function doCodegen( node, parentGen )
@@ -212,18 +235,18 @@ end
 
 function generators.module(gen,m)
 	-- gen.__indent=-1 --reset indent
-	gen:appendf('__YU_MODULE_LOADER[%q]=function()',m.fullname)
-	gen:ii()
+	gen:appendf("yu.runtime.module('%s')",m.name)
 	gen:cr()
-		gen'local __YU_LOADED, __YU_LOADER=__YU_RUNTIME.makeSymbolTable()'
-		gen:appendf('__YU_MODULE_LOADED[%q]=__YU_LOADED',m.fullname)
+	gen:appendf("--------start of module:<%s>------",m.name)
+	gen:ii()	
 		gen:cr()
 		codegen(gen,m.mainfunc)
-		gen:cr()
-		gen'return __YU_LOADED, __YU_LOADED.__main'
+		gen:cr()		
 	gen:di()
 	gen:cr()
-	gen'end'
+	gen:appendf("--------end of module:<%s>------",m.name)
+	gen:cr()
+	gen:append('__main()')
 end
 
 function generators.block(gen,b)
@@ -231,12 +254,12 @@ function generators.block(gen,b)
 	local nonDecls={}
 	for i,s in ipairs(b) do
 		if isExposable(s) then
-			gen:expose(s)
+			-- gen:expose(s)
 		else
 			gen:cr()
 			codegen(gen,s)
 		end
-	end
+	end	
 	gen:di()
 	gen:cr()
 end
@@ -497,6 +520,7 @@ function generators.assignstmt(gen,a)
 	codegenList(gen,a.vars)
 	gen'='
 	codegenList(gen,a.values)
+	gen:mark(a,false)
 end
 
 function generators.assopstmt(gen,a)
@@ -528,7 +552,7 @@ function generators.vardecl(gen,vd)
 		values[i]=var.value
 	end
 	
-	local out=''
+	
 	if vtype=='local' then		
 		gen'local'
 		codegenList(gen,vd.vars)
@@ -545,8 +569,8 @@ function generators.vardecl(gen,vd)
 	elseif vtype=='field' then
 		--
 	end
-	--TODO:global/fields
-	return out
+	
+	gen:mark(vd,false)
 end
 
 --#DECLARATION
@@ -608,19 +632,17 @@ end
 
 function generators.classdecl(gen,c)
 	--TODO:!!!!!!!!!!!!!!!!!
-	-- gen:appendf('--CLASS:%s',c.name)
+
 	gen:cr()
-	gen:appendf('function __YU_LOADER.%s()',getDeclName(c))
+	gen:appendf('do',getDeclName(c))
 	gen:ii()
-	gen:cr()
-		if c.meta then 
-			gen:appendf('local meta=%s',printMetadata(c.meta))
-			gen:cr()
-		end
-		gen:appendf('local class= __YU_RUNTIME.newClass(%q)',c.name)
+	gen:cr()		
+		gen:appendf('local class= __yu_newclass(%q,%q)',
+				c.name,
+				c.superclass and getDeclName(c.superclass) or ''
+			)
 		gen:cr()
-		gen:appendf('__YU_LOADED.%s=class',getDeclName(c))
-		-- gen:appendf('__YU_META.%s=',getDeclName)
+		gen:appendf('%s=class',getDeclName(c))
 		gen:cr()
 		gen'local classbody = class.__index'
 		local cons=false
@@ -632,44 +654,11 @@ function generators.classdecl(gen,c)
 				codegen(gen,s)	
 			end
 		end
-		-- if not defaultConstructor then --build one
-		-- 	--todo:build constructor
-		-- 	gen:cr()	
-		-- 	gen'classbody.__new=function(self)'
-		-- 	gen:ii() gen:cr()
-		-- 		defaultFieldBody(gen,c)
-		-- 	gen:di() gen:cr()
-		-- 	gen'end'
-		-- 	gen:cr()
-		-- else
-		-- 	gen:cr()
-		-- 	gen:appendf('classbody.__new=__YU_LOADED.%s',getDeclName(defaultConstructor))
-		-- 	gen:cr()
-		-- end
 		
-		if c.superclass then
-			gen:cr()
-			gen:appendf('class.__super=__YU_LOADED.%s',getDeclName(c.superclass))
-		end
-		local cc=c
-		local added={}
-		while cc do 
-			for i,s in ipairs(cc.decls) do
-				if s.tag=='methoddecl' and s.name~='__new'  and not added[s.name] then
-					if not s.extern and not s.abstract then
-						gen:cr()
-						gen:appendf('classbody.%s=__YU_LOADED.%s;',s.name,getDeclName(s))
-						added[s.name]=true
-					end
-				end
-			end
-			cc=cc.superclass
-		end
-		gen:cr()
-		gen:appendf('return class',getDeclName(c))
 	gen:di()
 	gen:cr()
 	gen'end'
+	gen:cr()
 end
 
 local function compareDecl(d1,d2)
@@ -693,103 +682,119 @@ end
 
 function generators.funcdecl(gen,f)
 	--TODO:!!!!!!!!!!!!!!!
-	if f.localfunc then
-		gen:cr()
-		gen:append('local function '..getDeclName(f))
-		gen'('
-		if f.type.args then codegenList(gen,f.type.args) end
-		gen')'
-		codegen(gen,f.block)
-		gen'end'
+	if f.abstract then 
+		--todo:add a abstract place holder
 		return
 	end
-	if f.abstract then return end
+	
 	if f.extern then 
 		gen:cr()
-		gen:appendf('__YU_LOADED.%s =',f.refname)
-		gen:appendf('__YU_EXTERN(%q)',f.fullname)
-	else
-		
-		local gen1 = doCodegen(f.block, gen)
-
-		if next(gen1.exposeDecls) or next(gen1.referedDecls) then --need loader
-			gen:cr()
-			gen:appendf('function __YU_LOADER.%s()',f.refname)
-			gen:cr()
-			for d in pairs(gen1.exposeDecls) do
-				codegen(gen,d)
-			end
-			local reflist
-			for d in pairs(gen1.referedDecls) do
-				
-				local name=getDeclName(d)
-
-				if reflist then
-					reflist=reflist..','..name
-				else
-					reflist=name
-				end
-			end
-			
-			if reflist then 
-				gen:cr()
-				gen('local '..reflist) 
-			end
-
-			gen:cr()
-			gen'local func=function'
-			gen'('
-				if f.tag=='methoddecl' then 
-					gen 'self'
-					if #f.type.args>0 then gen',' end
-				end
-				codegenList(gen,f.type.args)
-			gen')'
-
-			gen(gen1:tostring())
-
-			gen'end ;'	
-			gen:cr()
-			gen:appendf('__YU_LOADED.%s = func',f.refname)
-			--load refered symbol
-			--todo: extern symbols
-
-			local expose1=makeDeclList(gen1.exposeDecls)
-			local refer=gen1.referedDecls
-			-- for _,d in ipairs(expose1) do
-			-- 	if not refer[d] then 
-			-- 		local name=getDeclName(d)
-			-- 		gen:cr()
-			-- 		gen:appendf('local _=__YU_LOADED.%s',d.refname)
-			-- 	end
-			-- end
-
-			local refer1=makeDeclList(gen1.referedDecls)
-			for _,d in ipairs(refer1) do
-				makeReferLink(gen,d,f)
-			end
-
-			gen:cr()
-			gen'return func'
-			gen:cr()
-			gen'end'
-		else --no loader needed
-			gen:cr()
-			gen:appendf('__YU_LOADED.%s =',f.refname)
-			gen'function'
-			gen'('
-				if f.tag=='methoddecl' then 
-					gen 'self'
-					if #f.type.args>0 then gen',' end
-				end
-				codegenList(gen,f.type.args)
-			gen')'
-
-			gen(gen1:tostring())
-
-			gen'end ;'	
+		gen:appendf('%s = __ext%q',f.refname,f.fullname)
+		return
+	end
+	--generate exposed decl
+	for i,s in ipairs(f.block) do
+		if isExposable(s) then
+			codegen(gen,s)
 		end
 	end
+	
+	gen:cr()
+
+	local ismethod=f.tag=='methoddecl'
+	if ismethod then
+		gen:appendf('function classbody:%s',getDeclName(f))
+	else
+		if f.localfunc then gen'local ' end
+		gen:appendf('function %s',getDeclName(f))
+	end
+
+	gen'('
+	
+	if ismethod then 
+		gen'self' 
+		if f.type.args[1] then gen',' end
+	end
+
+	codegenList(gen,f.type.args)
+	gen')'
+
+	codegen(gen,f.block)
+	gen'end'
+	
+	-- end
+
+	-- local gen1 = doCodegen(f.block, gen)
+	-- if false and next(gen1.exposeDecls) or next(gen1.referedDecls) then --need loader
+	-- 	gen:cr()
+	-- 	gen:appendf('function __YU_LOADER.%s()',f.refname)
+	-- 	gen:cr()
+		-- for d in pairs(gen1.exposeDecls) do
+		-- 	codegen(gen,d)
+		-- end
+	-- 	local reflist
+	-- 	for d in pairs(gen1.referedDecls) do
+			
+	-- 		local name=getDeclName(d)
+
+	-- 		if reflist then
+	-- 			reflist=reflist..','..name
+	-- 		else
+	-- 			reflist=name
+	-- 		end
+	-- 	end
+		
+	-- 	if reflist then 
+	-- 		gen:cr()
+	-- 		gen('local '..reflist) 
+	-- 	end
+
+	-- 	gen:cr()
+	-- 	gen'local func=function'
+	-- 	gen'('
+	-- 		if f.tag=='methoddecl' then 
+	-- 			gen 'self'
+	-- 			if #f.type.args>0 then gen',' end
+	-- 		end
+	-- 		codegenList(gen,f.type.args)
+	-- 	gen')'
+
+	-- 	gen(gen1:tostring())
+
+	-- 	gen'end ;'	
+	-- 	gen:cr()
+	-- 	gen:appendf('__YU_LOADED.%s = func',f.refname)
+	-- 	--load refered symbol
+	-- 	--todo: extern symbols
+
+		-- local expose1=makeDeclList(gen1.exposeDecls)
+		-- local refer=gen1.referedDecls
+
+		-- local refer1=makeDeclList(gen1.referedDecls)
+		-- for _,d in ipairs(refer1) do
+		-- 	makeReferLink(gen,d,f)
+		-- end
+
+	-- 	gen:cr()
+	-- 	gen'return func'
+	-- 	gen:cr()
+	-- 	gen'end'
+	-- else --no loader needed
+		-- gen:cr()
+		-- gen:appendf('%s =',f.refname)
+		-- gen'function'
+		-- gen'('
+		-- 	if f.tag=='methoddecl' then 
+		-- 		gen 'self'
+		-- 		if #f.type.args>0 then gen',' end
+		-- 	end
+		-- 	codegenList(gen,f.type.args)
+		-- gen')'
+
+		-- gen(gen1:tostring())
+
+		-- gen'end ;'	
+	-- end
 end
 
 function generators.methoddecl(gen,m)
@@ -854,16 +859,23 @@ function generators.call(gen,c)
 
 	if tag=='closure' then
 		gen'(' codegen(gen,c.l) gen')'
-		gen'(' codegenList(gen,c.args) gen')'
+		gen'('
+			gen:mark(c)
+			codegenList(gen,c.args)
+		gen')'
 	elseif tag=='member' then
 		local mtype=c.l.mtype
 
 		if mtype=='methodcall' then
 			codegen(gen,c.l)
-			gen'(' codegenList(gen,c.args) gen')'
+			gen'(' 
+				gen:mark(c)
+				codegenList(gen,c.args)
+			gen')'
 		elseif mtype=='super' then --static call
 			gen(getDeclName(c.l.decl))
 			gen'( self' 
+				gen:mark(c)
 				if c.args then gen',' end
 				codegenList(gen,c.args)
 				gen')'
@@ -872,6 +884,7 @@ function generators.call(gen,c)
 			--gen(getDeclName(c.l.decl))
 			codegen(gen,c.l)
 			gen'('
+				gen:mark(c)
 				codegenList(gen,c.args)
 			gen')'
 			-- gen:refer(c.l.decl)
@@ -881,6 +894,7 @@ function generators.call(gen,c)
 	else
 		gen(getDeclName(c.l.decl))
 		gen'('
+			gen:mark(c)
 			codegenList(gen,c.args)
 		gen')'
 		gen:refer(c.l.decl)
@@ -939,27 +953,26 @@ end
 
 
 function generators.new(gen,n)
-	gen'__YU_NEWOBJ('
-		gen'{},'
-		codegen(gen,n.class)
-		gen:refer(n.class.decl)
-		if n.constructor then 
-			gen:refer(n.constructor)
-			gen','
-			gen(getDeclName(n.constructor))
-			if n.args then 
-				gen',' 
-				codegenList(gen,n.args)
-			end
+	local newfuncname=getDeclName(n.class.decl)
+	gen:refer(n.class.decl)
+	gen:appendf('new_%s(',newfuncname)
+		gen:mark(n)
+		gen'{}'
+		-- if n.constructor then 
+		-- 	gen:refer(n.constructor)
+		-- 	gen','
+		-- 	gen(getDeclName(n.constructor))
+		-- end
+		if n.args then 
+			gen',' 
+			codegenList(gen,n.args)
 		end
 	gen')'
 end
 
-function generators.tcall( gen,n )
-	gen'__YU_NEWOBJ('
-		codegen(gen,n.arg)
-		gen','
-		codegen(gen,n.l)
+function generators.tcall( gen,n )	
+	gen:appendf('new_%s(',getDeclName(n.l.decl))
+		codegen(gen,n.arg)		
 	gen')'
 
 end
@@ -988,6 +1001,7 @@ function generators.binop(gen,b)
 	else
 		codegen(gen,b.r)
 	end
+	gen:mark(b)
 	
 	--TODO:operator override
 end
@@ -995,7 +1009,8 @@ end
 function generators.unop(gen,u)
 	gen(u.op)
 	gen'('
-	codegen(gen,u.l)
+		gen:mark(u)
+		codegen(gen,u.l)
 	gen')'
 	
 	--TODO:operator override
@@ -1025,9 +1040,11 @@ function generators.member(gen,m)
 	local mtype=m.mtype
 	if mtype=='methodcall' then
 		codegen(gen,m.l)
+		gen:mark(m)
 		gen(':'..m.id)
 	elseif mtype=='member' then
 		codegen(gen,m.l)
+		gen:mark(m)
 		gen('.'..m.id)
 	elseif mtype=='static' then
 		gen(getDeclName(m.decl))
@@ -1052,7 +1069,10 @@ function generators.index(gen,i)
 		codegen(gen,i.l)
 	end
 
-	gen'[' codegen(gen,i.key) gen']'
+	gen'[' 	
+	codegen(gen,i.key)
+	gen:mark(i)
+	gen']'
 end
 
 function generators.table(gen,t)
@@ -1063,6 +1083,7 @@ end
 
 function generators.item(gen,i)
 	gen'['
+	gen:mark(i)
 	codegen(gen,i.key)
 	gen']='
 	codegen(gen,i.value)
@@ -1161,30 +1182,20 @@ local function generateAllModule(m ,generated)
 end
 
 local function generateFullCode(entry)
+	local header='require"yu.runtime"\n'
 	local code=generateAllModule(entry)
-	local header=[[
-local __YU_RUNTIME=require'yu.runtime'
-local __YU_CONNECT=__YU_RUNTIME.signalConnect
-local __YU_SPAWN=__YU_RUNTIME.generatorSpawn
-local __YU_RESUME=__YU_RUNTIME.generatorResume
-local __YU_YIELD=__YU_RUNTIME.generatorYield
-local __YU_WAIT=__YU_RUNTIME.signalWait
-local __YU_ASSERT=__YU_RUNTIME.doAssert
-local __YU_NEWOBJ=__YU_RUNTIME.newObject
-local __YU_EXTERN=__YU_RUNTIME.loadExternSymbol
-local __YU_OBJ_NEXT=__YU_RUNTIME.objectNext
-local __YU_MODULE_LOADED, __YU_MODULE_LOADER=__YU_RUNTIME.makeSymbolTable()
-local __YU_ISTYPE = __YU_RUNTIME.isType
-local __YU_CAST = __YU_RUNTIME.cast
-	]]
-
 	code=header..code
-	local entrycode=string.format([[
+	-- local header=string.format(
+	-- 	"require('yu.runtime').module('%s')\n"
+	-- 	,entry.name
+	-- )
+	-- code=header..code
+-- 	local entrycode=string.format([[
 
-return __YU_MODULE_LOADED[%q].__main()
-	]],entry.fullname)
+-- return __YU_MODULE_LOADED[%q].__main()
+-- 	]],entry.fullname)
 
-	code=code..entrycode
+-- 	code=code..entrycode
 	return code
 end
 _M.codegen=generateFullCode

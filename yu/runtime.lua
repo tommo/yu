@@ -393,3 +393,13 @@ function loadModule( f,... )
 	setfenv(f,env)
 	f(...)
 end
+
+
+-- local runtimeModuleEnv={
+	
+-- }
+
+function module(name)
+	local moduleEnv={}
+	setfenv(1, moduleEnv)
+end

@@ -107,6 +107,10 @@ function unescape(s)
 		return self[self.count-(k or 0)]
 	end
 
+	-- function stackmt:copy()
+	-- 	local 
+	-- end
+
 	function newStack()
 		local st={count=0}
 		st.push=stackmt.push
@@ -180,7 +184,7 @@ function unescape(s)
 	local globalDeclNames=makeStringCheckTable("classdecl" ,"funcdecl" ,"enumdecl" ,"methoddecl",'signaldecl')
 	function isGlobalDecl(b)
 		local tag=b.tag
-		if tag=="vardecl" then
+		if tag=="vardecl" or tag=='var' then
 			local vtype=b.vtype
 			return vtype=="global" or vtype=="const"
 		elseif tag=='funcdecl' then

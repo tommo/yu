@@ -4,6 +4,8 @@ extern
 	func print(...*)
 end
 
+global origin=Vec()
+
 class Vec 
 	field x,y,z=0,0,0 :{list='ok', last=nil , past='good'}
 end
@@ -21,3 +23,5 @@ class TestBase
 end
 
 func triple(x#)=>x*3
+
+local z=origin.z

@@ -60,11 +60,13 @@ function newDeclCollector()
 
 		maxDeclId=0,
 		maxClosureId=0,
+
 		
 		currentNamePrefix="",
 		currentExNamePrefix="",
 
 		currentScope=false,
+		currentScopeLevel=0,
 
 		-- currentN
 
@@ -111,11 +113,14 @@ function newDeclCollector()
 			self.scopeStack:push(scope)
 			self.currentScope=scope
 			self.currentNode.scope=scope
+			self.currentNode.scopeLevel=self.currentScopeLevel
+			self.currentScopeLevel=self.currentScopeLevel+1
 			return scope
 		end,
 		
 		popScope=function(self)
 			self.currentScope=self.scopeStack:pop()
+			self.currentScopeLevel=self.currentScopeLevel-1
 			return self.currentScope
 		end,
 		
@@ -391,7 +396,9 @@ function post.funcdecl(vi,f)
 	vi:popScope()
 	if f.block then 
 		f.block.scope=f.scope
+		f.block.scopeLevel=f.scopeLevel
 		f.scope=nil
+		f.scopeLevel=nil
 	end
 	vi:popName()
 	vi.depth=vi.depth-1

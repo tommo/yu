@@ -28,10 +28,11 @@ local function _findExternSymbol(entryModule,name,found)
 	local externModules=entryModule.externModules
 	
 	if externModules then
+		entryModule._seq=__searchSeq
+
 		for p,m in pairs(externModules) do
 			if m.__seq~=__searchSeq then
 				m.__seq=__searchSeq
-				-- print(m.name,m.mainfunc.block.scope)
 				local decl=m.scope[name]
 				if decl and not decl.private then 
 					found[#found+1]={module=m,decl=decl}
@@ -50,12 +51,24 @@ local function _findSymbol(vi,name,token,limit)
 	end
 	local t=vi.nodeStack
 	local outClas,outFunc,outMethod=0,0,0
+	local minScopeLevel=1000000
 
 	for i=t.count,1,-1 do
 		local node=t[i]
 		local tag=node.tag
 		local scope=node.scope
-		if scope then
+		local scopeLevel=scope and node.scopeLevel
+		
+		local levelCorrect=false
+
+		if not scopeLevel then
+			levelCorrect=true
+		elseif minScopeLevel>scopeLevel then
+			levelCorrect=true
+			minScopeLevel=scopeLevel
+		end
+
+		if scope and levelCorrect then			
 			local decl
 			if tag=='classdecl' then
 				local clas=node
@@ -834,6 +847,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 			if c.extern and not s.extern then self:err('normal class cannot extend extern class:'..supername.id,c) end
 			if s.extern and not c.extern then self:err('extern class cannot extend normal class:'..supername.id,c) end
 			c.superclass=s
+			--todo:avoid node stack level problem
+			self:visitNode(s)
 		end
 		c.resolveState='done'
 	end
@@ -1482,6 +1497,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 			self:err(format("type symbol not found:'%s'",t.name),t )
 		end
 		t.decl=d	
+		--todo:avoid scope level problem
 		self:visitNode(d)
 	end
 
