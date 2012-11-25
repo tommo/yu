@@ -814,7 +814,7 @@ local function getModuleMatch()
 								return ft
 							end;
 		
-		NamedType=	cpos(v.TemplateType+Ident /t1('type','name'));
+		NamedType=	cpos(v.TemplateType+(Ident+NIL) /t1('type','name'));
 		
 		TypeSymbol=	cpos(
 						(p'#'/'number'
@@ -861,13 +861,13 @@ local function getModuleMatch()
 	-- #--------------------Expression-------------------	
 		ExprList=ct(v.Expr * ( COMMA *__* cerr(v.Expr,"expression expected") )^0);
 		
-		Expr=	cpos(v.Ternary);
+		Expr=	cpos(v.Logic);
 		
-		Ternary= v.Logic *
-				(p'?' * __ * v.Ternary *
-					cerr( __ * STICK , "'|' expected") *
-					__ * v.Ternary / t2('ternary','vtrue','vfalse')
-				)^0/foldexpr;
+		-- Ternary= v.Logic *
+		-- 		(p'?' * __ * v.Ternary *
+		-- 			cerr( __ * STICK , "'|' expected") *
+		-- 			__ * v.Ternary / t2('ternary','vtrue','vfalse')
+		-- 		)^0/foldexpr;
 		
 		Logic=	v.NotOp *
 				(	c(AND+OR) * - ASSIGN *
@@ -906,8 +906,8 @@ local function getModuleMatch()
 				cpos(
 					w(SOPEN) *  v.Expr * w(SCLOSE) /t1('index','key')--index
 				+	DOT * -DOT *__* Ident /t1('member','id')		--member
-				+	AS * __ * v.Type / t1('cast','dst')				--cast
-				+	IS * __ * v.Type / t1('is','dst') 				--typecheck
+				+	AS * __ * cerr(v.Type, 'target type expected') / t1('cast','dst')				--cast
+				+	IS * __ * cerr(v.Type, 'checking type expected') / t1('is','dst') 				--typecheck
 				+	ct(v.StringConst) / t1('call','args') --string call
 				+	POpen * (v.ExprList+cnil) * PClose / t1('call','args')--call
 				+	(v.SeqBody+v.TableBody)/t1('tcall','arg')

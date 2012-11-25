@@ -1376,7 +1376,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		
 		local lt=getType(i.l)
 		if not checkType(lt,'><',i.dst) then
-			self:err('unrelated type:'..lt.name..','..i.dst.name)
+			self:err('unrelated type:'..lt.name..','..i.dst.name,i)
 		end
 		
 		i.type=booleanType
