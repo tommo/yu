@@ -119,8 +119,8 @@ local function getModuleMatch()
 	local function cpos(patt)
 		return (cp()*patt*cp()/function(p0,t,p1)
 			if type(t)~="table" then return nil end
-			t.p0=p0
-			t.p1=p1 
+			t.p0=t.p0 or p0
+			t.p1=t.p1 or p1 
 			return t
 		end)
 	end
@@ -889,7 +889,7 @@ local function getModuleMatch()
 				)^0/foldexpr;
 		
 		Sum		=v.Product *
-				(	c(PLUS+MINUS) * -ASSIGN *
+				cpos(	c(PLUS+MINUS) * -ASSIGN *
 					cerr(__ * v.Product, "right operand expected for arith expr")/t2('binop','op','r')
 				)^0/foldexpr;
 				

@@ -84,7 +84,7 @@ end
 			__count=0,
 			__indent=0,
 			__list={str and tostring(str) or ''}, --string buffer part
-			__line_info={},
+			__marked_line={},
 			__level=0,
 
 			referedDecls={},		--context part
@@ -121,10 +121,11 @@ function codeWriter:append(str,s1,...)
  	self.__line=self.__line+1
  end
 
- function codeWriter:mark(node,cr)
+ function codeWriter:mark(node,cr,msg)
  	local line=self.__line
- 	self.__line_info[node]=line
- 	self:appendf('--mark: <%d> -> %d',line, node.p0 or 0)
+ 	insert(self.__marked_line,{ line,node})
+ 	self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
+ 	if msg then self:append(msg) end
  	if cr~=false then
  		self:cr() 
  		self:append'\t'
@@ -231,7 +232,41 @@ local function makeReferLink(gen,d,from)
 	end
 end
 
+local function genInterfaceDescription(gen,m)
+end
 
+local function genDebugInfo(gen,m)
+	gen'__yu__debuginfo={'
+	gen:ii()
+	gen:cr()
+		gen:appendf('path=%q;',m.path)
+		gen:cr()
+		gen:appendf('name=%q;',m.name)
+		gen:cr()
+		gen'line_offset={'
+		for l,off in ipairs(m.lineInfo) do
+			gen:append(off..',')
+		end
+		gen'};'
+		gen:cr()
+		gen'line_target={'
+		for i,data in pairs(gen.__marked_line) do
+			local line=data[1]
+			local node=data[2]
+			gen:appendf('{%d, %d,%d, %q},',
+				line,
+				node.p0,node.p1,
+				node.tag
+				)
+		end
+		gen'};'
+		gen:cr()
+
+	gen:di()
+	gen:cr()
+	gen'}'
+	gen:cr()
+end
 
 function generators.module(gen,m)
 	-- gen.__indent=-1 --reset indent
@@ -244,6 +279,8 @@ function generators.module(gen,m)
 		gen:cr()		
 	gen:di()
 	gen:cr()
+	--add src info
+	genDebugInfo(gen,m)
 	gen:appendf("--------end of module:<%s>------",m.name)
 	gen:cr()
 	gen:append('__main()')
@@ -453,7 +490,8 @@ end
 function generators.iterator( gen,i )
 	local mode=i.mode
 	if mode=='table' then
-		gen'next ,' codegen(gen,i.expr) gen''
+		gen'next ,' codegen(gen,i.expr) 
+		gen''
 	elseif mode=='enum' then
 		--todo
 	elseif mode=='thread' then
@@ -465,6 +503,8 @@ function generators.iterator( gen,i )
 	elseif mode=='obj-thread' then
 		gen'__YU_RESUME ,' codegen(gen,i.expr) gen':__iter()'
 	end
+		gen:mark(i)
+
 end
 	
 function generators.whilestmt(gen,s)
@@ -991,9 +1031,7 @@ function generators.binop(gen,b)
 	else
 		codegen(gen,b.l)
 	end
-		
 		gen(b.op)
-		
 	if wrapr then 
 		gen'(' 
 		codegen(gen,b.r)

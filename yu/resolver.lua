@@ -648,7 +648,6 @@ local	function findHintType(vi,node,parentLevel,keep)
 		for i,var in ipairs(vars) do
 			local vt=valtypes[i]
 			local vart=getType(var)
-			
 			if not checkType(vart,'>=',vt) then
 				self:err(format('variable/value type mismatch,expecting: %s ,given: %s',
 						vart.name,vt.name),
@@ -768,12 +767,20 @@ local	function findHintType(vi,node,parentLevel,keep)
 		if td.tag=='niltype' then 
 			return self:err('cannot declare a variable of nil type',v)
 		end
+
 		if v.value then
-			vartype=v.type
 			valtype=getOneType(v.value)
+			if valtype==emptyTableType and v.type==emptyTableType then
+				valtype={tag='tabletype',etype=anyType,ktype=anyType,name='any[any]',valuetype=true}
+				v.type=valtype				
+				v.value.type=valtype				
+			end
+			
 			if valtype.metatype then
 				self:err(format('cannot assign non-value type "%s" to variable',valtype.name),v.value)
 			end
+			
+			vartype=v.type
 			if not checkType(vartype,'>=',valtype) then 
 				self:err(format('type mismatch, "%s" expected, "%s" given.',vartype.name,valtype.name),v)
 			end
@@ -869,10 +876,14 @@ local	function findHintType(vi,node,parentLevel,keep)
 						tag='assignstmt',
 						vars={{tag='member',
 							mtype='member',decl=d0,id=d0.name,
+							p0=d0.p0,
+							p1=d0.p1,
 							l={tag='self'}
 							}},
 						values={d0.value},
 						resolveState='done',
+						p0=d0.p0,
+						p1=d0.p1,
 					}
 				end
 			end
@@ -1347,7 +1358,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 			-- self:err('cannot determine table value type',t)
 		end
 		
-		t.type={tag='tabletype',etype=vt,ktype=kt,name=vt.name..'['..kt.name..']'}
+		t.type={tag='tabletype',etype=vt,ktype=kt,name=vt.name..'['..kt.name..']',valuetype=true}
 		
 
 		return true
@@ -1375,7 +1386,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 				vt=anyType
 				-- self:err('cannot determine table value type',t)
 			end
-			t.type={tag='tabletype',etype=vt,ktype=numberType,name=vt.name..'[number]'}
+			t.type={tag='tabletype',etype=vt,ktype=numberType,name=vt.name..'[number]',valuetype=true}
 		else
 			t.type=emptyTableType
 		end

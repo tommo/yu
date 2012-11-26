@@ -398,8 +398,103 @@ end
 -- local runtimeModuleEnv={
 	
 -- }
+local runtimeMT={}
 
 function module(name)
-	local moduleEnv={}
-	setfenv(1, moduleEnv)
+	local moduleEnv=setmetatable(
+		{},{
+			__name=name,
+			__is_yu_module=true
+		}
+	)
+	return setfenv(1, moduleEnv)
+end
+
+
+local function findLine(lineInfo,pos)
+	local off0=0
+	local l0=0
+	
+	for l,off in ipairs(lineInfo) do
+		if pos>=off0 and pos<off then 
+			return l0,pos-off0
+		end
+		off0=off
+		l0=l
+	end
+	return l0,pos-off0
+end
+
+local function makeYuTraceString(info,modEnv)
+	local dinfo=modEnv.__yu__debuginfo
+	if not dinfo then 
+		return 'unkown track in YU:'..getmetatable(modEnv).__name
+	end
+
+	local lineTarget=dinfo.line_target
+	local line=info.currentline - 1
+	local lineOffset=dinfo.line_offset
+	for i, data in ipairs(lineTarget) do
+		local l=data[1]
+		if line==l then
+			
+			local l1,off1=findLine(lineOffset,data[2])
+			local l2,off2=findLine(lineOffset,data[3])
+			return string.format('%s: %d <%d:%d-%d:%d>',dinfo.path,l1,
+				l1,off1,l2,off2)		
+		end
+	end
+end
+
+local function makeLuaTraceString(info)
+	local what=info.what
+	local whatInfo
+	if what=='main' then
+		if info.name then
+			whatInfo=string.format('function \'%s\'',info.name)
+		else
+			whatInfo='main chunk'
+		end
+	elseif what=='Lua' then
+		whatInfo=string.format('function \'%s\'',info.name)
+	elseif what=='C' then
+		whatInfo=nil
+	end
+	if whatInfo~=nil then
+		whatInfo='in '..whatInfo
+	else
+		whatInfo='?'
+	end
+	return 
+	string.format(
+		'%s:%d: %s',info.short_src,info.currentline,whatInfo
+	)
+end
+
+function getStackInfo(level)
+	local info=debug.getinfo(level)
+	if not info then return false end
+
+	local func=info.func
+	local env=getfenv(func)
+	local mt=env and getmetatable(env)
+
+	if mt and mt.__is_yu_module then
+		return makeYuTraceString(info,env)
+	else -- normal Lua stack
+		return makeLuaTraceString(info)
+	end
+
+end
+
+function errorHandler(msg,b)
+	local level=3
+	print('Error:',msg)
+	while true do
+		local info=getStackInfo(level)
+		if not info then break end
+		print(info)
+		level=level+1
+	end
+		
 end

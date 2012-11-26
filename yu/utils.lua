@@ -202,8 +202,8 @@ function unescape(s)
 	isTypeDecl=makeTagCheckerT('classdecl','enumdecl','functype','tabletype','voidtype','mulrettype',
 			'niltype','booleantype','numbertype','stringtype','externclass','anytype',
 			'objecttype','classmeta','enummeta','funcmeta','tablemeta','modulemeta','tvar','vararg','typemeta',
-			'signaldecl','corotype','signalmeta','threadtype')
-	
+			'signaldecl','corotype','signalmeta','threadtype')	
+
 	builtinTypeTable=makeStringCheckTable('boolean','number','nil','string','object','any')
 	function isBuiltinType(n)
 		return builtinTypeTable[n]

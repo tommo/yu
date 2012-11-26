@@ -29,8 +29,8 @@ extern
 	
 end
 
-func max#(a,b#)=> a>b ? a|b
+func max#(a,b#)=> a>b and a or b
 
-func min#(a,b#)=> a<b ? a|b
+func min#(a,b#)=> a<b and a or b
 
 

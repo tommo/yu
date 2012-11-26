@@ -40,7 +40,6 @@ class ImageSprite extends Sprite
 		print('imagesprite')
 	end
 
-
 	method __new()
 		img='test'
 		register()
@@ -52,11 +51,8 @@ i.draw()
 
 ImageSprite{size=20}
 
-
-
 func uploadSprite(sprite:Sprite)
 end
-
 
 uploadSprite({
 		size=20

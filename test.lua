@@ -48,4 +48,8 @@ file:close()
 
 -- print "-------------------------------------------"
 
-if not args[2] then dofile('output.lua') end
+-- if not args[2] then dofile('output.lua') end
+require 'yu.runtime'
+
+local outFunc=loadfile('output.lua')
+xpcall(outFunc,yu.runtime.errorHandler)
