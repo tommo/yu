@@ -911,6 +911,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 					type={tag='functype',args={},rettype=voidType,resolveState='done'},
 					name='__new',
 					refname=c.refname..'__new',
+					fullname='__new_'..c.fullname,
 					resolveState='done',
 					block=defaultValues
 				}

@@ -449,7 +449,7 @@ local function getModuleMatch()
 					;
 				
 		ExternDecl=	cpos(v.ConstDecl
-				+	v.GlobalDecl
+				+	v.GlobalDecl/function(vd) vd.extern=true return vd end
 				+	v.EnumDecl
 				+	v.ExternFuncDecl
 				+	v.ExternClassDecl
@@ -686,7 +686,7 @@ local function getModuleMatch()
 						/ function(vd) vd.vtype='local' return vd end;
 						
 		GlobalDecl=	GLOBAL *__* v.VarDecl
-						/ function(vd) vd.vtype='global' return vd end;
+						/ function(vd) vd.vtype='global' return vd end;		
 		
 		ConstDecl=	CONST *__* v.VarDecl
 						/ function(vd) vd.vtype='const' return vd end;
@@ -988,7 +988,7 @@ function parseSource(source,allowError)
 
 	m.mainfunc={
 		tag='funcdecl',
-		name='__main',
+		name='@main',
 		module=m,
 		p0=m.p0,
 		p1=m.p1,

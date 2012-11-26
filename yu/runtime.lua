@@ -334,13 +334,11 @@ end
 
 
 -------------MODULE
+local moduleTable={}
 
-
-
-function newClass( name ,superClass)
-	local t={}
+function newClass( name ,superClass, body)
 	return {
-		__index=t,
+		__index=body,
 		__name=name,
 		__type='class'
 	}
@@ -385,16 +383,23 @@ function loadExternSymbol( name )
     return t
 end
 
-function loadModule( f,... )
-	local env=setmetatable({},{__index=_G})
-	setfenv(f,env)
-	f(...)
+
+function requireModule(name,symbols)
+	local env=getfenv(2)
+	--todo:load module if not loaded
+	local m=moduleTable[name]
+
+	if not m then	
+		--todo: add to runtime error handling
+		print('Module not found',name)
+		error()
+	end
+
+	for i,s in ipairs(symbols) do
+		rawset(env,s,m[s])
+	end
 end
 
-
--- local runtimeModuleEnv={
-	
--- }
 local runtimeIndex=setmetatable({
 		__yu_newclass=newClass,
 		__yu_newobject=newObject,
@@ -414,6 +419,9 @@ local runtimeIndex=setmetatable({
 		__yu_spawn=generatorSpawn,
 		__yu_yield=generatorYield,
 
+		__yu_require=requireModule,
+		__yu_extern=loadExternSymbol
+
 	},{__index=_G})
 
 function module(name)
@@ -424,10 +432,13 @@ function module(name)
 			__index=runtimeIndex,
 		}
 	)
+
+	moduleTable[name]=moduleEnv
 	return setfenv(1, moduleEnv)
 end
 
 
+---------------Lua Debug Injections---
 local function findLine(lineInfo,pos)
 	local off0=0
 	local l0=0
@@ -452,6 +463,7 @@ local function makeYuTraceString(info,modEnv)
 	local lineTarget=dinfo.line_target
 	local line=info.currentline - 1
 	local lineOffset=dinfo.line_offset
+
 	for i, data in ipairs(lineTarget) do
 		local l=data[1]
 		if line==l then
@@ -462,6 +474,8 @@ local function makeYuTraceString(info,modEnv)
 				l1,off1,l2,off2)		
 		end
 	end
+
+	return 'unkown track in YU:'..getmetatable(modEnv).__name
 end
 
 local function makeLuaTraceString(info)
@@ -502,7 +516,7 @@ function getStackInfo(level)
 	else -- normal Lua stack
 		return makeLuaTraceString(info)
 	end
-
+	return makeLuaTraceString(info)
 end
 
 function errorHandler(msg,b)

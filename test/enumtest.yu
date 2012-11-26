@@ -1,4 +1,5 @@
 extern 
+	global slogan$
 	func print(...*)
 end
 
@@ -28,4 +29,5 @@ func takeFlags(flags:State[])
 end
 
 takeFlags({OK,WAIT})
-
+print('slogan is '..slogan)
+slogan='good to die!'

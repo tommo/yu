@@ -1,3 +1,25 @@
-local a#=5
-local b=a+1
+extern 
+	func print(...*)
+end
 
+class Sprite
+	method draw()
+		print('draw sprite')
+		local x#
+		local y=x+1
+	end
+
+	func load()->Sprite
+		return Sprite()
+	end
+end
+
+class StaticSprite extends Sprite
+	method draw()
+		print('draw static sprite')
+		super.draw()
+	end
+end
+
+local s2=StaticSprite()
+s2.draw()

@@ -58,7 +58,6 @@ end
 
  function builder:buildModule(path)
 	local m=parseFile(path)
-	-- print('parsed time:',totalParseTime*1000)
 	m.externModules={}
 	m.path=path
 	m.name=extractModName(path)
@@ -66,7 +65,6 @@ end
 	
 	local heads=m.heads
 	local currentBase=extractDir(path)
-	-- print('---------collecting module:',path)
 	if heads then
 		for i,node in ipairs(heads) do
 			local tag=node.tag
@@ -81,11 +79,14 @@ end
 			end
 		end
 	end
+
 	local t1=os.clock()
 	yu.newDeclCollector():visitNode(m)
 	local dt=os.clock()-t1
 	totalDeclTime=totalDeclTime+dt
-	print(string.format('decl time += %d\t%d\t %s',dt*1000,totalDeclTime*1000,m.name))
+	
+	-- print(string.format('decl time += %d\t%d\t %s',dt*1000,totalDeclTime*1000,m.name))
+
 	self:addBuildingModule(m)
 	return m
  end

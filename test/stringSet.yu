@@ -22,7 +22,7 @@ end
 
 local set1=StringSet{_t={}}
 set1.set('good')
-set1.set(1)
+-- set1.set(1)
 local set1Has=func(s$)
 	print(@set1.check(s) and 'yes' or 'no')
 end

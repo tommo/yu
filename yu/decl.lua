@@ -73,7 +73,7 @@ function newDeclCollector()
 		depth=0,
 		
 		pushName=function(self,name)
-			local n=self.currentNamePrefix..name
+			local n=name..'_'..self.currentNamePrefix
 			self.currentNamePrefix=n
 			return self.nameStack:push(n)
 		end,
@@ -85,7 +85,7 @@ function newDeclCollector()
 		end,
 
 		pushExternName=function(self,name)
-			local n=self.currentExNamePrefix..name
+			local n=name..'_'..self.currentExNamePrefix
 			self.currentExNamePrefix=n
 			return self.exNameStack:push(n)
 		end,
@@ -156,6 +156,7 @@ function newDeclCollector()
 				local meta=decl.meta
 				for i,var in ipairs(decl.vars) do
 					var.vtype=decl.vtype
+					var.extern=decl.extern
 					if meta then var.meta=meta end
 					self:addDecl(var,inclass)
 				end
@@ -219,10 +220,14 @@ function newDeclCollector()
 
 			if decl.alias then
 				decl.fullname=decl.alias
-			elseif decl.extern then
-				decl.fullname=self.currentExNamePrefix..'.'..name	
-			else
-				decl.fullname=self.currentNamePrefix..'.'..name
+			else			
+				decl.fullname=name..'_'..self.currentNamePrefix
+			end
+
+			if decl.extern then
+				local p=self.currentExNamePrefix
+				if p~='' then p=p..'.' end
+				decl.externname=p..name
 			end
 
 			if decl.protoId then
@@ -255,8 +260,9 @@ function post.module(vi,m)
 	-- vi:popScope()
 	--todo: extract decls from main block scope rather than refer to it directly
 	m.fullname=m.name
-	m.mainfunc.fullname='__main'
-	m.mainfunc.refname='__main'
+	m.mainfunc.fullname='@main'
+	m.mainfunc.refname='@main'
+	m.mainfunc.name='@main'
 	local expose={}
 	for k,decl in pairs(m.mainfunc.block.scope) do
 		if isGlobalDecl(decl) then
@@ -273,8 +279,11 @@ function pre.block(vi,b,parent)
 		-- b.scope=vi:pushScope()
 	-- end
 	vi:addEachDecl(b)
-	if parent.tag=='module' then -- top block? add named imported module into scope
-		for i,h in ipairs(parent.heads) do
+	
+	if parent.name=='@main' then -- top block? add named imported module into scope
+		local module=parent.module
+		for i,h in ipairs(module.heads) do
+
 			if h.tag=='import' and h.alias then
 				h.type=moduleMetaType
 				vi:addDecl(h)
@@ -387,7 +396,7 @@ end
 
 
 function pre.funcdecl(vi,f)
-	if f.name~='__main' then vi:pushName(f.name,true) end
+	if f.name~='@main' then vi:pushName(f.name,true) end
 	vi:pushScope()
 	vi.depth=vi.depth+1
 end
@@ -491,6 +500,7 @@ function pre.foreachstmt(vi,f)
 	vi:pushScope()
 	
 	for i,v in ipairs(f.vars) do
+		v.vtype='local'
 		vi:addDecl(v)
 	end	
 end

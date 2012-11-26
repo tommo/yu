@@ -52,4 +52,5 @@ file:close()
 require 'yu.runtime'
 
 local outFunc=loadfile('output.lua')
+slogan='get prepared!'
 xpcall(outFunc,yu.runtime.errorHandler)

@@ -57,19 +57,26 @@ local function getDeclName(d)
 	if tag=='var' then
 		local vtype=d.vtype
 		if vtype=='local' then return d.name end
-		if vtype=='global' then return d.refname end
+		if vtype=='global' then
+			if d.extern then
+				return '_G.'..d.externname
+			else
+				return d.fullname
+			end
+		end
 		if vtype=='const' then return getConst(d.value) end
 		if vtype=='field' then return d.name end
 		
 	elseif tag=='funcdecl' then
+		return d.fullname
 	elseif tag=='methoddecl' then
-		return d.name
+		return d.fullname
 	elseif tag=='arg' then
 		return d.name	
 	end
-
-	return d.name
+	return d.fullname
 end
+
 
  local codeWriter={}
  local codeWriterMT={
@@ -125,8 +132,8 @@ function codeWriter:append(str,s1,...)
  	local line=self.__line
  	insert(self.__marked_line,{ line,node})
  	
- 	-- self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
- 	-- if msg then self:append(msg) end
+ 	self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
+ 	if msg then self:append(msg) end
 
  	if cr~=false then
  		self:cr() 
@@ -174,10 +181,6 @@ end
 function codeWriter:expose(d,a,...)
 	insert(self.exposeDecls,d)
 	if a then return self:expose(a,...) end
-end
-
-function codeWriter:clearExpose()
-	self.exposeDecls={}
 end
 
 function codeWriter:makeDebugInfo()
@@ -282,14 +285,50 @@ function generators.module(gen,m)
 	gen:ii()	
 		gen:cr()
 		codegen(gen,m.mainfunc)
-		gen:cr()		
+		gen:cr()
+
+		--load module
+		gen:appendf("--------requrie modules------")
+		gen:cr()
+		for path,m1 in pairs(m.externModules)  do
+
+			gen:appendf('__yu_require(%q,{',m1.name)
+				for r in pairs(gen.referedDecls) do
+					if r.module==m1 then
+						gen:appendf('%q,',getDeclName(r))
+					end
+				end
+			gen'})'
+			gen:cr()
+		end
+
+		--load refered extern symbol
+		gen:appendf("--------exposed decl------")
+		gen:cr()
+		for i,s in ipairs(gen.exposeDecls) do
+			codegen(gen,s)
+			gen:cr()
+		end
+
+		-- gen:appendf("--------refered external decl------")
+		-- gen:cr()
+		-- for r in pairs(gen.referedDecls) do
+		-- 	if r.module~=m then
+		-- 		local n=getDeclName(r)
+		-- 		gen:appendf('%s = __yu_require(%q,%q)',
+		-- 			n,m.name,n
+		-- 			)
+		-- 		gen:cr()
+		-- 	end
+		-- end
+
 	gen:di()
 	gen:cr()
 	--add src info
 	genDebugInfo(gen,m)
 	gen:appendf("--------end of module:<%s>------",m.name)
 	gen:cr()
-	gen:append('__main()')
+	gen:append('__yu_main()')
 end
 
 function generators.block(gen,b)
@@ -650,7 +689,7 @@ end
 
 function generators.enumdecl(gen,e)
 	-- --todo:assign default const value
-	gen:appendf('__YU_LOADED.%s={}',getDeclName(e))
+	gen:appendf('%s={}',getDeclName(e))
 	--TODO:Meta info
 end
 
@@ -682,15 +721,7 @@ function generators.classdecl(gen,c)
 	gen:cr()
 	gen:appendf('do',getDeclName(c))
 	gen:ii()
-	gen:cr()		
-		gen:appendf('local class= __yu_newclass(%q,%q)',
-				c.name,
-				c.superclass and getDeclName(c.superclass) or ''
-			)
-		gen:cr()
-		gen:appendf('%s=class',getDeclName(c))
-		gen:cr()
-		gen'local classbody = class.__index'
+	gen:cr()
 		local cons=false
 		for i,s in ipairs(c.decls) do
 			if isExposable(s) then
@@ -700,7 +731,26 @@ function generators.classdecl(gen,c)
 				codegen(gen,s)	
 			end
 		end
-		
+		gen:cr()
+
+		gen:appendf('%s= __yu_newclass(%q,%s,',
+				getDeclName(c),
+				c.name,
+				c.superclass and getDeclName(c.superclass) or 'nil'
+			)
+		gen:ii()
+		gen:cr()
+		gen'{'
+		gen:cr()
+		for i,d in ipairs(c.decls) do
+			if d.tag=='methoddecl' then
+				gen:appendf('%s=%s;',d.name,getDeclName(d))
+				gen:cr()
+			end
+		end
+		gen:di()
+		gen'})'
+		gen:cr()
 	gen:di()
 	gen:cr()
 	gen'end'
@@ -735,13 +785,13 @@ function generators.funcdecl(gen,f)
 	
 	if f.extern then 
 		gen:cr()
-		gen:appendf('%s = __ext%q',f.refname,f.fullname)
+		gen:appendf('%s = __yu_extern%q',f.fullname,f.externname)
 		return
 	end
 	--generate exposed decl
-	for i,s in ipairs(f.block) do
+	for i,s in ipairs(f.block) do		
 		if isExposable(s) then
-			codegen(gen,s)
+			gen:expose(s)			
 		end
 	end
 	
@@ -749,7 +799,9 @@ function generators.funcdecl(gen,f)
 
 	local ismethod=f.tag=='methoddecl'
 	if ismethod then
-		gen:appendf('function classbody:%s',getDeclName(f))
+		gen:appendf('function %s',getDeclName(f))
+	elseif f.name=='@main' then
+		gen:append('function __yu_main')
 	else
 		if f.localfunc then gen'local ' end
 		gen:appendf('function %s',getDeclName(f))
@@ -757,10 +809,10 @@ function generators.funcdecl(gen,f)
 
 	gen'('
 	
-	-- if ismethod then 
-	-- 	gen'self' 
-	-- 	if f.type.args[1] then gen',' end
-	-- end
+	if ismethod then 
+		gen'self' 
+		if f.type.args[1] then gen',' end
+	end
 
 	codegenList(gen,f.type.args)
 	gen')'
