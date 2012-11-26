@@ -431,8 +431,9 @@ end
 local function findLine(lineInfo,pos)
 	local off0=0
 	local l0=0
-	
-	for l,off in ipairs(lineInfo) do
+	local off=0
+	for l,linesize in ipairs(lineInfo) do
+		off=off+linesize
 		if pos>=off0 and pos<off then 
 			return l0,pos-off0
 		end

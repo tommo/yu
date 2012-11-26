@@ -243,13 +243,7 @@ local function genDebugInfo(gen,m)
 	gen:cr()
 		gen:appendf('path=%q;',m.path)
 		gen:cr()
-		gen:appendf('name=%q;',m.name)
-		gen:cr()
-		gen'line_offset={'
-		for l,off in ipairs(m.lineInfo) do
-			gen:append(off..',')
-		end
-		gen'};'
+		gen:appendf('name=%q;',m.name)		
 		gen:cr()
 		gen'line_target={'
 		for i,data in pairs(gen.__marked_line) do
@@ -263,6 +257,16 @@ local function genDebugInfo(gen,m)
 		end
 		gen'};'
 		gen:cr()
+		gen'line_offset={'
+		local off1=0
+		for l,off in ipairs(m.lineInfo) do
+			gen:append((off-off1)..',')
+			off1=off
+		end
+		gen'};'
+
+		gen:cr()
+
 
 	gen:di()
 	gen:cr()
