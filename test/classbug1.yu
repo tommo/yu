@@ -1,12 +1,11 @@
+class A
+	field f#
+	method M1()
+		local x=f
+		M2()
+	end
 
-class Test
-	field tester:Tester
-	method report()=>Tester.fromPerson('good')
-
-end
-
-class Tester
-	func fromPerson(p$)=>Tester()
-	field name$
-
+	method M2()
+		local x=f
+	end
 end

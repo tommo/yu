@@ -115,9 +115,17 @@ local function _findSymbol(vi,name,token,limit)
 			if found then return decl end
 		end
 
-		if tag=='funcdecl' or tag=='closure' then outFunc =outFunc +1 end
-		if tag=='classdecl' then outClas =outClas +1 end
-		if tag=='methoddecl' then outMethod =outMethod +1 outFunc =outFunc +1 end
+		if levelCorrect then
+			if tag=='funcdecl' or tag=='closure' then
+				outFunc =outFunc +1
+			end
+			if tag=='classdecl' then
+				outClas =outClas +1
+			end
+			if tag=='methoddecl' then 			
+				outMethod =outMethod +1 outFunc =outFunc +1
+			end
+		end
 	end
 	
 	--search extern modules

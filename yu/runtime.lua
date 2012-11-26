@@ -140,18 +140,20 @@ local function makefinalizer(t)
 end
 
 
-function newObject(obj, clas, constructor,finalizer, ...)
-	setmetatable(obj,clas)
+function newObject(clas,obj, constructor, ...)
 	
 	if constructor then
+		setmetatable(obj,clas)
 		constructor(obj,...)
-	end
-	
-	if finalizer then
-		return makefinalizer(obj)
-	else
 		return obj
+	else
+		return setmetatable(obj,clas)
 	end
+	-- if finalizer then
+	-- 	return makefinalizer(obj)
+	-- else
+	-- 	return obj
+	-- end
 end
 -------------------------REFLECTION
 --[[
@@ -335,17 +337,13 @@ end
 
 
 
-function newClass( name )
+function newClass( name ,superClass)
 	local t={}
-	return {__index=t,__name=name,__type='class'}
-end
-
-function newObject( data, clas,constructor,... )
-	setmetatable(data,clas)
-	if constructor then 
-		constructor(data,...) 
-	end
-	return data
+	return {
+		__index=t,
+		__name=name,
+		__type='class'
+	}
 end
 
 local loaded={}
@@ -358,7 +356,6 @@ function loadSymbol( name )
 	end
 	return d
 end
-
 
 function makeSymbolTable(loaders)
 	loaders=loaders or {}
@@ -398,13 +395,33 @@ end
 -- local runtimeModuleEnv={
 	
 -- }
-local runtimeMT={}
+local runtimeIndex=setmetatable({
+		__yu_newclass=newClass,
+		__yu_newobject=newObject,
+
+		__yu_try=doTry,
+		__yu_throw=doThrow,
+		__yu_assert=doAssert,
+		__yu_cast=cast,
+		__yu_is=isType,
+		
+		__yu_obj_next=objectNext,
+
+		__yu_wait=signalWait,
+		__yu_connect=signalConnect,
+		
+		__yu_resume=generatorResume,
+		__yu_spawn=generatorSpawn,
+		__yu_yield=generatorYield,
+
+	},{__index=_G})
 
 function module(name)
 	local moduleEnv=setmetatable(
 		{},{
 			__name=name,
-			__is_yu_module=true
+			__is_yu_module=true,			
+			__index=runtimeIndex,
 		}
 	)
 	return setfenv(1, moduleEnv)

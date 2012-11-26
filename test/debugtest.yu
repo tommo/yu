@@ -1,4 +1,27 @@
-local x={}
-x[1]=2
-x=nil
-x[2]=3
+extern
+	func print(...*)
+end
+
+class Foo
+	field a=1
+	field parent:Foo
+	method __new(x#)
+		self.a=x
+	end	
+
+	method go()
+		print(
+			parent.getA())
+	end
+	
+	method getA#()
+		return a+1
+	end
+end
+
+
+local f=Foo(2)
+local f1=Foo()
+
+f.parent=f1
+f.go()

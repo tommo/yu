@@ -124,8 +124,10 @@ function codeWriter:append(str,s1,...)
  function codeWriter:mark(node,cr,msg)
  	local line=self.__line
  	insert(self.__marked_line,{ line,node})
- 	self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
- 	if msg then self:append(msg) end
+ 	
+ 	-- self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
+ 	-- if msg then self:append(msg) end
+
  	if cr~=false then
  		self:cr() 
  		self:append'\t'
@@ -495,13 +497,13 @@ function generators.iterator( gen,i )
 	elseif mode=='enum' then
 		--todo
 	elseif mode=='thread' then
-		gen'__YU_RESUME ,' codegen(gen,i.expr)
+		gen'__yu_resume ,' codegen(gen,i.expr)
 	elseif mode=='obj' then
-		gen'__YU_OBJ_NEXT (' codegen(gen,i.expr) gen':__iter() )'
+		gen'__yu_obj_next (' codegen(gen,i.expr) gen':__iter() )'
 	elseif mode=='obj-table' then
 		gen'next ,' codegen(gen,i.expr) gen':__iter()'
 	elseif mode=='obj-thread' then
-		gen'__YU_RESUME ,' codegen(gen,i.expr) gen':__iter()'
+		gen'__yu_resume ,' codegen(gen,i.expr) gen':__iter()'
 	end
 		gen:mark(i)
 
@@ -537,7 +539,7 @@ end
 
 function generators.throwstmt(gen,t)
 	--todo:!!!!!!!!!!!!!!
-	gen'__YU_THROW('
+	gen'__yu_thro('
 	codegenList(gen,t.values)
 	gen')'
 end
@@ -547,7 +549,7 @@ function generators.catch(gen,c)
 end
 
 function generators.assertstmt( gen,t )
-	gen'__YU_ASSERT('
+	gen'__yu_assert('
 	codegen(gen,t.expr)
 	if t.exception then 
 		gen','
@@ -751,10 +753,10 @@ function generators.funcdecl(gen,f)
 
 	gen'('
 	
-	if ismethod then 
-		gen'self' 
-		if f.type.args[1] then gen',' end
-	end
+	-- if ismethod then 
+	-- 	gen'self' 
+	-- 	if f.type.args[1] then gen',' end
+	-- end
 
 	codegenList(gen,f.type.args)
 	gen')'
@@ -993,16 +995,15 @@ end
 
 
 function generators.new(gen,n)
-	local newfuncname=getDeclName(n.class.decl)
 	gen:refer(n.class.decl)
-	gen:appendf('new_%s(',newfuncname)
+	gen:appendf('__yu_newobject(%s,',getDeclName(n.class.decl))
 		gen:mark(n)
 		gen'{}'
-		-- if n.constructor then 
+		if n.constructor then 
 		-- 	gen:refer(n.constructor)
-		-- 	gen','
-		-- 	gen(getDeclName(n.constructor))
-		-- end
+			gen','
+			gen(getDeclName(n.constructor))
+		end
 		if n.args then 
 			gen',' 
 			codegenList(gen,n.args)
@@ -1011,7 +1012,7 @@ function generators.new(gen,n)
 end
 
 function generators.tcall( gen,n )	
-	gen:appendf('new_%s(',getDeclName(n.l.decl))
+	gen:appendf('__yu_newobject(%s,',getDeclName(n.l.decl))
 		codegen(gen,n.arg)		
 	gen')'
 
@@ -1040,7 +1041,7 @@ function generators.binop(gen,b)
 		codegen(gen,b.r)
 	end
 	gen:mark(b)
-	
+
 	--TODO:operator override
 end
 
@@ -1142,7 +1143,7 @@ function generators.cast(gen,a)
 	elseif t.tag=='numbertype' then
 		gen'tonumber(' codegen(gen,a.l) gen')'
 	else
-		gen'__YU_CAST('
+		gen'__yu_cast('
 			codegen(gen,a.l)
 			gen','
 			codegen(gen,a.dst)
@@ -1151,7 +1152,7 @@ function generators.cast(gen,a)
 end
 
 function generators.is(gen,i)
-	gen'__YU_ISTYPE('
+	gen'__yu_is('
 		codegen(gen,i.l)
 		gen','
 		codegen(gen,i.dst)
