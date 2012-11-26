@@ -105,6 +105,7 @@ function codeWriter:append(str,s1,...)
 	local count=self.__count
 	l[count+1]=str
 	self.__count=count+1
+	self.dirty=true
 	if s1 then return self:append(s1,...) end
  end
 
@@ -122,20 +123,23 @@ function codeWriter:append(str,s1,...)
  
  local stringrep = string.rep
  function codeWriter:cr()
+ 	-- if not self.dirty then return end
  	self:append(
  		-- '--'..self.__line..
  		'\n'..stringrep('\t',self.__indent))
  	self.__line=self.__line+1
+ 	self.dirty=false
  end
 
  function codeWriter:mark(node,cr,msg)
  	local line=self.__line
  	insert(self.__marked_line,{ line,node})
  	
- 	self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
- 	if msg then self:append(msg) end
+ 	-- self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
+ 	-- if msg then self:append(msg) end
 
  	if cr~=false then
+ 		self.dirty=true
  		self:cr() 
  		self:append'\t'
  	end
@@ -143,10 +147,12 @@ function codeWriter:append(str,s1,...)
 
  function codeWriter:ii()--increase indent
  	self.__indent=self.__indent+1
+ 	self.dirty=true
  end
 
  function codeWriter:di()--increase indent
  	self.__indent=self.__indent-1
+ 	self.dirty=true
  end
 
  function codeWriter:tostring()
@@ -281,18 +287,13 @@ function generators.module(gen,m)
 	-- gen.__indent=-1 --reset indent
 	gen:appendf("yu.runtime.module('%s')",m.name)
 	gen:cr()
-	gen:appendf("--------start of module:<%s>------",m.name)
-	gen:ii()	
-		gen:cr()
-		codegen(gen,m.mainfunc)
-		gen:cr()
-
-		--load module
+	--load module
 		gen:appendf("--------requrie modules------")
 		gen:cr()
 		for path,m1 in pairs(m.externModules)  do
 
 			gen:appendf('__yu_require(%q,{',m1.name)
+				--load refered extern symbol
 				for r in pairs(gen.referedDecls) do
 					if r.module==m1 then
 						gen:appendf('%q,',getDeclName(r))
@@ -302,7 +303,13 @@ function generators.module(gen,m)
 			gen:cr()
 		end
 
-		--load refered extern symbol
+	gen:appendf("--------start of module:<%s>------",m.name)
+	gen:ii()	
+		gen:cr()
+		codegen(gen,m.mainfunc)
+		gen:cr()
+
+		
 		gen:appendf("--------exposed decl------")
 		gen:cr()
 		for i,s in ipairs(gen.exposeDecls) do
@@ -717,6 +724,14 @@ end
 
 function generators.classdecl(gen,c)
 	--TODO:!!!!!!!!!!!!!!!!!
+	if c.extern then
+		for i,s in ipairs(c.decls) do
+			if isExposable(s) then
+				gen:expose(s)
+			end
+		end
+		return
+	end
 
 	gen:cr()
 	gen:appendf('do',getDeclName(c))
@@ -743,7 +758,7 @@ function generators.classdecl(gen,c)
 		gen'{'
 		gen:cr()
 		for i,d in ipairs(c.decls) do
-			if d.tag=='methoddecl' then
+			if isExposable(d) then
 				gen:appendf('%s=%s;',d.name,getDeclName(d))
 				gen:cr()
 			end
@@ -1261,13 +1276,16 @@ end
 -- 	--TODO:!!!!
 -- 	return generators.externfunc(gen,m)
 -- end
-	
-local function generateAllModule(m ,generated)
-	generated=generated or {}
+local function generateModule(m)
 	local gen=doCodegen(m)
 	local output=gen:tostring()
-	generated[m]=true
+	return output
+end
 
+local function generateAllModule(m ,generated)
+	generated=generated or {}
+	local output=generateModule(m)
+	
 	for k,mm in pairs(m.externModules) do
 		if not generated[mm] then
 			output=generateAllModule(mm,generated)..'\n'..output
@@ -1293,4 +1311,5 @@ local function generateFullCode(entry)
 -- 	code=code..entrycode
 	return code
 end
-_M.codegen=generateFullCode
+_M.generateFullCode=generateFullCode
+_M.generateModule=generateModule

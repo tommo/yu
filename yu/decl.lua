@@ -73,7 +73,12 @@ function newDeclCollector()
 		depth=0,
 		
 		pushName=function(self,name)
-			local n=name..'_'..self.currentNamePrefix
+			local n
+			if self.currentNamePrefix~='' then
+				n=name..'_'..self.currentNamePrefix
+			else
+				n=name
+			end
 			self.currentNamePrefix=n
 			return self.nameStack:push(n)
 		end,
@@ -85,7 +90,13 @@ function newDeclCollector()
 		end,
 
 		pushExternName=function(self,name)
-			local n=name..'_'..self.currentExNamePrefix
+			local n
+			if self.currentExNamePrefix~='' then
+				n=self.currentExNamePrefix..'.'..name
+			else
+				n=name
+			end
+
 			self.currentExNamePrefix=n
 			return self.exNameStack:push(n)
 		end,

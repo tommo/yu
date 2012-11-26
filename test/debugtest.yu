@@ -15,7 +15,8 @@ class Foo
 	end
 	
 	method getA#()
-		return a+1
+		local c=a+1
+		return c
 	end
 end
 

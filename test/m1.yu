@@ -1,8 +1,9 @@
+import 'lua/std.lx'
 import 'm2.yu'
 
-extern
-	func print(...*)
-end
+-- extern
+-- 	func print(...*)
+-- end
 
 global origin=Vec()
 
