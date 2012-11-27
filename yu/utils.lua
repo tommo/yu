@@ -365,6 +365,16 @@ function makeDeclRefName(decl,id)
 	end
 end
 
+function referExternModuleDecl(m,d)
+	if m==d.module then return end
+	if m.externalReferNames[d] then return end
+	
+	local id=m.maxDeclId+1
+	m.maxDeclId=id
+	m.externalReferNames[d]=makeDeclRefName(d,id)
+end
+
+
 _M.getConstNode=getConstNode
 _M.getConst=getConst
 _M.makeStringCheckTable=makeStringCheckTable

@@ -7,4 +7,9 @@ class ABase
 end
 
 class B extends BBase
+	method report()
+		local x#
+		local y=x+1
+		--error here
+	end
 end

@@ -53,6 +53,7 @@ local function _findSymbol(vi,name,token,limit)
 	local t=vi.nodeStack
 	local outClas,outFunc,outMethod=0,0,0
 	local minScopeLevel=1000000
+	local entryModule=token.module
 
 	for i=t.count,1,-1 do
 		local node=t[i]
@@ -69,7 +70,8 @@ local function _findSymbol(vi,name,token,limit)
 			minScopeLevel=scopeLevel
 		end
 
-		if scope and levelCorrect then			
+
+		if scope and levelCorrect and entryModule==node.module then			
 			local decl
 			if tag=='classdecl' then
 				local clas=node
@@ -113,7 +115,9 @@ local function _findSymbol(vi,name,token,limit)
 					
 				end
 			end
-			if found then return decl end
+			if found then 
+				return decl
+			end
 		end
 
 		if levelCorrect then
@@ -153,9 +157,7 @@ local function _findSymbol(vi,name,token,limit)
 	elseif foundCount==1 then
 		local d=found[1].decl
 		--alloc refname for external ref
-		local id=m.maxDeclId+1
-		m.maxDeclId=id
-		m.externalReferNames[d]=makeDeclRefName(d,id)
+		referExternModuleDecl(m,d)
 		m.externalRefers[name]=d
 
 		return d
@@ -864,7 +866,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 	function pre:classdecl(c)
 		local supername=c.supername
 		if supername then
-			local s=self:findSymbol(supername.id,c)
+			local s=self:findSymbol(supername.id,c)			
 			--todo check template
 			if not s then
 				self:err('symbol not found:'..supername.id,c)
@@ -1324,6 +1326,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		
 		resolveMember(td,m,self)
 		self:visitNode(m.decl)
+		referExternModuleDecl(m.module,m.decl)
 		-- m.type=getType(m.decl)
 	end
 	

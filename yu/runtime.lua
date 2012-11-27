@@ -518,7 +518,7 @@ local function makeLuaTraceString(info)
 	)
 end
 
-function getStackInfo(level)
+function getStackPos(level)
 	local info=debug.getinfo(level)
 	if not info then return false end
 
@@ -538,7 +538,7 @@ function traceBack(level)
 	level=level or 3
 	local output='stack traceback:\n'
 	while true do
-		local info=getStackInfo(level)
+		local info=getStackPos(level)
 		if not info then break end
 		output=output..'\t'..info..'\n'
 		level=level+1
@@ -546,9 +546,18 @@ function traceBack(level)
 	return output
 end
 
+function convertLuaErrorMsg(msg)
+end
+
 function errorHandler(msg,b)	
+	local traceInfo=traceBack(4)
+
+	if errorInYu then
+		msg=convertLuaErrorMsg(msg)
+	end
+	
 	io.stderr:write(msg,'\n')
-	io.stderr:write(traceBack(4),'\n')
+	io.stderr:write(traceInfo,'\n')
 end
 
 local _dofile=dofile
