@@ -1,0 +1,48 @@
+
+extern
+	class MOAISim
+		func openWindow(title$,w,h#)
+		func pushRenderPass(layer:MOAILayer)		
+	end
+
+	class MOAILayer
+		func new()->MOAILayer
+		method insertProp(p:MOAIProp)
+		method setViewport(v:MOAIViewport)
+	end
+
+	class MOAIProp
+		func new()->MOAIProp
+		method setDeck(deck:MOAIDeck)
+		method setLoc(x,y,z#)
+		method seekLoc(x,y,z,time#)
+		method moveLoc(x,y,z,time#)
+		method addLoc(x,y,z,time#)
+
+		method setScl(x,y,z#)
+		method seekScl(x,y,z,time#)
+		method moveScl(x,y,z,time#)
+		method addScl(x,y,z,time#)
+
+		method moveRot(x,y,z,time#)
+
+	end
+
+	class MOAIDeck
+	end
+
+	class MOAIGfxQuad2D extends MOAIDeck
+		func new()->MOAIGfxQuad2D
+		method setTexture(tex$)
+		method setRect(x0,y0,x1,y1#)
+	end
+
+	class MOAIViewport
+		func new()->MOAIViewport
+		method setSize(w,h#)
+		method setScale(w,h#)
+	end
+
+end
+
+local a=MOAIViewport.new()

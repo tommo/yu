@@ -221,8 +221,7 @@ function newDeclCollector()
 			else
 				scope[decl.name]=decl
 			end
-			--
-			--
+	
 			decl.declId=self:genDeclId()
 			decl.refname=makeDeclRefName(decl,decl.declId)
 
@@ -240,11 +239,9 @@ function newDeclCollector()
 
 			if decl.protoId then
 				decl.fullname=decl.fullname..'_p'..decl.protoId
-			end					
+			end
 
 			decl.depth=self.depth
-			-- decl.refname=decl.fullname
-			-- print("..added decl:",decl.tag,decl.name,decl.fullname,decl.vtype)
 		end
 		
 		}
@@ -260,8 +257,11 @@ end
 function pre.module(vi,m)
 	-- vi:pushScope()
 	-- vi:pushName(m.name)
+
 	vi.currentModule=m
 	m.module=m
+	m.namedExternModule={}
+
 end
 
 function post.module(vi,m)
@@ -300,8 +300,10 @@ function pre.block(vi,b,parent)
 
 			if h.tag=='import' and h.alias then
 				h.type=moduleMetaType
-				vi:addDecl(h)
+				vi:addDecl(h)				
+				module.namedExternModule[h.mod]=true
 			end
+
 		end
 	end
 	

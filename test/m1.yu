@@ -1,37 +1,11 @@
 import 'lua/std.lx'
 import 'm2.yu'
 
--- extern
--- 	func print(...*)
--- end
-
-global origin=Vec()
-
-class Vec 
-	field x,y,z=0,0,0 :{list='ok', last=nil , past='good'}
+class BBase
 end
 
-class TestBase
-	field tester:Tester
-	method report()
-		preReport()
-		tester.report()
-	end
-
-	method getTester()=>tester
-
-	method preReport() abstract
+class A extends ABase
 end
 
-class Test2 extends TestBase
-	global o=origin
-	method report()
-		local z=origin.z
-		super.report()
-	end
-end
-
-func triple(x#)=>x*3
-
-local z=origin.z
-print('m2')
+local a=A()
+a.report()

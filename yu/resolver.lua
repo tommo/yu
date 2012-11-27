@@ -31,8 +31,8 @@ local function _findExternSymbol(entryModule,name,found)
 	if externModules then
 		entryModule._seq=__searchSeq
 
-		for p,m in pairs(externModules) do
-			if m.__seq~=__searchSeq then
+		for p,m in pairs(externModules) do			
+			if m.__seq~=__searchSeq and not entryModule.namedExternModule[m] then
 				m.__seq=__searchSeq
 				local decl=m.scope[name]
 				if decl and not decl.private then 
@@ -153,7 +153,6 @@ local function _findSymbol(vi,name,token,limit)
 	elseif foundCount==1 then
 		local d=found[1].decl
 		--alloc refname for external ref
-
 		local id=m.maxDeclId+1
 		m.maxDeclId=id
 		m.externalReferNames[d]=makeDeclRefName(d,id)

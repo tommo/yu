@@ -337,13 +337,31 @@ local declPrefix={
 	signaldecl='s',
 }
 
+local mangleChar='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+local mangleSize=#mangleChar
+local floor=math.floor
+local function makeMangle(id)
+	assert(id>=0)
+	local output=''
+	local i=id
+	while true do
+		local p=i % mangleSize+1
+		i=floor(i/mangleSize)
+		local w=mangleChar:sub(p,p)
+		output=w..output
+		if i==0 then return output end
+	end	
+end
+
 function makeDeclRefName(decl,id)
+	if decl.name=='...' then return '...' end
 	local strip=false
 	local dtag=(declPrefix[decl.tag] or 'v')
+	local mangle=makeMangle(id)--format('%x',id)
 	if strip then
-		return format('%s_%x',dtag,id)
+		return format('%s_%s',dtag,mangle)
 	else
-		return format('%s_%x',decl.name,id)
+		return format('%s_%s',decl.name,mangle)
 	end
 end
 

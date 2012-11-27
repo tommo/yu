@@ -87,24 +87,18 @@ local function getDeclName(d)
 		end
 		if vtype=='const' then return getConst(d.value) end
 		if vtype=='field' then return d.name end
-		
-	elseif tag=='funcdecl' or tag=='methoddecl' then
-		if d.module~=currentModule then
-			local n= currentModule.externalReferNames[d]
-			if not n then
-				print('getting ext ref name',d.name,currentModule.name)
-				error('internal error,refername not defined:'..d.name)
-			else
-				return n
-			end
-		else
-			return d.refname
-		end
-	
-	elseif tag=='arg' then
-		return d.refname	
 	end
-	return d.refname
+	if d.module~=currentModule then
+		local n= currentModule.externalReferNames[d]
+		if not n then
+			print('getting ext ref name',d.name,currentModule.name)
+			error('internal error,refername not defined:'..d.name)
+		else
+			return n
+		end
+	else
+		return d.refname
+	end
 end
 
 
@@ -317,27 +311,31 @@ end
 function generators.module(gen,m)
 	currentModule=m
 	-- gen.__indent=-1 --reset indent
-	gen:appendf("yu.runtime.module('%s')",m.name)
+	gen:appendf("yu.runtime.module(%q)",m.modpath)
 	gen:cr()
 	--load module
-	gen:appendf("--------requrie modules------")
-		gen:cr()
-		for path,m1 in pairs(m.externModules)  do
-			gen:appendf('__yu_require%q',m1.name)
-			gen:cr()				
-		end
+	
+	gen"-------declaration pass------"
+	gen:cr()
 
-	gen:appendf("--------start of module:<%s>------",m.name)
+	gen('local __yu_module_inited=false')
+	gen:cr()
+	gen('function __yu_module_init()')
 	gen:ii()			
+		gen:cr()
+		gen('if __yu_module_inited then return else __yu_module_inited=true end')
+		gen:cr()
+		for i, m in pairs(m.externModules) do
+			gen:appendf('__yu_require%q.__yu_module_init()',m.modpath)
+			gen:cr()
+		end
 		gen:expose(m.mainfunc)
+		local classDecls={}
 		while true do
 			local exposed=makeDeclList(gen.exposeDecls)
 			gen.exposeDecls={}
 			for i,s in ipairs(exposed) do
-				if s.tag=='classdecl' then
-					gen:appendf('%s={}',getDeclName(s))
-					gen:cr()
-				end
+				if s.tag=='classdecl' then insert(classDecls,s) end
 			end
 
 			for i,s in ipairs(exposed) do
@@ -347,8 +345,26 @@ function generators.module(gen,m)
 			if not next(gen.exposeDecls) then break end
 		end
 
-		gen:appendf("--------refer external decl------")
+	gen:di()
+	gen:cr()
+	gen'end'
+	gen:cr()
+
+
+	gen:cr()
+	gen"-------reference pass------"
+	gen:cr()
+	gen('local __yu_module_refered=false')
+	gen:cr()
+	gen('function __yu_module_refer()')
+	gen:ii()			
 		gen:cr()
+		gen('if __yu_module_refered then return else __yu_module_refered=true end')
+		gen:cr()
+		for i, m in pairs(m.externModules) do
+			gen:appendf('__yu_require%q.__yu_module_refer()',m.modpath)
+			gen:cr()
+		end
 		--load refered extern symbol
 		local listByModule={}
 		for r in pairs(gen.referedDecls) do
@@ -360,48 +376,71 @@ function generators.module(gen,m)
 			end
 		end
 		for m,list in pairs(listByModule) do
-			gen:appendf('__yu_getsymbol(%q,{',m.name)
+			gen:appendf('local _m=__yu_require%q',m.modpath)
+			gen:cr()
 			for r in pairs(list) do
-				gen:appendf('%s=%q,',getDeclName(r),r.refname)
+				gen:appendf('%s=_m.%s',getDeclName(r),r.refname)
+				gen:cr()
 			end
-			gen'})'
+		end
+	
+	gen:di()
+	gen:cr()
+	gen'end'
+	gen:cr()
+
+
+	gen:cr()
+	gen"-------module entry------"
+	gen:cr()
+	gen('local __yu_module_entered=false')
+	gen:cr()
+	gen('function __yu_module_entry(...)')
+	gen:ii()
+		gen:cr()
+		gen('if __yu_module_entered then return else __yu_module_entered=true end')
+		gen:cr()
+		for i, m in pairs(m.externModules) do
+			gen:appendf('__yu_require%q.__yu_module_entry()',m.modpath)
 			gen:cr()
 		end
 
-		gen:appendf("--------global init------")
+		gen"----init globals----"
 		gen:cr()
-		gen('local function __yu_init(...)')
-		gen:ii()
-		gen:cr()
-			for i, g in ipairs(gen.classGlobalVars) do
-				codegen(gen,g)
-				gen:cr()
-			end
-			gen'return __yu_main(...)'		
+		for i, g in ipairs(gen.classGlobalVars) do
+			codegen(gen,g)
+			gen:cr()
+		end
+		gen'return __yu_main(...)'
 		gen:di()
 		gen:cr()
 		gen'end'
-		-- gen:appendf("--------refered external decl------")
-		-- gen:cr()
-		-- for r in pairs(gen.referedDecls) do
-		-- 	if r.module~=m then
-		-- 		local n=getDeclName(r)
-		-- 		gen:appendf('%s = __yu_require(%q,%q)',
-		-- 			n,m.name,n
-		-- 			)
-		-- 		gen:cr()
-		-- 	end
-		-- end
+		gen:cr()
+		
 
-	gen:di()
-	gen:cr()
-	--add src info
+		gen:cr()
+		gen:appendf("--------forward class creation------")
+		gen:cr()
+		for i,s in ipairs(classDecls) do
+			gen:appendf('%s={}',getDeclName(s))
+			gen:cr()
+		end
+		gen:cr()
+
+	
 	gen:appendf("--------debug info------")
+	gen:cr()	
+	genDebugInfo(gen,m)		
 	gen:cr()
-	genDebugInfo(gen,m)
-	gen:appendf("--------end of module:<%s>------",m.name)
+
+	gen:appendf("--------require modules------")
+		gen:cr()
+		for path,m1 in pairs(m.externModules)  do
+			gen:appendf('__yu_require%q',m1.modpath)
+			gen:cr()				
+		end
 	gen:cr()
-	gen:append('return __yu_init(...)')
+
 	currentModule=nil
 end
 
@@ -790,6 +829,14 @@ local function defaultFieldBody(gen,c)
 	end
 end
 
+local function getSuperClassDeclName(c,s)
+	if c.module~=s.module then
+		return format('__yu_require%q.%s',s.module.modpath,s.refname)
+	else
+		return getDeclName(s)
+	end
+end
+
 
 function generators.classdecl(gen,c)
 	--TODO:!!!!!!!!!!!!!!!!!
@@ -818,7 +865,7 @@ function generators.classdecl(gen,c)
 	gen:appendf('__yu_newclass(%q,%s,%s,',			
 			c.name,
 			getDeclName(c),
-			c.superclass and getDeclName(c.superclass) or 'nil'
+			c.superclass and getSuperClassDeclName(c,c.superclass) or 'nil'
 		)
 	if c.superclass then gen:refer(c.superclass) end
 	gen:ii()
@@ -845,7 +892,7 @@ function generators.funcdecl(gen,f)
 	end
 	
 	if f.extern then 		
-		gen:appendf('%s = __yu_extern%q',getDeclName(f),f.externname)
+		gen:appendf('%s = __yu_extern%q',getDeclName(f),f.alias or f.externname)
 		return
 	end
 	--generate exposed decl
@@ -872,6 +919,8 @@ function generators.funcdecl(gen,f)
 	if ismethod then 
 		gen'self' 
 		if f.type.args[1] then gen',' end
+	elseif f.name=='@main' then
+		gen'...'
 	end
 
 	codegenList(gen,f.type.args)

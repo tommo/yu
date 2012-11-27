@@ -1,0 +1,42 @@
+extern
+	func print(...*)
+end
+class Person
+	global weather='sunny'
+
+	field friend:Person
+	field name$
+	method greet()
+		if friend then
+			print('hello,',friend.name)
+		else
+			print('...')
+		end
+	end
+	method talk()
+		print(name..':','weather is '..weather)
+	end
+end
+
+local john=Person{name='john'}
+john.greet()
+local mary=Person{name='mary'}
+mary.greet()
+
+john.friend=mary
+mary.friend=john
+
+john.greet()
+mary.greet()
+
+john.talk()
+changeWeather'blue'
+mary.talk()
+
+john.name=nil
+john.talk()
+
+func changeWeather(w$)
+	Person.weather=w
+end
+

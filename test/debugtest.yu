@@ -1,32 +1,4 @@
--- import 'lua/std.lx'
-extern
-	func print(...*)
-end
+import 'lua/std.lx'
+import 'queue.yu' as queue
 
-
-class Apple extends Fruit
-	override name$()=>'apple'
-end
-
-class Banana extends Fruit
-	override name$() final
-		=>'banana'
-end
-
-class Fruit
-	field color$
-	method name$() abstract
-end
-
-class TropicalFruit extends Banana
-	-- override name$()=>'Tropical'
-end
-
-
-local a,b=Apple(),Banana()
-print(a.name(),b.name())
-print(a==b)
-print(a is Apple, b is Apple, a is Fruit, b is Fruit)
-
-local t=TropicalFruit() 
-print(t.name())
+print('hello')

@@ -3,6 +3,3 @@ import "math.lx" as math
 import "os.lx" as os
 import "string.lx" as string
 import "etc.lx"
-
-local shit=1
-print(sin)

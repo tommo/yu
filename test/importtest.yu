@@ -1,0 +1,7 @@
+import 'queue.yu'
+
+local q=Queue()
+q.push(1)
+extern
+	func print(...*)
+end

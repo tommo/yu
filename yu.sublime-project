@@ -10,7 +10,7 @@
     [
         {
             "name": "Lua",
-            "cmd":["/usr/local/bin/luajit","test.lua","$file"],
+            "cmd":["/usr/local/bin/luajit","test.lua","test/$file_name"],
             "working_dir": "${project_path}"
         },
         {

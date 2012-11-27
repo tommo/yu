@@ -1,59 +1,31 @@
-import 'mulval.yu'
 extern
 	func print(...*)
 end
 
-class Vec
-	field x,y,z#
-	method __new(nx,ny,nz#)
-		x,y,z=nx,ny,nz
-	end
-	
-	method lenth()=>x^2+y^2+z^2
+
+class Apple extends Fruit
+	override name$()=>'apple'
 end
 
-class Sprite
-	field pos=Vec(0,0,0)
-	field size#
-	method update()
-	end
-	method draw()
-		print('drawing')
-	end
-	method __new()
-		print('new sprite')
-	end
+class Banana extends Fruit
+	override name$() final
+		=>'banana'
 end
 
-class ImageSprite extends Sprite
-	field img='sprite.png'
-	method setImage(img$)
-		self.img=img
-	end
-
-	method register()
-		print('register image sprite:',img)
-	end
-
-	method draw()
-		super.draw()
-		print('imagesprite')
-	end
-
-	method __new()
-		img='test'
-		register()
-	end
-end
--- Sprite()
-local i=ImageSprite()
-i.draw()
-
-ImageSprite{size=20}
-
-func uploadSprite(sprite:Sprite)
+class Fruit
+	field color$
+	method name$() abstract
 end
 
-uploadSprite({
-		size=20
-	})
+class TropicalFruit extends Banana
+	-- override name$()=>'Tropical'
+end
+
+
+local a,b=Apple(),Banana()
+print(a.name(),b.name())
+print(a==b)
+print(a is Apple, b is Apple, a is Fruit, b is Fruit)
+
+local t=TropicalFruit() 
+print(t.name())

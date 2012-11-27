@@ -497,6 +497,15 @@ function typeres.member.modulemeta(t,m)
 	if item and not item.private then
 		m.decl=item
 		m.type=getType(item)
+		
+		local module=m.module
+
+		if not module.externalReferNames[item] then
+			local id=module.maxDeclId+1
+			module.maxDeclId=id
+			module.externalReferNames[item]=makeDeclRefName(item,id)
+		end
+
 		return true
 	end
 	

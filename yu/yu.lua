@@ -81,6 +81,7 @@ function builder:buildModule(path)
 	local m=parseFile(path)
 	m.externModules={}
 	m.path=path
+	m.modpath=stripExt(path)
 	m.name=extractModName(path)
 	self.moduleTable[path]=m
 	

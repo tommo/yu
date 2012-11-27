@@ -380,7 +380,7 @@ function loadExternSymbol( name )
 	for w in gmatch(name, "(%w+)[.]?") do
        t=t[w]
        if not t then
-       	print('warning:extern symbol not found '..name)
+       	print('warning:extern symbol not found :',name)
        	return false
        end
     end
@@ -388,20 +388,29 @@ function loadExternSymbol( name )
 end
 
 
-function requireModule(name,symbols)
-	local env=getfenv(2)
+function requireModule(path)
 	--todo:load module if not loaded
-	local m=moduleTable[name]
+	local m=moduleTable[path]
 
 	if not m then	
-		--todo: add to runtime error handling
-		print('Module not found',name)
-		error()
+		--load module
+		-- print('loading module:',path)
+		local f=loadfile(path..'.yo')
+		if not f then
+			return error('Module not load:'..path)
+		end
+		f()
+		m=moduleTable[path]
+		assert(m)
 	end
+	return m
+end
 
-	for i,s in ipairs(symbols) do
-		rawset(env,s,m[s])
-	end
+function launchModule(path,...)
+	local m=requireModule(path)
+	m.__yu_module_init()
+	m.__yu_module_refer()
+	return m.__yu_module_entry()
 end
 
 local runtimeIndex=setmetatable({
@@ -428,16 +437,17 @@ local runtimeIndex=setmetatable({
 
 	},{__index=_G})
 
-function module(name)
+function module(path)
 	local moduleEnv=setmetatable(
 		{},{
+			__path=path,
 			__name=name,
 			__is_yu_module=true,			
 			__index=runtimeIndex,
 		}
 	)
 
-	moduleTable[name]=moduleEnv
+	moduleTable[path]=moduleEnv
 	return setfenv(1, moduleEnv)
 end
 
@@ -543,8 +553,10 @@ end
 
 local _dofile=dofile
 function dofile(file,...)
-	local f=loadfile(file)
-	return xpcall(f,errorHandler,...)
-	-- return f(...)
-	-- return pcall(f,errorHandler,...)
+	return xpcall(function(...)
+			return launchModule(file,...)
+		end
+		,errorHandler
+		,...)
+	
 end

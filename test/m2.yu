@@ -1,25 +1,10 @@
 import 'm1.yu'
 
-class Tester
+class ABase
 	method report()
-		print('tester reports')
+		print('A report')
 	end
 end
 
-class Test1 extends TestBase
-
-	method preReport()
-		getTester()
-		print('pre report 1')
-	end
+class B extends BBase
 end
-
-
-func double(x#)=>x*2
-
-print(double(triple(10)))
-
-local t=Test1()
-t.tester=Tester()
-
-local x=origin.x

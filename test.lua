@@ -30,4 +30,9 @@ print "-------------------------------------------"
 
 
 require 'yu.runtime'
-yu.runtime.dofile('test/debugtest.yo')
+local function stripExt(p)
+	p=string.gsub(p,'%..*$','')
+	return p
+end
+
+yu.runtime.dofile(stripExt(args[1]))
