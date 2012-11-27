@@ -1,28 +1,32 @@
+-- import 'lua/std.lx'
 extern
 	func print(...*)
 end
 
-class Foo
-	field a=1
-	field parent:Foo
-	method __new(x#)
-		self.a=x
-	end	
 
-	method go()
-		print(
-			parent.getA())
-	end
-	
-	method getA#()
-		local c=a+1
-		return c
-	end
+class Apple extends Fruit
+	override name$()=>'apple'
+end
+
+class Banana extends Fruit
+	override name$() final
+		=>'banana'
+end
+
+class Fruit
+	field color$
+	method name$() abstract
+end
+
+class TropicalFruit extends Banana
+	-- override name$()=>'Tropical'
 end
 
 
-local f=Foo(2)
-local f1=Foo()
+local a,b=Apple(),Banana()
+print(a.name(),b.name())
+print(a==b)
+print(a is Apple, b is Apple, a is Fruit, b is Fruit)
 
-f.parent=f1
-f.go()
+local t=TropicalFruit() 
+print(t.name())

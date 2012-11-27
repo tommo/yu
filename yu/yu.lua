@@ -15,7 +15,10 @@ local function fixpath(p)
 	return p
 end
 
-local function stripExt()
+local function stripExt(p)
+	p=fixpath(p)
+	p=string.gsub(p,'%..*$','')
+	return p
 end
 
 local function extractDir(p)
@@ -60,8 +63,7 @@ function builder:build(path)
 	for i,mm in ipairs(self.buildingModules) do
 		local code=yu.generateModule(mm)
 		generatedModules[mm.name]=loadstring(code)
-		local outfile=mm.path..'.yua'
-		print('writing',outfile)
+		local outfile=stripExt(mm.path)..'.yo'
 		local file=io.open(outfile,'w')
 		file:write(code)
 		file:close()

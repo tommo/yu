@@ -335,13 +335,17 @@ end
 
 -------------MODULE
 local moduleTable={}
+local classMT={}
 
-function newClass( name ,superClass, body)
-	return {
-		__index=body,
-		__name=name,
-		__type='class'
-	}
+function newClass( name, classDecl ,superClass, body)
+	if superClass then setmetatable(body,superClass) end
+	--todo: cache method for class?
+	classDecl.__index=body
+	classDecl.__name=name
+	classDecl.__super=superClass
+	classDecl.__type='class'
+	
+	return classDecl
 end
 
 local loaded={}
@@ -461,7 +465,7 @@ local function makeYuTraceString(info,modEnv)
 	end
 
 	local lineTarget=dinfo.line_target
-	local line=info.currentline - 1
+	local line=info.currentline 
 	local lineOffset=dinfo.line_offset
 
 	for i, data in ipairs(lineTarget) do
@@ -491,6 +495,7 @@ local function makeLuaTraceString(info)
 		whatInfo=string.format('function \'%s\'',info.name)
 	elseif what=='C' then
 		whatInfo=nil
+		return '[C]: ?'
 	end
 	if whatInfo~=nil then
 		whatInfo='in '..whatInfo
@@ -519,14 +524,27 @@ function getStackInfo(level)
 	return makeLuaTraceString(info)
 end
 
-function errorHandler(msg,b)
-	local level=3
-	print('Error:',msg)
+function traceBack(level)
+	level=level or 3
+	local output='stack traceback:\n'
 	while true do
 		local info=getStackInfo(level)
 		if not info then break end
-		print(info)
+		output=output..'\t'..info..'\n'
 		level=level+1
 	end
-		
+	return output
+end
+
+function errorHandler(msg,b)	
+	io.stderr:write(msg,'\n')
+	io.stderr:write(traceBack(4),'\n')
+end
+
+local _dofile=dofile
+function dofile(file,...)
+	local f=loadfile(file)
+	return xpcall(f,errorHandler,...)
+	-- return f(...)
+	-- return pcall(f,errorHandler,...)
 end

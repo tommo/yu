@@ -28,10 +28,6 @@ print(string.format("\ttotalbuild:\t%.2f",buildtime*1000))
 print(string.format("\tcodegen:   \t%.2f",yu.totalGenerateTime*1000))
 print "-------------------------------------------"
 
--- local file=io.open(args[2] or 'output.lua','w')
--- file:write(code)
--- file:close()
--- require 'yu.runtime'
--- xpcall(outFunc,yu.runtime.errorHandler)
 
-table.foreach(result,print)
+require 'yu.runtime'
+yu.runtime.dofile('test/debugtest.yo')

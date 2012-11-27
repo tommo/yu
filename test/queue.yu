@@ -42,13 +42,13 @@ class QueueIterator
 end
 
 
--- local q=Queue()
--- for i=1,10 do
--- 	q.push('item-'..i)
--- end
--- -- print(q.pop())
--- -- print(q.pop())
+local q=Queue()
+for i=1,10 do
+	q.push('item-'..i)
+end
+-- print(q.pop())
+-- print(q.pop())
 
--- for v in q do
--- 	print(v)
--- end
+for v in q do
+	print(v)
+end

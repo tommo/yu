@@ -656,10 +656,13 @@ function typeres.call.classmeta(t,n,resolver )
 	
 	if clas.abstract then
 		local msg=''
-		for i, m in ipairs(clas.decls) do
-			if m.abstract then
-				msg=msg..'\n'..m.name..' : '..m.type.name
+		while clas do
+			for i, m in ipairs(clas.decls) do
+				if m.abstract then
+					msg=msg..format('\n\t%s.%s:%s',clas.name,m.name,m.type.name)
+				end
 			end
+			clas=clas.superclass
 		end
 		resolver:err('class has abstract method(s):'..msg,n.l)
 	end

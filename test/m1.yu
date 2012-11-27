@@ -23,6 +23,15 @@ class TestBase
 	method preReport() abstract
 end
 
+class Test2 extends TestBase
+	global o=origin
+	method report()
+		local z=origin.z
+		super.report()
+	end
+end
+
 func triple(x#)=>x*3
 
 local z=origin.z
+print('m2')

@@ -9,6 +9,7 @@ local is,isTypeDecl,isBuiltinType=is,isTypeDecl,isBuiltinType
 local getType,getOneType,getTypeDecl,newTypeRef,checkType
 	=getType,getOneType,getTypeDecl,newTypeRef,checkType
 local getExprTypeList=getExprTypeList
+local makeDeclRefName=yu.makeDeclRefName
 
 local pre={}
 local post={}
@@ -128,12 +129,15 @@ local function _findSymbol(vi,name,token,limit)
 		end
 	end
 	
+
 	--search extern modules
+
+	--try cache first
+	local m=token.module
+	local d=m.externalRefers[name]
+	if d then return d end
+
 	__searchSeq=__searchSeq+1
-	
-	if not token.module then
-		-- print(token.tag)
-	end
 	
 	local found=_findExternSymbol(token.module,name)
 	
@@ -147,7 +151,15 @@ local function _findSymbol(vi,name,token,limit)
 		return vi:err(msg,token)
 		
 	elseif foundCount==1 then
-		return found[1].decl
+		local d=found[1].decl
+		--alloc refname for external ref
+
+		local id=m.maxDeclId+1
+		m.maxDeclId=id
+		m.externalReferNames[d]=makeDeclRefName(d,id)
+		m.externalRefers[name]=d
+
+		return d
 	end
 	
 	return nil
@@ -293,7 +305,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		n.resolveState='done'
 	end
 	
-	function pre:module(m)
+	function pre:module(m)		
 		m.resolving=true
 	end
 	
@@ -867,6 +879,18 @@ local	function findHintType(vi,node,parentLevel,keep)
 		end
 		c.resolveState='done'
 	end
+	
+	local function chekClassAbstract(c)
+		local nonabstract={}
+		while c do
+			for k, d in pairs(c.scope) do
+				if d.abstract and not nonabstract[k] then return true end
+				nonabstract[k]=true
+			end	
+			c=c.superclass
+		end
+		return false
+	end
 
 	function post:classdecl(c)
 		local scope0=c.scope
@@ -876,7 +900,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		local defaultValues={}
 		local defaultValuesCount=0
 		
-		for k,d0 in pairs(scope0) do
+		for k,d0 in pairs(scope0) do			
 			if k~='private'	then
 				if d0.tag=='var' and d0.vtype=='field' and d0.value and d0.value.tag~='nil' then
 					defaultValuesCount=defaultValuesCount+1
@@ -910,15 +934,16 @@ local	function findHintType(vi,node,parentLevel,keep)
 					tag='methoddecl',
 					type={tag='functype',args={},rettype=voidType,resolveState='done'},
 					name='__new',
-					refname=c.refname..'__new',
+					refname=c.refname..'_new',
 					fullname='__new_'..c.fullname,
 					resolveState='done',
-					block=defaultValues
+					block=defaultValues,
+					module=c.module
 				}
 			end
 		end
-
-		local sc=c.superclass
+		c.abstract=chekClassAbstract(c)
+		-- local sc=c.superclass
 
 		-- while sc do
 		-- 	local scope1=sc.scope
@@ -953,21 +978,22 @@ local	function findHintType(vi,node,parentLevel,keep)
 		local ftype=m.type
 		-- assert(m.block or m.abstract,'abstract?'..m.name)
 		local name=m.name
+
+		local c=parent.superclass
+		local superMethod
+		while c do
+			local m=c.scope[m.name]
+			if m then
+				if m.tag=='methoddecl' then superMethod=m end
+				break
+			end
+			c=c.superclass
+		end
+
 		if m.override then
 			
 			if name=='__new' or name=='__gc' then 
 				self:err('constructor/finalizer is not overridable.',m)
-			end
-
-			local c=parent.superclass
-			local superMethod
-			while c do
-				local m=c.scope[m.name]
-				if m then
-					if m.tag=='methoddecl' then superMethod=m end
-					break
-				end
-				c=c.superclass
 			end
 			
 			if not superMethod then
@@ -985,7 +1011,9 @@ local	function findHintType(vi,node,parentLevel,keep)
 				self:err(format('override method type mismatch. expecting:%s, given:%s',ftname0,ftname1),m)
 			end
 			--todo: allow stricter override method type?
-
+		elseif superMethod then
+			--must use override keyword?
+			self:err(format('duplicated super method:%s, use override instead.',m.name),m)
 		end
 
 		--some checking for internal method
@@ -1053,7 +1081,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		parent.exprbody=true
 		return 'replace', {tag='block',
 				{tag='returnstmt',
-					module=ex.currentModule, p0=ex.p0,p1=ex.p1,
+					module=ex.module, p0=ex.p0,p1=ex.p1,
 					values=ex.exprs
 				}
 			}

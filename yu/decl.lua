@@ -6,6 +6,8 @@ local getTypeDecl,newTypeRef=yu.getTypeDecl,yu.newTypeRef
 
 local ipairs,print=ipairs,print
 local format = string.format
+local makeDeclRefName=yu.makeDeclRefName
+
 module("yu",package.seeall)
 
 local pre={}
@@ -22,6 +24,7 @@ local function makeNamePrefix(stack,sep)
 	end
 	return out
 end
+
 
 ----------
 local metamethodNames=makeStringCheckTable(
@@ -41,13 +44,8 @@ local metamethodNames=makeStringCheckTable(
 	'__eq'
 	)
 
-local declPrefix={
-	funcdecl='F',
-	methoddecl='F',
-	classdecl='C',
-	module='M',
-	signaldecl='S',
-}
+local declPrefix=yu.declPrefix
+
 function newDeclCollector()
 	
 	return yu.newVisitor({
@@ -226,8 +224,7 @@ function newDeclCollector()
 			--
 			--
 			decl.declId=self:genDeclId()
-			decl.refname=decl.name..'_'..(declPrefix[decl.tag] or 'v')..decl.declId
-			-- decl.refname='_'..(declPrefix[decl.tag] or 'v')..decl.declId
+			decl.refname=makeDeclRefName(decl,decl.declId)
 
 			if decl.alias then
 				decl.fullname=decl.alias
@@ -246,6 +243,7 @@ function newDeclCollector()
 			end					
 
 			decl.depth=self.depth
+			-- decl.refname=decl.fullname
 			-- print("..added decl:",decl.tag,decl.name,decl.fullname,decl.vtype)
 		end
 		
@@ -261,19 +259,20 @@ end
 
 function pre.module(vi,m)
 	-- vi:pushScope()
-	vi:pushName(m.name)
+	-- vi:pushName(m.name)
 	vi.currentModule=m
 	m.module=m
 end
 
 function post.module(vi,m)
-	vi:popName()
+	-- vi:popName()
 	-- vi:popScope()
 	--todo: extract decls from main block scope rather than refer to it directly
 	m.fullname=m.name
 	m.mainfunc.fullname='@main'
 	m.mainfunc.refname='@main'
-	m.mainfunc.name='@main'
+	m.mainfunc.name='@main'	
+
 	local expose={}
 	for k,decl in pairs(m.mainfunc.block.scope) do
 		if isGlobalDecl(decl) then
@@ -281,6 +280,10 @@ function post.module(vi,m)
 		end
 	end
 	m.scope=expose
+	m.maxDeclId=vi.maxDeclId
+	m.externalRefers={}
+	m.externalReferNames={}
+	
 end
 
 ---------------
@@ -440,9 +443,6 @@ end
 function pre.methoddecl(vi,f,parent)
 	vi:pushName(f.name)
 	vi:pushScope()
-	if f.abstract then 
-		parent.abstract=true
-	end
 	vi.depth=vi.depth+1
 end
 

@@ -29,17 +29,17 @@ local insert=table.insert
 local function isExposable(n)
 	-- if n.extern then return false end
 	local tag=n.tag
-	if tag=='var' then
-		local vtype=n.vtype
-		return vtype=='global'
-	else
+	-- if tag=='var' or tag=='vardecl' then
+	-- 	local vtype=n.vtype
+	-- 	return vtype=='global'
+	-- else
 		return 
 			(tag=='funcdecl' and not n.localfunc)
-			or (tag=='methoddecl' and not n.extern)
+			or (tag=='methoddecl' and not n.extern and not n.abstract)
 			or tag=='classdecl'
 			or tag=='enumdecl'
 			or tag=='signaldecl'
-	end
+	-- end
 end
 
 local function printMetadata(m)
@@ -51,30 +51,60 @@ local function printMetadata(m)
 	return '{'..s..'}'
 end
 
+local function compareDecl(d1,d2)
+	local a1=d1.depth-d2.depth
+	if a1==0 then return d1.declId-d2.declId <0  end
+	return a1<0
+end
+
+local function makeDeclList(t)
+	local l={}
+	local i=1
+	for d in pairs(t) do
+		l[i]=d
+		i=i+1
+	end
+	table.sort(l,compareDecl)
+	return l
+end
+
+local currentModule=false
+
 local function getDeclName(d)
 	-- return d.refname
 	local tag = d.tag
 	if tag=='var' then
 		local vtype=d.vtype
-		if vtype=='local' then return d.name end
+		if vtype=='local' then return d.refname end
 		if vtype=='global' then
 			if d.extern then
 				return '_G.'..d.externname
+			elseif d.module~=currentModule then
+				return d.refname
 			else
-				return d.fullname
+				return d.refname
 			end
 		end
 		if vtype=='const' then return getConst(d.value) end
 		if vtype=='field' then return d.name end
 		
-	elseif tag=='funcdecl' then
-		return d.fullname
-	elseif tag=='methoddecl' then
-		return d.fullname
+	elseif tag=='funcdecl' or tag=='methoddecl' then
+		if d.module~=currentModule then
+			local n= currentModule.externalReferNames[d]
+			if not n then
+				print('getting ext ref name',d.name,currentModule.name)
+				error('internal error,refername not defined:'..d.name)
+			else
+				return n
+			end
+		else
+			return d.refname
+		end
+	
 	elseif tag=='arg' then
-		return d.name	
+		return d.refname	
 	end
-	return d.fullname
+	return d.refname
 end
 
 
@@ -96,6 +126,7 @@ end
 
 			referedDecls={},		--context part
 			exposeDecls={},
+			classGlobalVars={},
 		},
 		codeWriterMT)
  end
@@ -185,7 +216,7 @@ function codeWriter:refer(d,a,...)
 end
 
 function codeWriter:expose(d,a,...)
-	insert(self.exposeDecls,d)
+	self.exposeDecls[d]=true
 	if a then return self:expose(a,...) end
 end
 
@@ -284,39 +315,72 @@ local function genDebugInfo(gen,m)
 end
 
 function generators.module(gen,m)
+	currentModule=m
 	-- gen.__indent=-1 --reset indent
 	gen:appendf("yu.runtime.module('%s')",m.name)
 	gen:cr()
 	--load module
-		gen:appendf("--------requrie modules------")
+	gen:appendf("--------requrie modules------")
 		gen:cr()
 		for path,m1 in pairs(m.externModules)  do
+			gen:appendf('__yu_require%q',m1.name)
+			gen:cr()				
+		end
 
-			gen:appendf('__yu_require(%q,{',m1.name)
-				--load refered extern symbol
-				for r in pairs(gen.referedDecls) do
-					if r.module==m1 then
-						gen:appendf('%q,',getDeclName(r))
-					end
+	gen:appendf("--------start of module:<%s>------",m.name)
+	gen:ii()			
+		gen:expose(m.mainfunc)
+		while true do
+			local exposed=makeDeclList(gen.exposeDecls)
+			gen.exposeDecls={}
+			for i,s in ipairs(exposed) do
+				if s.tag=='classdecl' then
+					gen:appendf('%s={}',getDeclName(s))
+					gen:cr()
 				end
+			end
+
+			for i,s in ipairs(exposed) do
+				codegen(gen,s)
+				gen:cr()
+			end
+			if not next(gen.exposeDecls) then break end
+		end
+
+		gen:appendf("--------refer external decl------")
+		gen:cr()
+		--load refered extern symbol
+		local listByModule={}
+		for r in pairs(gen.referedDecls) do
+			local rm=r.module
+			if m~=rm then
+				local list=listByModule[rm]
+				if not list then list={} listByModule[rm]=list end
+				list[r]=true
+			end
+		end
+		for m,list in pairs(listByModule) do
+			gen:appendf('__yu_getsymbol(%q,{',m.name)
+			for r in pairs(list) do
+				gen:appendf('%s=%q,',getDeclName(r),r.refname)
+			end
 			gen'})'
 			gen:cr()
 		end
 
-	gen:appendf("--------start of module:<%s>------",m.name)
-	gen:ii()	
+		gen:appendf("--------global init------")
 		gen:cr()
-		codegen(gen,m.mainfunc)
+		gen('local function __yu_init(...)')
+		gen:ii()
 		gen:cr()
-
-		
-		gen:appendf("--------exposed decl------")
+			for i, g in ipairs(gen.classGlobalVars) do
+				codegen(gen,g)
+				gen:cr()
+			end
+			gen'return __yu_main(...)'		
+		gen:di()
 		gen:cr()
-		for i,s in ipairs(gen.exposeDecls) do
-			codegen(gen,s)
-			gen:cr()
-		end
-
+		gen'end'
 		-- gen:appendf("--------refered external decl------")
 		-- gen:cr()
 		-- for r in pairs(gen.referedDecls) do
@@ -332,23 +396,28 @@ function generators.module(gen,m)
 	gen:di()
 	gen:cr()
 	--add src info
+	gen:appendf("--------debug info------")
+	gen:cr()
 	genDebugInfo(gen,m)
 	gen:appendf("--------end of module:<%s>------",m.name)
 	gen:cr()
-	gen:append('__yu_main()')
+	gen:append('return __yu_init(...)')
+	currentModule=nil
 end
 
 function generators.block(gen,b)
 	gen:ii()
 	local nonDecls={}
+	
 	for i,s in ipairs(b) do
 		if isExposable(s) then
-			-- gen:expose(s)
+			gen:expose(s)
 		else
 			gen:cr()
 			codegen(gen,s)
 		end
 	end	
+
 	gen:di()
 	gen:cr()
 end
@@ -727,68 +796,45 @@ function generators.classdecl(gen,c)
 	if c.extern then
 		for i,s in ipairs(c.decls) do
 			if isExposable(s) then
-				gen:expose(s)
+				gen:expose(s)			
 			end
 		end
 		return
 	end
+	local cons=false
+	for i,s in ipairs(c.decls) do
+		if isExposable(s) then
+			if s.name=='__new' then 
+				cons=s
+			end
+			codegen(gen,s)
 
+		elseif s.vtype=='global' then 
+			insert(gen.classGlobalVars,s)
+		end
+	end
 	gen:cr()
-	gen:appendf('do',getDeclName(c))
+
+	gen:appendf('__yu_newclass(%q,%s,%s,',			
+			c.name,
+			getDeclName(c),
+			c.superclass and getDeclName(c.superclass) or 'nil'
+		)
+	if c.superclass then gen:refer(c.superclass) end
 	gen:ii()
 	gen:cr()
-		local cons=false
-		for i,s in ipairs(c.decls) do
-			if isExposable(s) then
-				if s.name=='__new' then 
-					cons=s
-				end
-				codegen(gen,s)	
-			end
-		end
-		gen:cr()
-
-		gen:appendf('%s= __yu_newclass(%q,%s,',
-				getDeclName(c),
-				c.name,
-				c.superclass and getDeclName(c.superclass) or 'nil'
-			)
-		gen:ii()
-		gen:cr()
-		gen'{'
-		gen:cr()
-		for i,d in ipairs(c.decls) do
-			if isExposable(d) then
-				gen:appendf('%s=%s;',d.name,getDeclName(d))
-				gen:cr()
-			end
-		end
-		gen:di()
-		gen'})'
-		gen:cr()
-	gen:di()
+	gen'{'
 	gen:cr()
-	gen'end'
-	gen:cr()
-end
-
-local function compareDecl(d1,d2)
-	local a1=d1.depth-d2.depth
-	if a1==0 then return d1.declId-d2.declId <0  end
-	return a1<0
-end
-
-local function makeDeclList(t)
-	local l={}
-	local i=1
-	for d in pairs(t) do
-		l[i]=d
-		i=i+1
+	for i,d in ipairs(c.decls) do
+		if d.tag=='methoddecl' and not d.abstract then
+			gen:appendf('%s=%s;',d.name,getDeclName(d))
+			gen:cr()
+		end
 	end
-	table.sort(l,compareDecl)
-	return l
+	gen:di()
+	gen'})'
+	gen:cr()	
 end
-
 
 
 function generators.funcdecl(gen,f)
@@ -798,9 +844,8 @@ function generators.funcdecl(gen,f)
 		return
 	end
 	
-	if f.extern then 
-		gen:cr()
-		gen:appendf('%s = __yu_extern%q',f.fullname,f.externname)
+	if f.extern then 		
+		gen:appendf('%s = __yu_extern%q',getDeclName(f),f.externname)
 		return
 	end
 	--generate exposed decl
@@ -1000,7 +1045,7 @@ function generators.call(gen,c)
 				gen:mark(c)
 				codegenList(gen,c.args)
 			gen')'
-			-- gen:refer(c.l.decl)
+			gen:refer(c.l.decl)
 		else
 			error('wtf?'..mtype)
 		end

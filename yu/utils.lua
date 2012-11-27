@@ -1,5 +1,6 @@
 local ipairs,pairs,format=ipairs,pairs,string.format
 local stringrep=string.rep
+local format=string.format
 
 module("yu",package.seeall)
 
@@ -257,7 +258,6 @@ function unescape(s)
 
 	
 	
-	
 local opPrecedence={
 	{'and','or'},
 	{'>','<','>=','<=','==','~='},
@@ -327,6 +327,24 @@ function makeMetaData(data)
 		m[k]=v
 	end
 	return m
+end
+
+local declPrefix={
+	funcdecl='f',
+	methoddecl='f',
+	classdecl='c',
+	module='m',
+	signaldecl='s',
+}
+
+function makeDeclRefName(decl,id)
+	local strip=false
+	local dtag=(declPrefix[decl.tag] or 'v')
+	if strip then
+		return format('%s_%x',dtag,id)
+	else
+		return format('%s_%x',decl.name,id)
+	end
 end
 
 _M.getConstNode=getConstNode
