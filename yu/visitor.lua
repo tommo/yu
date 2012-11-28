@@ -85,7 +85,8 @@ local function visitEachNode(vi,l)
 	-- end
 	if not l then return end
 	for i=1,#l do
-		visitNode(vi,l[i],l)
+		local d=l[i]		
+		visitNode(vi,d,l)
 	end
 	-- for i,n in ipairs(l) do
 	-- 	visitNode(vi,n,l)
@@ -201,7 +202,7 @@ paths={
 	
 	block=function(vi,b)
 		local pb=vi.currentBlock
-		vi.currentBlock=b
+		vi.currentBlock=b		
 		visitEachNode(vi,b)
 		vi.currentBlock=pb
 	end,
@@ -349,7 +350,7 @@ paths={
 	
 	vardecl=function(vi,vd)
 		visitEachNode(vi,vd.vars)
-		if vd.values then return visitEachNode(vi,vd.values) end
+		-- if vd.values then return visitEachNode(vi,vd.values) end
 	end,
 
 	-- upvalue=false,
@@ -398,7 +399,6 @@ paths={
 	funcdecl =function(vi,f)
 		local pf=vi.currentFunc
 		vi.currentFunc=f
-		
 		visitNode(vi,f.type)
 		if not f.extern then visitNode(vi,f.block) end
 		

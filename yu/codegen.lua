@@ -726,10 +726,22 @@ function generators.assertstmt( gen,t )
 end
 
 function generators.assignstmt(gen,a)
-	codegenList(gen,a.vars)
-	gen'='
-	codegenList(gen,a.values)
-	gen:mark(a,false)
+	if a.genHint=='defaultvalue' then
+		local v=a.vars[1]
+		gen'if '
+		codegen(gen,v)
+		gen'==nil then '
+		codegen(gen,v)
+		gen'='
+		codegen(gen,a.values[1])
+		gen' end'
+		gen:mark(a,false)
+	else
+		codegenList(gen,a.vars)
+		gen'='
+		codegenList(gen,a.values)
+		gen:mark(a,false)
+	end
 end
 
 function generators.assopstmt(gen,a)
@@ -1316,10 +1328,15 @@ function generators.seq(gen,t)
 end
 
 function generators.cast(gen,a)
-	--TODO:!!!! add runtime typecheck
-	local t=a.dst.decl
+	
+	if a.nocast then
+		return codegen(gen,a.l)
+	end
+	local dst=a.dst
+
+	local t=dst.decl
 	if t.tag=='stringtype' then
-		gen'tostring(' codegen(gen,a.l) gen')'
+		gen'__yu_tostring(' codegen(gen,a.l) gen')'
 	elseif t.tag=='numbertype' then
 		gen'tonumber(' codegen(gen,a.l) gen')'
 	else

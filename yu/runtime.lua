@@ -423,6 +423,7 @@ function launchModule(path,...)
 	return m.__yu_module_entry()
 end
 
+local tostring=tostring
 local runtimeIndex=setmetatable({
 		__yu_newclass=newClass,
 		__yu_newobject=newObject,
@@ -432,6 +433,10 @@ local runtimeIndex=setmetatable({
 		__yu_assert=doAssert,
 		__yu_cast=cast,
 		__yu_is=isType,
+
+		__yu_tostring=function(x)
+			return x and tostring(x)
+		end,
 		
 		__yu_obj_next=objectNext,
 

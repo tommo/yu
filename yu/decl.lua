@@ -266,8 +266,6 @@ function pre.module(vi,m)
 end
 
 function post.module(vi,m)
-	-- vi:popName()
-	-- vi:popScope()
 	--todo: extract decls from main block scope rather than refer to it directly
 	m.fullname=m.name
 	m.mainfunc.fullname='@main'
@@ -460,14 +458,14 @@ function pre.functype(vi,ft)
 	local args=ft.args
 	if args then
 		spreadVarTypes(args,true,vi)
-		if not ft.typeonly then
-			for i,arg in ipairs(args) do
+		for i,arg in ipairs(args) do
+			if not ft.typeonly then
 				vi:addDecl(arg)
-				arg.argId=i
-				if arg.name=='...' then
-					if i<#args then	vi:err('vararg should only appear at the end',arg) end
-					arg.type={tag='vararg',type=arg.type}
-				end
+			end
+			arg.argId=i
+			if arg.name=='...' then
+				if i<#args then	vi:err('vararg should only appear at the end',arg) end
+				arg.type={tag='vararg',type=arg.type}
 			end
 		end
 	end

@@ -103,6 +103,7 @@ function builder:buildModule(path)
 	end
 
 	local t1=os.clock()
+	
 	yu.newDeclCollector():visitNode(m)
 	local dt=os.clock()-t1
 	totalDeclTime=totalDeclTime+dt
@@ -125,7 +126,7 @@ function builder:requireModule(path)
 	path=fixpath(path)
 	local m=self.moduleTable[path]
 	if not m then
-		--todo:search for precompiled module first
+		--todo:search for precompiled module first		
 		m=self:buildModule(path)
 	end
 	return m

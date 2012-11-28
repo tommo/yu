@@ -916,12 +916,17 @@ local	function findHintType(vi,node,parentLevel,keep)
 					defaultValuesCount=defaultValuesCount+1
 					defaultValues[defaultValuesCount]={
 						tag='assignstmt',
-						vars={{tag='member',
+
+						genHint='defaultvalue',
+
+						vars={
+							{tag='member',
 							mtype='member',decl=d0,id=d0.name,
 							p0=d0.p0,
 							p1=d0.p1,
 							l={tag='self'}
-							}},
+							}
+						},
 						values={d0.value},
 						resolveState='done',
 						p0=d0.p0,

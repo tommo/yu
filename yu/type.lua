@@ -35,6 +35,9 @@ enumMetaType=makeMetaType('enummeta','enum')
 funcMetaType=makeMetaType('funcmeta','func')
 tableMetaType=makeMetaType('tablemeta','table')
 threadMetaType=makeMetaType('threadmeta','thread')
+anyFuncType=makeValueType('anyfunc','anyfunc')
+
+
 
 emptyTableType={tag='tabletype',name='[]'}
 
@@ -146,13 +149,15 @@ end
 
 
 local function isSuperType(t1,t2) --T1 is super type of T2?
+	if t1==t2 then return true end
 	if t1==anyType then return true end
 	if t2==nilType and t1.valuetype then return true end
+	if t1==anyFuncType and t2.tag=='functype' then return true end
 
 	if t1.tag=='tabletype' then
 		if t2==emptyTableType then return true end
 		return (isSameType(t1.etype,t2.etype) or isSuperType(t1.etype,t2.etype))
-			and  (isSameType(t1.ktype,t2.ktype) or isSuperType(t1.ktype,t2.ktype))
+			and  (isSameType(t1.ktype,t2.ktype) or isSuperType(t1.ktype,t2.ktype))	
 	end
 	
 	local s=t2
@@ -176,7 +181,7 @@ end
 function checkType(t1,m,t2)
 	local result=false
 	t1,t2=getTypeDecl(t1),getTypeDecl(t2)
-	
+
 	if m=='>' then
 		result=isSuperType(t1,t2)
 	elseif m=='>=' then
@@ -216,6 +221,7 @@ local builtinTypeDecls={
 	['object']=objectType,
 	['@void']=voidType,
 	['any']=anyType,
+	['anyfunc']=anyFuncType,
 	
 	['classdecl']=classMetaType,
 	['import']=moduleMetaType,
@@ -596,7 +602,6 @@ local function checkFuncArgs(targs,cargs)
 		else
 			tat=getType(ta)
 		end
-		
 		if not checkType(tat,'>=',cat) then 
 			return false, 
 				format('argument type mismatch,expecting:%s ,given: %s',tat.name,cat.name), 
@@ -726,7 +731,7 @@ function typeres.cast.stringtype(t,n,target)
 	local td=getTypeDecl(target)
 	if target==numberType then
 	elseif target==booleanType then
-		
+		return 'replace',convertToBool(n.l)
 	end
 end
 
@@ -748,6 +753,15 @@ function typeres.cast.classdecl( t,n,target )
 	end
 	return false
 end
+
+-- function typeres.cast.functype(t,n,target)
+-- 	local td=getTypeDecl(target)
+-- 	if td==anyFuncType then
+-- 		return true
+-- 	end
+-- 	return false
+-- end
+
 -------------
 
 -------ENTRY
@@ -832,15 +846,16 @@ function resolveCast(t,node,resolver)
 	local dst=node.dst
 	
 	if checkType(t,'=',dst) then
-
 		return 'replace',node.l
 	end
 	
 	if checkType(t,'<',dst) then
 		node.type=dst
+		node.nocast=true
 		return true
 	end
 
+	
 	local r=typeres.cast[tag]
 	if r then 
 		local res,data= r(t,node,dst,resolver)
@@ -849,6 +864,14 @@ function resolveCast(t,node,resolver)
 			return res,data
 		end
 	end
+
+	if checkType(t,'>',dst) then
+		node.type=dst
+		--todo: add cast hint for specific types
+		node.nocast=true
+		return true
+	end
+
 	resolver:err(format('cannot cast type "%s" into "%s".',t.name,dst.name),node)
 end
 
