@@ -139,16 +139,26 @@ local function makefinalizer(t)
 	return p
 end
 
+local function callInit(clas,obj)
+	local super=clas.__super
+	if super then callInit(super,obj) end
+	local init=clas.__index.__init
+	if init then
+		init(obj)
+	end
+end
 
 function newObject(clas,obj, constructor, ...)
-	
-	if constructor then
-		setmetatable(obj,clas)
-		constructor(obj,...)
-		return obj
+	setmetatable(obj,clas)
+	callInit(clas,obj)
+
+	if constructor then		
+		constructor(obj,...)	
 	else
-		return setmetatable(obj,clas)
+		setmetatable(obj,clas)
 	end
+
+	return obj
 	-- if finalizer then
 	-- 	return makefinalizer(obj)
 	-- else

@@ -1,6 +1,20 @@
 import 'lua/std.lx'
 import 'm2.yu'
 
+class TestBase
+	global flag='good'
+	method __init()
+		print('test base')
+	end
+end
+
+class Test extends TestBase
+	method __init()
+		print('test')
+	end
+end
 print('weather now',weather)
 weather='rainy'
 print('weather now',weather)
+
+Test()

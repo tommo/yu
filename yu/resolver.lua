@@ -878,6 +878,13 @@ local	function findHintType(vi,node,parentLevel,keep)
 			--todo:avoid node stack level problem
 			self:visitNode(s)
 		end
+
+		--todo: add super init code (instead of runtime checking) 
+		local init=c.scope['__init']
+		if init then
+			--insert super init
+		end
+
 		c.resolveState='done'
 	end
 	
@@ -896,7 +903,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 	function post:classdecl(c)
 		local scope0=c.scope
 		------------TODO:
-		--todo:build default initializer
+
+		--build default initializer
 		local init=scope0['__init']
 
 		local defaultValues={}
@@ -924,29 +932,15 @@ local	function findHintType(vi,node,parentLevel,keep)
 		end
 		
 		if defaultValuesCount>0 then
-			-- if init then
 			assert(init) --there should be one
 			local block=init.block
 			for i,a in ipairs(defaultValues) do --insert assign to top
 				table.insert(block,i,a)
-			end
-			-- else
-			-- 	defaultValues.tag='block'
-			-- 	defaultValues.resolveState='done'
-			-- 	defval.block
-			-- 	c.decls[#c.decls+1]={
-			-- 		tag='methoddecl',
-			-- 		type={tag='functype',args={},rettype=voidType,resolveState='done'},
-			-- 		name='__init',
-			-- 		refname=c.refname..'_new',
-			-- 		fullname='__new_'..c.fullname,
-			-- 		resolveState='done',
-			-- 		block=defaultValues,
-			-- 		module=c.module
-			-- 	}
-			-- end
+			end			
 		end
+
 		c.abstract=chekClassAbstract(c)
+
 		-- local sc=c.superclass
 
 		-- while sc do
@@ -1015,15 +1009,19 @@ local	function findHintType(vi,node,parentLevel,keep)
 				self:err(format('override method type mismatch. expecting:%s, given:%s',ftname0,ftname1),m)
 			end
 			--todo: allow stricter override method type?
-		elseif superMethod and name~='__new' then
+		elseif superMethod and name~='__new' and name~='__init' then
 			--must use override keyword?
 			self:err(format('duplicated super method:%s, use override instead.',m.name),m)
 		end
 
 		--some checking for internal method
-		if name=='__new' or name=='__gc' then
+		if name=='__new' or name=='__gc' or name=='__init'  then
 			if m.type.rettype.tag~='voidtype' then
-				self:err('constructor/finalizer should return no value',m)
+				self:err('initializer/constructor/finalizer should return no value',m)
+			end
+		elseif name=='__init' or name=='__gc' then
+			if next(m.type.args) then
+				self:err('initializer/finalizer takes no argument',m)
 			end
 		elseif name=='__add' then
 		end

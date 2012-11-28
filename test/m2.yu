@@ -1,3 +1,5 @@
 import 'm1.yu'
 global weather='sun'
 weather='shit'
+
+print(Test.flag)
