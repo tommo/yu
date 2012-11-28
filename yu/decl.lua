@@ -29,6 +29,7 @@ end
 ----------
 local metamethodNames=makeStringCheckTable(
 	'__new',
+	'__init',
 	'__gc',
 	'__index',
 	'__newindex',
@@ -583,7 +584,27 @@ function post.classdecl(vi,c)
 	
 	if c.decls then
 		for i,d in ipairs(c.decls) do
-			vi:addDecl(d,true)
+			vi:addDecl(d,true)			
+		end
+		if not vi.currentScope['__init'] then
+			for k,d in pairs(vi.currentScope) do
+				if d.vtype=='field' and d.value then 
+				--has default value, 
+				--create a empty initializer container, fill it in resolver
+					local loader={
+						tag='methoddecl',
+						type={tag='functype',args={},rettype=voidType},
+						name='__init',
+						block={tag='block'},
+						module=vi.currentModule
+					}
+					table.insert(c.decls,loader)
+					vi:addDecl(loader,true)
+
+					break
+				end
+			end
+
 		end
 	end
 

@@ -35,4 +35,4 @@ local function stripExt(p)
 	return p
 end
 
-yu.runtime.dofile(stripExt(args[1]))
+yu.runtime.run(stripExt(args[1]))

@@ -80,7 +80,7 @@ local function getDeclName(d)
 			if d.extern then
 				return '_G.'..d.externname
 			elseif d.module~=currentModule then
-				return d.refname
+				return getDeclName(d.module)..'.'..d.refname
 			else
 				return d.refname
 			end
@@ -367,13 +367,17 @@ function generators.module(gen,m)
 		end
 		--load refered extern symbol
 		local listByModule={}
-		for r in pairs(gen.referedDecls) do
-			local rm=r.module
-			if m~=rm then
-				local list=listByModule[rm]
-				if not list then list={} listByModule[rm]=list end
-				list[r]=true
-			end
+		local referModules={}
+		for r in pairs(m.externalReferNames) do
+				local rm=r.module
+				if r~=rm and r.vtype~='global' then --module
+					local list=listByModule[rm]
+					if not list then list={} listByModule[rm]=list end
+					list[r]=true
+				elseif r==rm then
+					referModules[r]=true
+				end
+			-- end
 		end
 		for m,list in pairs(listByModule) do
 			gen:appendf('local _m=__yu_require%q',m.modpath)
@@ -381,7 +385,12 @@ function generators.module(gen,m)
 			for r in pairs(list) do
 				gen:appendf('%s=_m.%s',getDeclName(r),r.refname)
 				gen:cr()
-			end
+			end			
+		end
+
+		for m in pairs(referModules) do
+			gen:appendf('%s=__yu_require%q',getDeclName(m),m.modpath)
+			gen:cr()			
 		end
 	
 	gen:di()
@@ -1163,9 +1172,15 @@ function generators.new(gen,n)
 	gen:refer(n.class.decl)
 	gen:appendf('__yu_newobject(%s,',getDeclName(n.class.decl))
 		gen:mark(n)
-		gen'{}'
+		gen'{'
+		gen:ii()
+		gen:cr()
+
+
+		gen:di()
+		gen:cr()
+		gen'}'
 		if n.constructor then 
-		-- 	gen:refer(n.constructor)
 			gen','
 			gen(getDeclName(n.constructor))
 		end

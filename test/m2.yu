@@ -1,15 +1,3 @@
 import 'm1.yu'
-
-class ABase
-	method report()
-		print('A report')
-	end
-end
-
-class B extends BBase
-	method report()
-		local x#
-		local y=x+1
-		--error here
-	end
-end
+global weather='sun'
+weather='shit'

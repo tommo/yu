@@ -21,6 +21,22 @@ class TropicalFruit extends Banana
 	-- override name$()=>'Tropical'
 end
 
+class Vec
+	field x,y,z#
+	method __new(x,y,z#)
+		self.x,self.y,self.z=x,y,z
+	end
+end
+
+class Vec4 extends Vec
+	field w#
+	method __new(x,y,z,w#)
+		super.__new(x,y,z)
+		self.w=w
+	end
+end
+
+
 
 local a,b=Apple(),Banana()
 print(a.name(),b.name())
@@ -29,3 +45,9 @@ print(a is Apple, b is Apple, a is Fruit, b is Fruit)
 
 local t=TropicalFruit() 
 print(t.name())
+
+local v=Vec(1,2,3)
+print(v.y)
+
+local v2=Vec4(1,2,3,4)
+print(v2.w)

@@ -668,9 +668,8 @@ function typeres.call.classmeta(t,n,resolver )
 	end
 	local constructor=getClassMemberDecl(clas,'__new',false)
 	if constructor then
-
 		local proto,noMatch=findCallProto(constructor,n,resolver)		
-		if not proto and n.args then
+		if not proto then
 			local msg=''
 			for i,p in ipairs(noMatch) do
 				if i>1 then msg=msg..' , ' end

@@ -1,26 +1,6 @@
 import 'lua/std.lx'
 import 'm2.yu'
 
-class BBase
-end
-
-class A extends ABase
-	override report()
-		print('new A report')
-		super.report()
-	end
-end
-local f1:func()
-
-local a=A()
-a.report()
-local b=B()
-print(a is ABase)
-print(b is BBase)
-
-f1=func()
-	print('called here')
-end
-f1()
-b.report()
-
+print('weather now',weather)
+weather='rainy'
+print('weather now',weather)

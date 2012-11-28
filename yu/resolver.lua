@@ -896,8 +896,9 @@ local	function findHintType(vi,node,parentLevel,keep)
 	function post:classdecl(c)
 		local scope0=c.scope
 		------------TODO:
-		--todo:build default constructor
-		local cons=scope0['__new']
+		--todo:build default initializer
+		local init=scope0['__init']
+
 		local defaultValues={}
 		local defaultValuesCount=0
 		
@@ -923,25 +924,27 @@ local	function findHintType(vi,node,parentLevel,keep)
 		end
 		
 		if defaultValuesCount>0 then
-			if cons then
-				local block=cons.block
-				for i,a in ipairs(defaultValues) do
-					table.insert(block,i,a)
-				end
-			else
-				defaultValues.tag='block'
-				defaultValues.resolveState='done'
-				c.decls[#c.decls+1]={
-					tag='methoddecl',
-					type={tag='functype',args={},rettype=voidType,resolveState='done'},
-					name='__new',
-					refname=c.refname..'_new',
-					fullname='__new_'..c.fullname,
-					resolveState='done',
-					block=defaultValues,
-					module=c.module
-				}
+			-- if init then
+			assert(init) --there should be one
+			local block=init.block
+			for i,a in ipairs(defaultValues) do --insert assign to top
+				table.insert(block,i,a)
 			end
+			-- else
+			-- 	defaultValues.tag='block'
+			-- 	defaultValues.resolveState='done'
+			-- 	defval.block
+			-- 	c.decls[#c.decls+1]={
+			-- 		tag='methoddecl',
+			-- 		type={tag='functype',args={},rettype=voidType,resolveState='done'},
+			-- 		name='__init',
+			-- 		refname=c.refname..'_new',
+			-- 		fullname='__new_'..c.fullname,
+			-- 		resolveState='done',
+			-- 		block=defaultValues,
+			-- 		module=c.module
+			-- 	}
+			-- end
 		end
 		c.abstract=chekClassAbstract(c)
 		-- local sc=c.superclass
@@ -1012,7 +1015,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 				self:err(format('override method type mismatch. expecting:%s, given:%s',ftname0,ftname1),m)
 			end
 			--todo: allow stricter override method type?
-		elseif superMethod then
+		elseif superMethod and name~='__new' then
 			--must use override keyword?
 			self:err(format('duplicated super method:%s, use override instead.',m.name),m)
 		end

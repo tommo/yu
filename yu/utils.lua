@@ -368,10 +368,10 @@ end
 function referExternModuleDecl(m,d)
 	if m==d.module then return end
 	if m.externalReferNames[d] then return end
-	
 	local id=m.maxDeclId+1
 	m.maxDeclId=id
 	m.externalReferNames[d]=makeDeclRefName(d,id)
+	referExternModuleDecl(m,d.module)
 end
 
 

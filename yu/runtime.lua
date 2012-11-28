@@ -448,7 +448,7 @@ function module(path)
 	)
 
 	moduleTable[path]=moduleEnv
-	return setfenv(1, moduleEnv)
+	setfenv(2, moduleEnv)
 end
 
 
@@ -561,7 +561,7 @@ function errorHandler(msg,b)
 end
 
 local _dofile=dofile
-function dofile(file,...)
+function run(file,...)
 	return xpcall(function(...)
 			return launchModule(file,...)
 		end
