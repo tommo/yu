@@ -770,8 +770,13 @@ local	function findHintType(vi,node,parentLevel,keep)
 		return true
 	end
 	
+	-- local function checkConstant(v)
+
+	-- end
+
 	function post:var(v)
 		if v.vtype=='const' and (not v.value or not getConstNode(v.value))then
+			--todo:Const table
 			self:err('constant value expected for:'..v.name,v)
 		end
 		
@@ -1196,7 +1201,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 				end
 			end
 		elseif lt.tag=='typemeta' and c.l.decl==objectType then
-			error('todo: bulding temporaryobject')
+			-- error('todo: bulding temporaryobject')
 		else
 			self:err('table argument only valid for object creation',c.arg)
 		end

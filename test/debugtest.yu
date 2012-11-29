@@ -1,4 +1,13 @@
 import 'lua/std.lx'
-import 'queue.yu' as queue
+local x=[[
+
+
+
+
+]]
+-- import 'queue.yu' as queue
 
 print('hello')
+
+local a#
+local b=a+1

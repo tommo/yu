@@ -313,7 +313,7 @@ local function getModuleMatch()
 	local StringLOpen = "[" * cg(p'='^0, "init") * "[" * EOL^-1
 	local StringLClose = "]" * c(p'='^0) * "]"
 	local StringLCloseEQ = cmt(StringLClose * cb("init"), function (s, i, a, b) return a == b end)
-	local StringL = StringLOpen * c((1 - StringLCloseEQ)^0) * cerr(StringLClose,"mismatched long string/block comment") / c1 
+	local StringL = StringLOpen * c((EOL+(1 - StringLCloseEQ))^0) * cerr(StringLClose,"mismatched long string/block comment") / c1 
 
 
 	local NegativeSymbol=(MINUS * _ )^-1
@@ -394,7 +394,7 @@ local function getModuleMatch()
 		Import= w(IMPORT) *__* 
 				(	StringS+StringD
 					+ct(Name*(DOT*cerr(Name,'module name expected'))^0)
-				)*(__*AS*__*Ident+cnil) / t2('import','src','alias');
+				)*(__*AS*-p's'*__*Ident+cnil) / t2('import','src','alias');
 		
 		
 		Block= 	ct((__ * v.Stmt  * SemiEOL )^0 )/function(a) a.tag="block" return a end ;
@@ -906,7 +906,7 @@ local function getModuleMatch()
 				cpos(
 					w(SOPEN) *  v.Expr * w(SCLOSE) /t1('index','key')--index
 				+	DOT * -DOT *__* Ident /t1('member','id')		--member
-				+	AS * __ * cerr(v.Type, 'target type expected') / t1('cast','dst')				--cast
+				+	AS * -p's'*__ * cerr(v.Type, 'target type expected') / t1('cast','dst')				--cast
 				+	IS * __ * cerr(v.Type, 'checking type expected') / t1('is','dst') 				--typecheck
 				+	ct(v.StringConst) / t1('call','args') --string call
 				+	POpen * (v.ExprList+cnil) * PClose / t1('call','args')--call
