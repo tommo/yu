@@ -124,7 +124,8 @@ function newDeclCollector()
 			local scope=setmetatable({},mt)
 			self.scopeStack:push(scope)
 			
-			mt.parent=self.currentScope
+			mt.parentScope=self.currentScope
+			mt.node=self.currentNode
 
 			self.currentScope=scope
 			self.currentNode.scope=scope
@@ -194,7 +195,7 @@ function newDeclCollector()
 			--TODO:check for internal method name like '__new','__add','__next'
 			
 			local scope=currentScope
-			decl.private=scope.private
+			decl.private=getmetatable(scope).private
 			
 			local name=decl.name
 			local decl0=scope[name]
@@ -645,3 +646,7 @@ end
 -- function pre:signaldecl(s)
 -- 	s.type=
 -- end
+
+function post.varacc(vi,a)
+	a.scope=vi.currentScope
+end

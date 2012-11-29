@@ -1,8 +1,15 @@
-import 'queue.yu' as queue
-local x:queue.Queue
-x=queue.Queue()
+-- func a()
+-- end
 
-class SQueue extends queue.Queue
-	override push()
+class M
+	field a#
+	method b()
+		a=1
 	end
 end
+
+-- 	method xxx()
+-- 		a=1
+-- 	end
+-- end
+

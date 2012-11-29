@@ -54,83 +54,73 @@ local function _findSymbol(vi,name,token,limit)
 	local outClas,outFunc,outMethod=0,0,0
 	local minScopeLevel=1000000
 	local entryModule=token.module
+	local scope=token.scope
+	while scope do
 
-	for i=t.count,1,-1 do
-		local node=t[i]
+		local scopeMeta=getmetatable(scope)
+		local node=scopeMeta.node
 		local tag=node.tag
-		local scope=node.scope
-		local scopeLevel=scope and node.scopeLevel
-		
-		local levelCorrect=false
-
-		if not scopeLevel then
-			levelCorrect=true
-		elseif minScopeLevel>scopeLevel then
-			levelCorrect=true
-			minScopeLevel=scopeLevel
-		end
 
 
-		if scope and levelCorrect and entryModule==node.module then			
-			local decl
-			if tag=='classdecl' then
-				local clas=node
-				while clas do
-					decl=clas.scope[name]
-					if decl then break end
-					clas=clas.superclass
-				end
-			else
-				decl=scope[name]
+		local decl
+		if tag=='classdecl' then
+			local clas=node
+			while clas do
+				decl=clas.scope[name]
+				if decl then break end
+				clas=clas.superclass
 			end
-			
-			local found=false
-			if decl then 
-				-- print('found:',scope,decl.name,decl.tag,node.name,decl.p0,token.p0,tag)
-				if not (
-						(limit=='global' and isMemberDecl(decl)) 
-				) then
-					local dtag=decl.tag
-					if dtag=='var' then --variable?
-						if decl.vtype=='local' then --local?
-							if  decl.p0<token.p0 and decl.resolveState=='done' 
-								and not (outFunc>0 and limit~='upvalue') then 
-								found=true
-							end
-						elseif decl.vtype=='field' then
-							if outMethod==1 then found=true end 
-						else
-							found=true
-						end
-					elseif dtag=='methoddecl' then
-						if outMethod==1 then found=true end 
-					elseif dtag=='funcdecl' and decl.localfunc then
+		else
+			decl=scope[name]
+		end
+		
+		local found=false
+		if decl then 
+			-- print('found:',scope,decl.name,decl.tag,node.name,decl.p0,token.p0,tag)
+			if not (
+					(limit=='global' and isMemberDecl(decl)) 
+			) then
+				local dtag=decl.tag
+				if dtag=='var' then --variable?
+					if decl.vtype=='local' then --local?
 						if  decl.p0<token.p0 and decl.resolveState=='done' 
 							and not (outFunc>0 and limit~='upvalue') then 
 							found=true
 						end
+					elseif decl.vtype=='field' then
+						if outMethod==1 then found=true end 
 					else
 						found=true
 					end
-					
+				elseif dtag=='methoddecl' then
+					if outMethod==1 then found=true end 
+				elseif dtag=='funcdecl' and decl.localfunc then
+					if  decl.p0<token.p0 and decl.resolveState=='done' 
+						and not (outFunc>0 and limit~='upvalue') then 
+						found=true
+					end
+				else
+					found=true
 				end
+				
 			end
-			if found then 
-				return decl
-			end
+		end
+		if found then 
+			return decl
 		end
 
-		if levelCorrect then
-			if tag=='funcdecl' or tag=='closure' then
-				outFunc =outFunc +1
-			end
-			if tag=='classdecl' then
-				outClas =outClas +1
-			end
-			if tag=='methoddecl' then 			
-				outMethod =outMethod +1 outFunc =outFunc +1
-			end
+		if tag=='funcdecl' or tag=='closure' then
+			outFunc =outFunc +1
 		end
+		if tag=='classdecl' then
+			outClas =outClas +1
+		end
+		if tag=='methoddecl' then 			
+			outMethod =outMethod +1 outFunc =outFunc +1
+		end
+
+		scope=scopeMeta.parentScope
+
 	end
 	
 
@@ -1122,7 +1112,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 			v.decl=getBuiltinType(v.id)
 			return
 		end
-		
+
 		local d=self:findSymbol(v.id, v, v.vartype)
 
 		if d then 
@@ -1545,6 +1535,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 	
 ------------------TYPE
 	function post:ttype(t) --template type
+		error('todo!!!!!!!!!')
+		
 		local d=self:findSymbol(t.name,t)
 		
 		if not d or d.tag~='classdecl' then 
