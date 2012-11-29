@@ -1,0 +1,5 @@
+const config={
+	autosave=true,
+	backup=true,
+	app_path='/app'
+}

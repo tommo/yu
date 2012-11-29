@@ -1,0 +1,21 @@
+extern func print(...*) end
+
+class Vec
+	global defaultVecElement=1
+	field x,y,z=
+		defaultVecElement,defaultVecElement,defaultVecElement
+
+	method __init() --defualt ctor
+		print('init')
+	end
+
+	method __new(nx,ny,nz#)
+		x,y,z=nx,ny,nz
+	end
+
+end
+
+local v=Vec{x=100,z=300}
+print(v.x,v.y,v.z)
+
+local a:object

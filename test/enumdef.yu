@@ -1,0 +1,12 @@
+enum State{
+	OK,
+	NO,
+	WAIT
+}
+
+private:
+	enum PrivateEnum{
+		DONT,
+		LOOK,
+		HERE
+	}

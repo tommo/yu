@@ -1,0 +1,7 @@
+import 'lua/std.lx'
+
+local m={}
+local a:anyfunc
+a=print
+local aa=a as func(...*)
+aa('hello')

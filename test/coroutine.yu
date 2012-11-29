@@ -1,0 +1,23 @@
+private:
+	extern
+		func 'coroutine.create' as ccreate(f:*func)->*
+		func 'coroutine.resume' as cresume(coro*,...*)->...*
+		func 'coroutine.yield' as cyield(...*)->...*		
+	end
+
+public:
+
+class Coroutine
+	field _coro*
+	method __new(f:*func)
+	end
+
+	method resume(...*)->...*
+	end
+
+	method alive()=> 
+
+	end
+end
+
+func

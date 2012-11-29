@@ -1,0 +1,7 @@
+extern
+	class File
+		method fff()
+	end
+end
+
+local f=File()

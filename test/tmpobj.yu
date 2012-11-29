@@ -1,0 +1,4 @@
+local resolution=object{
+		w=800,h=600
+}
+
