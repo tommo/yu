@@ -1,13 +1,9 @@
+import 'enumdef.yu'
+
 extern 
 	global slogan$
 	func print(...*)
 end
-
-enum State{
-	OK,
-	NO,
-	WAIT
-}
 
 #if DEBUG then
 

@@ -658,6 +658,10 @@ end
 
 function typeres.call.classmeta(t,n,resolver )
 	local clas=n.l.decl
+	if clas.extern then
+		resolver:err('cannot create instance of extern class:'..clas.name,n)
+	end
+
 	
 	if clas.abstract then
 		local msg=''

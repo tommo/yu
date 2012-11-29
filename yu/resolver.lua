@@ -1236,7 +1236,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		return true
 	end
 
-	function post:new( n )
+	function post:new( n )		
 		n.type=n.class.decl
 	end
 	

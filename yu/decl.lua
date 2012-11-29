@@ -137,7 +137,9 @@ function newDeclCollector()
 		addEachDecl=function(self,list)
 			for i,n in ipairs(list) do
 				local tag=n.tag
-				if isDecl(n) or (tag=="public" or tag=="private") then 
+				if isDecl(n) then
+					self:addDecl(n) 
+				elseif tag=="public" or tag=="private" then 
 					self:addDecl(n) 
 				end
 			end
@@ -274,8 +276,10 @@ function post.module(vi,m)
 
 	local expose={}
 	for k,decl in pairs(m.mainfunc.block.scope) do
-		if isGlobalDecl(decl) then
-			expose[k]=decl
+		if k~='private'	then
+			if isGlobalDecl(decl) then
+				expose[k]=decl
+			end
 		end
 	end
 	m.scope=expose

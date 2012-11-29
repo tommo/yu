@@ -184,7 +184,7 @@ function unescape(s)
 	-- end
 	local globalDeclNames=makeStringCheckTable("classdecl" ,"funcdecl" ,"enumdecl" ,"methoddecl",'signaldecl')
 	function isGlobalDecl(b)
-		local tag=b.tag
+		local tag=b.tag		
 		if tag=="vardecl" or tag=='var' then
 			local vtype=b.vtype
 			return vtype=="global" or vtype=="const"
