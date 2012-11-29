@@ -529,6 +529,8 @@ function typeres.member.classdecl(t,m,resolver)
 	
 	if (mtype=='member' or mtype=='signal') then
 		m.decl=d
+		resolver:visitNode(d)
+		
 		m.type=getType(d)
 		if m.l.tag=='super' then
 			if mtype=='signal' then resolver:err('cannot emit signal by super',m) end

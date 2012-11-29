@@ -1,11 +1,116 @@
-class A
-	field f#
-	method M1()
-		local x=f
-		M2()
-	end
 
-	method M2()
-		local x=f
+class Size
+	field w,h#
+	method __new(w,h#)
+		self.w,self.h=w,h
 	end
 end
+
+enum MockDeviceType{
+	iPhone,
+	iPhone4,
+	iPad,
+	iPhone5
+}
+
+class MockDeviceOption
+	field orient='portrait'
+	field zoom=1
+	field type=MockDeviceType.iPhone4
+end
+
+
+class MockGameOption
+	field title='MockGame'
+	field screenSize=Size(640,480)
+	field deviceOption:MockDeviceOption={}
+end
+
+class MockGame
+	field _scenes:MockScene[string]
+
+	-- method init(option:MockGameOption)
+	-- 	MOAISim.openWindow(
+	-- 		option.title,
+	-- 		option.screenSize.w,option.screenSize.h
+	-- 		)
+	-- 	_scenes={}
+	-- end
+
+	-- method addScene(name$,s:MockScene)
+	-- 	_scenes[name]=s
+	-- end
+
+end
+
+class MockScene
+	field _game:MockGame
+	field _objs:MockObj[]={}
+	-- field _layers:MockLayer[]={}
+
+	method addObj(o:MockObj)
+	end
+
+	-- method addLayer(name$,layerOption:MockLayerOption)
+	-- end
+end
+
+class MockObj
+	global maxMockObjId=0
+	field _id#
+	field _coms:*[MockCom]={}
+	field _scene:MockScene
+
+	method __init()
+		_id=maxMockObjId
+		maxMockObjId=maxMockObjId+1
+	end
+
+	-- method addCom(com:MockCom)
+	-- 	_coms[com]=true
+	-- 	com._obj=self
+	-- 	com.onLoad()
+	-- end
+
+end
+
+class MockCom
+	field _obj:MockObj
+	method getOwner()=>_obj
+	method getScene()=>_obj._scene
+
+	
+	method onLoad()
+	end
+
+	method onUnload()
+	end
+end
+
+-- class MockProp extends MockCom
+-- 	field _prop:MOAIProp
+-- 	method __init()
+-- 		_prop=MOAIProp.new()
+-- 	end
+
+-- 	method setDeck(deck:MOAIDeck)
+-- 		_prop.setDeck(deck)
+-- 	end
+-- end
+
+
+-- local game=MockGame()
+-- game.init(
+-- 	{
+-- 		title='Mock Test',
+-- 		screenSize={
+-- 			w=320,
+-- 			h=480
+-- 		}
+-- 	}
+-- )
+
+-- local testScene=MockScene()
+-- game.addScene(testScene)
+
+
