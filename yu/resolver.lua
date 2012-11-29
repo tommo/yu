@@ -1177,28 +1177,30 @@ local	function findHintType(vi,node,parentLevel,keep)
 		local f=c.l
 		local lt=getType(c.l)
 		if lt.tag=='classmeta' then --raw new object
-			if c.arg.tag=='seq' then 
-				self:err('key-value-table is expected for object creation',c.arg)
-			end
-			
-			if c.arg.type.ktype.tag~='stringtype' then
-				self:err('string key expected,given:'..c.arg.ktype.name,c.arg)
-			end
-			local clas = c.l.decl
-			for _,item in ipairs(c.arg.items) do
-				local key=item.key.v
-				-- table.foreach(item.key,print)
-				local member=getClassMemberDecl(clas,key,true)
-				if not member then
-					self:err(format('field %q not found in class %q',key,clas.name),item)
+			if c.arg.type~=emptyTableType then --empty object always allowed
+				if c.arg.tag=='seq' then 
+					self:err('key-value-table is expected for object creation',c.arg)
 				end
-				if member.vtype~='field' then
-					self:err(format('"%s.%s" is not a field',clas.name,key),item)
+				
+				if c.arg.type.ktype.tag~='stringtype' then
+					self:err('string key expected,given:'..c.arg.ktype.name,c.arg)
 				end
-				local vtype=getType(item.value)
-				if not checkType(member.type,'>=',vtype) then
-					self:err(format('type mismatch, expecting %q, given %q',member.type.name,vtype.name),item)
-				end
+				local clas = c.l.decl
+				for _,item in ipairs(c.arg.items) do
+					local key=item.key.v
+					-- table.foreach(item.key,print)
+					local member=getClassMemberDecl(clas,key,true)
+					if not member then
+						self:err(format('field %q not found in class %q',key,clas.name),item)
+					end
+					if member.vtype~='field' then
+						self:err(format('"%s.%s" is not a field',clas.name,key),item)
+					end
+					local vtype=getType(item.value)
+					if not checkType(member.type,'>=',vtype) then
+						self:err(format('type mismatch, expecting %q, given %q',member.type.name,vtype.name),item)
+					end
+				end				
 			end
 		elseif lt.tag=='typemeta' and c.l.decl==objectType then
 			-- error('todo: bulding temporaryobject')
@@ -1362,10 +1364,9 @@ local	function findHintType(vi,node,parentLevel,keep)
 			self:err('invalid index expression',i)
 		end
 	end
-	
-	function post:table(t)
 
-		local hintType,ptag=findHintType(self,t)
+	local function checkTableHintType(resolver,t)
+		local hintType,ptag=findHintType(resolver,t)
 		if hintType and
 			(ptag=='call' or ptag=='var' or ptag=='assignstmt' or ptag=='item' or ptag=='seq')
 		then
@@ -1387,6 +1388,15 @@ local	function findHintType(vi,node,parentLevel,keep)
 				}				
 			end
 
+		end
+
+		return false
+	end
+	
+	function post:table(t)
+		local res,data=checkTableHintType(self,t)		
+		if res=='replace' then
+			return res,data
 		end
 
 		local kts={}
@@ -1445,6 +1455,10 @@ local	function findHintType(vi,node,parentLevel,keep)
 			t.type={tag='tabletype',etype=vt,ktype=numberType,name=vt.name..'[number]',valuetype=true}
 		else
 			t.type=emptyTableType
+			local res,data=checkTableHintType(self,t)		
+			if res=='replace' then
+				return res,data
+			end
 		end
 		
 		return true
