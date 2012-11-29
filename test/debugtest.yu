@@ -1,13 +1,8 @@
-import 'lua/std.lx'
-local x=[[
+import 'queue.yu' as queue
+local x:queue.Queue
+x=queue.Queue()
 
-
-
-
-]]
--- import 'queue.yu' as queue
-
-print('hello')
-
-local a#
-local b=a+1
+class SQueue extends queue.Queue
+	override push()
+	end
+end

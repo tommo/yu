@@ -6,6 +6,9 @@ class TestBase
 	method __init()
 		print('test base')
 	end
+	method report()
+	end
+	
 end
 
 class Test extends TestBase

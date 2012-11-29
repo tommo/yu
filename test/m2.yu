@@ -3,3 +3,13 @@ global weather='sun'
 weather='shit'
 
 print(Test.flag)
+
+class Test3 extends TestBase
+	field name$='test3'
+	override report()
+		print(name)
+	end
+end
+
+local t=Test3()
+t.report()

@@ -223,6 +223,7 @@ paths={
 	
 	type=function(vi,t)
 		--TODO:...
+		if t.acc then visitNode(vi,t.acc) end
 	end,
 	
 	tabletype=function(vi,t)
@@ -378,6 +379,10 @@ paths={
 	end,
 	
 	classdecl=function(vi,c)
+		if c.superclassacc then
+			visitNode(vi,c.superclassacc)
+		end
+
 		if c.tvars then
 			visitEachNode(vi,c.tvars)
 		end
@@ -525,6 +530,7 @@ paths={
 	stringtype=false,
 	booleantype=false,
 	objecttype=false,
+	anytype=false,
 	new=false,
 
 	-----constant

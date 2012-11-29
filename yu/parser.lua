@@ -360,6 +360,18 @@ local function getModuleMatch()
 		return a
 	end
 
+	local function foldmember(a,b,...)
+		if b then
+			local t={
+				tag='member',
+				l=a,
+				id=b
+			}
+			return foldmember(t,...)
+		end
+		return a
+	end
+
 	local function w(p) return __*p*__ end
 
 	local pdepth,pstack=0,{}
@@ -467,9 +479,9 @@ local function getModuleMatch()
 		
 		ExternClassDecl=CLASS *__* cc(true)* (v.FuncAlias *AS*__ * Ident
 							+cnil*Ident) *
-						(EXTENDS * __ * cerr(v.SuperName,'super class name expected')+cnil) *
+						(EXTENDS * __ * cerr(v.NamedType,'super class name expected')+cnil) *
 							(ct(v.ExternClassItemDecl^0)) *
-						END *__ /t5('classdecl','extern','alias','name','supername','decls')
+						END *__ /t5('classdecl','extern','alias','name','superclassacc','decls')
 						;
 
 		ExternClassItemDecl=
@@ -648,21 +660,21 @@ local function getModuleMatch()
 							cerr(GT*__,"'>' expected"))
 						+cnil) 
 					,"class name expected") *
-					(EXTENDS * __ * cerr(v.SuperName,'super class name expected')+cnil) *
+					(EXTENDS * __ * cerr(v.NamedType,'super class name expected')+cnil) *
 					v.MetaData *
 						ct(v.ClassInnerDecls^0)*
 					cerr(END *__, "unclosed class block")
-					/t5('classdecl','name','tvars','supername','meta','decls');
+					/t5('classdecl','name','tvars','superclassacc','meta','decls');
 		
 		TVar	=	Ident/t1('tvar','name');
 		
-		SuperName=	Ident*
-					(ct(LT*__*
-						cerr(v.Type*(COMMA*__*v.Type)^0,"type expected")*
-						cerr(GT*__,"'>' expected"))
-					+cnil)
-					/t2('supername','id','template')
-					;
+		-- SuperName=	v.NameSpaceIdent*
+		-- 			(ct(LT*__*
+		-- 				cerr(v.Type*(COMMA*__*v.Type)^0,"type expected")*
+		-- 				cerr(GT*__,"'>' expected"))
+		-- 			+cnil)
+		-- 			/t2('supername','id','template')
+		-- 			;
 		
 	-- #-------------------Symbol Delcaration-------------------
 		SignalDecl=	SIGNAL *__* cerr(Ident,"signal name expected")*
@@ -814,14 +826,16 @@ local function getModuleMatch()
 								return ft
 							end;
 		
-		NamedType=	cpos(v.TemplateType+(Ident+NIL) /t1('type','name'));
+		NamedType=	cpos(v.TemplateType+(v.NameSpaceIdent+NIL) /t1('type','acc'));
 		
 		TypeSymbol=	cpos(
 						(p'#'/'number'
 					+	p'?'/'boolean'
 					+	p'$'/'string'
 					+	p'*'/'any')*__
-					/t1('type','name')
+					/function(x)
+							return {tag='type',acc={tag='varacc', id=x}}
+						end
 				)
 				;
 				
@@ -832,7 +846,11 @@ local function getModuleMatch()
 					)
 					/t2('ttype','name','args')
 					;
-					
+		
+		NameSpaceIdent=
+				Ident/t1('varacc','id')
+				*(DOT*-DOT*Ident)^0/foldmember
+				;
 		-- TemplateVar=LT*__*
 		-- 				ct(cerr(Ident * (COMMA *__* Ident)^0,"type variable expected")) *
 		-- 			cerr(GT*__,"'>' expected")

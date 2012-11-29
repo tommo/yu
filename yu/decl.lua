@@ -7,6 +7,7 @@ local getTypeDecl,newTypeRef=yu.getTypeDecl,yu.newTypeRef
 local ipairs,print=ipairs,print
 local format = string.format
 local makeDeclRefName=yu.makeDeclRefName
+local setmetatable,getmetatable=setmetatable,getmetatable
 
 module("yu",package.seeall)
 
@@ -119,8 +120,12 @@ function newDeclCollector()
 		end,
 
 		pushScope=function(self)
-			local scope={}
+			local mt={}
+			local scope=setmetatable({},mt)
 			self.scopeStack:push(scope)
+			
+			mt.parent=self.currentScope
+
 			self.currentScope=scope
 			self.currentNode.scope=scope
 			self.currentNode.scopeLevel=self.currentScopeLevel
@@ -176,10 +181,10 @@ function newDeclCollector()
 			end
 			
 			if tag=="private" then
-				currentScope.private=true
+				getmetatable(currentScope).private=true
 				return
 			elseif tag=="public" then
-				currentScope.private=false
+				getmetatable(currentScope).private=false
 				return
 			end
 	

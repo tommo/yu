@@ -873,13 +873,11 @@ local	function findHintType(vi,node,parentLevel,keep)
 	-- end
 	
 	function pre:classdecl(c)
-		local supername=c.supername
-		if supername then
-			local s=self:findSymbol(supername.id,c)			
-			--todo check template
-			if not s then
-				self:err('symbol not found:'..supername.id,c)
-			end
+		local superclassacc=c.superclassacc
+		if superclassacc then
+			self:visitNode(superclassacc)
+			local s=superclassacc.decl
+			
 			if s.tag~='classdecl' then self:err(supername.id..'is not a class',c) end
 			if c.extern and not s.extern then self:err('normal class cannot extend extern class:'..supername.id,c) end
 			if s.extern and not c.extern then self:err('extern class cannot extend normal class:'..supername.id,c) end
@@ -1016,6 +1014,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 				self:err('cannot override a final method:'..m.name,m)
 			end
 			
+			self:visitNode(superMethod)
+
 			local ftname0=getType(superMethod).name
 			local ftname1=getType(m).name
 
@@ -1109,7 +1109,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 ----------------------EXPRESSION
 	function post:varacc(v)
-		
+
+
 		if v.vartype=='upvalue' then
 			local pf=self:findParentFunc()
 			if not (pf and pf.tag=='closure' or (pf.tag=='funcdecl' and pf.localfunc)) then
@@ -1117,7 +1118,11 @@ local	function findHintType(vi,node,parentLevel,keep)
 				self:err('upvalue should be inside a closure',v)
 			end
 		end
-
+		if isBuiltinType(v.id) then
+			v.decl=getBuiltinType(v.id)
+			return
+		end
+		
 		local d=self:findSymbol(v.id, v, v.vartype)
 
 		if d then 
@@ -1567,19 +1572,34 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 	end
 	
+	local function makeAccName(acc)
+		if acc.tag=='varacc' then return acc.id end
+		local out=acc.id
+		while true do
+			acc=acc.l
+			if acc then
+				out=acc.id..'.'..out
+			end
+			return out
+		end
+
+	end
+
 	function post:type(t,parent)  --symbol type
-		if isBuiltinType(t.name) then 
-			t.decl=getBuiltinType(t.name)
-			return
-		end
+		-- if isBuiltinType(t.name) then 
+		-- 	t.decl=getBuiltinType(t.name)
+		-- 	return
+		-- end
+		-- table.foreach(t,print)
+		-- local d=self:findSymbol(t.name,t)
+		-- if not (d and isTypeDecl(d)) then 
+			-- self:err(format("type symbol not found:'%s'",t.name),t )
+		-- end
 		
-		local d=self:findSymbol(t.name,t)
-		if not (d and isTypeDecl(d)) then 
-			self:err(format("type symbol not found:'%s'",t.name),t )
-		end
-		t.decl=d	
+		t.decl=t.acc.decl
+		t.name=t.decl.name
 		--todo:avoid scope level problem
-		self:visitNode(d)
+		self:visitNode(t.decl)
 	end
 
 
