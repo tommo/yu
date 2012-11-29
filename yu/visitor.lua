@@ -524,6 +524,7 @@ paths={
 	numbertype=false,
 	stringtype=false,
 	booleantype=false,
+	objecttype=false,
 	new=false,
 
 	-----constant

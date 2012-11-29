@@ -788,6 +788,9 @@ local	function findHintType(vi,node,parentLevel,keep)
 		if td.tag=='niltype' then 
 			return self:err('cannot declare a variable of nil type',v)
 		end
+		if not td.valuetype then
+			return self:err('cannot declare a variable of non-value type',v)
+		end
 
 		if v.value then
 			valtype=getOneType(v.value)
@@ -825,6 +828,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 			ii[iv]=true
 		end
 		e.type=enumMetaType
+		e.valuetype=true
 	end
 	
 	function post:enumitem(i,e)
@@ -1191,6 +1195,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 					self:err(format('type mismatch, expecting %q, given %q',member.type.name,vtype.name),item)
 				end
 			end
+		elseif lt.tag=='typemeta' and c.l.decl==objectType then
+			error('todo: bulding temporaryobject')
 		else
 			self:err('table argument only valid for object creation',c.arg)
 		end

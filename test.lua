@@ -10,8 +10,12 @@ local t0=os.clock()
 require "yu.yu"
 local compilerloadtime=os.clock()-t0
 t0=os.clock()
-local builder1=yu.newBuilder()
-local result=builder1:build((args[1] or 'test/moai.yu'))
+local builder=yu.newBuilder()
+builder:setPreprocessorEnvironment{
+	DEBUG=true
+}
+
+local result=builder:build((args[1] or 'test/moai.yu'))
 
 local buildtime=os.clock()-t0
 t0=os.clock()

@@ -39,7 +39,7 @@ anyFuncType=makeValueType('anyfunc','anyfunc')
 
 
 
-emptyTableType={tag='tabletype',name='[]'}
+emptyTableType={tag='tabletype',name='[]',type=tableMetaType, valuetype=true}
 
 stringTable={}
 numberTable={}

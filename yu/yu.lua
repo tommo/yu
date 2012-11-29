@@ -46,6 +46,10 @@ function newBuilder(option)
 	},{__index=builder})
 end
  
+function builder:setPreprocessorEnvironment(env)
+	self.prepEnv=env or {}
+end
+
 function builder:build(path)
  	local generatedModules={}
 	self.baseDir=extractDir(path)
@@ -78,7 +82,9 @@ function builder:getAbsPath(path)
 end
 
 function builder:buildModule(path)
-	local m=parseFile(path)
+	local prepEnv=setmetatable({},{__index=self.prepEnv})
+
+	local m=parseFile(path,false,prepEnv)
 	m.externModules={}
 	m.path=path
 	m.modpath=stripExt(path)

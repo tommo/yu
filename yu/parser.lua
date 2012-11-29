@@ -968,12 +968,49 @@ local function getModuleMatch()
 
 	return Module
 end
+
+
+local	function doPreprocessor(code,env)
+	local lines={}
+	local lineCount=0
+
+	local chunk={}
+	local ci=1
+	local insert=table.insert
+	local format,sub,find=string.format,string.sub,string.find
+
+	for line in string.gmatch(code..'\n',"(.-)\r?\n") do
+		lineCount=lineCount+1
+		lines[lineCount]=line	
+		if find(line,'^#')	 then
+			insert(chunk,sub(line,2).."\n")
+		else
+			insert(chunk,format('__line__[%d]=1\n',lineCount))
+		end
+	end
+	insert(chunk,1,'local __line__=...\n')
+	local f=loadstring(table.concat(chunk))
+	local index={}
+	setfenv(f,env or {})
+	f(index)
+	for i =1,lineCount do
+		if not index[i] then 
+			lines[i]='\n'
+		else
+			lines[i]=lines[i]..'\n'
+		end
+	end
+	return table.concat(lines)
+end
+
+
  
 local ModuleMatch
-function parseSource(source,allowError)
+function parseSource(source,allowError,prepEnv)
 	if not ModuleMatch then ModuleMatch=getModuleMatch() end
 	resetContext()
 	lineInfo={[1]=0}
+	source=doPreprocessor(source,prepEnv)
 	local m= L.match(ModuleMatch,source)
 	
 	if #errors>0 and not allowError then
@@ -1003,14 +1040,14 @@ function parseSource(source,allowError)
 end
 
 totalParseTime=0
-function parseFile(file,allowError)
+function parseFile(file,allowError,prepEnv)
 	local t1=os.clock()
 	currentFilePath=file
 	local f=io.open(file,'r')
 	assert(f,'file not found:'..file)
 	local src=f:read("*a")
 	f:close()
-	local m=parseSource(src,allowError)
+	local m=parseSource(src,allowError,prepEnv)
 	m.file=file
 	totalParseTime=totalParseTime+os.clock()-t1
 	return m

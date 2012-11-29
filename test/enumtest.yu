@@ -9,9 +9,13 @@ enum State{
 	WAIT
 }
 
-func printState(s:State)
-	print('state = ', s==OK and 'OK' or s==WAIT and 'WAIT' or 'NO')
-end
+#if DEBUG then
+
+	func printState(s:State)
+		print('state = ', s==OK and 'OK' or s==WAIT and 'WAIT' or 'NO')
+	end
+
+#end
 
 local s,i=State.OK,1
 printState(s)
@@ -29,5 +33,3 @@ func takeFlags(flags:State[])
 end
 
 takeFlags({OK,WAIT})
-print('slogan is '..slogan)
-slogan='good to die!'

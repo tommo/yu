@@ -478,6 +478,7 @@ end
 
 function pre.tabletype( vi,tt )
 	if tt.ktype=='empty' then tt.ktype=numberType end
+	tt.valuetype=true
 end
 
 function pre.signaldecl( vi,sig )
