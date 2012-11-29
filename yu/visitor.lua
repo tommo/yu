@@ -149,48 +149,6 @@ function visitor:getParentNode()
 	return self.nodeStack:peek(1)
 end
 
-function visitor:findParentLoop()
-	local s=self.nodeStack
-	for i=s.count,1,-1 do
-		local n=s[i]
-		local t=n.tag
-		if t=='whilestmt' or t=='repeatstmt' or t== 'forstmt' or t=='foreachstmt' or t=='cyclestmt'  then return n end
-		if t=='funcdecl' or t=='methoddecl' then break end
-	end
-	return nil
-end
-
-function visitor:findParentClass()
-	local s=self.nodeStack
-	for i=s.count,1,-1 do
-		local n=s[i]
-		local t=n.tag
-		if t=='classdecl' then return n end
-		if t=='funcdecl' and not n.localfunc then break end
-	end
-	return nil
-end
-
-
-function visitor:findParentFunc()
-	local s=self.nodeStack
-	for i=s.count,1,-1 do
-		local n=s[i]
-		local t=n.tag
-		if t=='funcdecl' or t=='methoddecl' or t=='closure' then return n end
-	end
-	return nil
-end
-
-function visitor:findParentMethod()
-	local s=self.nodeStack
-	for i=s.count,1,-1 do
-		local n=s[i]
-		local t=n.tag
-		if t=='methoddecl' then return n end
-	end
-	return nil
-end
 
 paths={
 	module=function(vi,m)

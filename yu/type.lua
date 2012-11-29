@@ -460,7 +460,6 @@ end
 local function getClassMemberDecl(c, id, getSuper, fromModule)
 	local scope=c.scope
 	local d=scope[id]
-	
 	if d and not (fromModule~=c.module and d.private) then
 		local dtag=d.tag
 		local mtype='static'
@@ -526,7 +525,6 @@ end
 
 function typeres.member.classdecl(t,m,resolver)
 	local d,mtype=getClassMemberDecl(t,m.id,true,m.module)
-	
 	if (mtype=='member' or mtype=='signal') then
 		m.decl=d
 		resolver:visitNode(d)

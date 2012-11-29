@@ -1,15 +1,15 @@
--- func a()
--- end
-
-class M
-	field a#
-	method b()
-		a=1
-	end
+class A
+	field f#
+	field b:B
+	method someB()=>b
+	method getF()=>f
 end
 
--- 	method xxx()
--- 		a=1
--- 	end
--- end
 
+class B
+	field a:A
+	method getF()=>a.getF()
+	method geta()->A
+		return self.a
+	end
+end

@@ -55,6 +55,7 @@ local function _findSymbol(vi,name,token,limit)
 	local minScopeLevel=1000000
 	local entryModule=token.module
 	local scope=token.scope
+	-- print('>>>>newsearch for',name)
 	while scope do
 
 		local scopeMeta=getmetatable(scope)
@@ -73,8 +74,12 @@ local function _findSymbol(vi,name,token,limit)
 		else
 			decl=scope[name]
 		end
+
+		-- print('seraching scope:',tag,node.name,name,decl,outMethod)
+
 		
 		local found=false
+
 		if decl then 
 			-- print('found:',scope,decl.name,decl.tag,node.name,decl.p0,token.p0,tag)
 			if not (
@@ -156,11 +161,80 @@ local function _findSymbol(vi,name,token,limit)
 	return nil
 end
 
+local function _findParentScope(self)
+	local s=self.nodeStack
+	local scope
+	
+	for i=s.count,1,-1 do
+		local n=s[i]
+		scope=n.scope
+		if scope then break end
+	end
+	return scope
+end
+
+local function _findParentLoop(self)
+	local s=self.nodeStack
+	for i=s.count,1,-1 do
+		local n=s[i]
+		local t=n.tag
+		if t=='whilestmt' or t=='repeatstmt' or t== 'forstmt' or t=='foreachstmt' or t=='cyclestmt'  then return n end
+		if t=='funcdecl' or t=='methoddecl' then break end
+	end
+	return nil
+end
+
+local function _findParentClass(self)	
+	local scope=_findParentScope(self)
+
+	while scope do
+		local meta=getmetatable(scope)
+		local node=meta.node
+		local t=node.tag
+		if t=='classdecl' then return node end
+		if t=='funcdecl' and not node.localfunc then break end
+		scope=meta.parentScope
+	end	
+	
+	return nil
+end
+
+
+local function _findParentFunc(self)
+	local scope=_findParentScope(self)
+	
+	while scope do
+		local meta=getmetatable(scope)
+		local node=meta.node
+		local t=node.tag
+		if t=='funcdecl' or t=='methoddecl' or t=='closure' then return node end
+		scope=meta.parentScope
+	end		
+	return nil
+end
+
+local function _findParentMethod(self)
+	local scope=_findParentScope(self)
+	
+	while scope do
+		local meta=getmetatable(scope)
+		local node=meta.node
+		local t=node.tag
+		if t=='methoddecl' then return node end
+		scope=meta.parentScope
+	end		
+	return nil
+end
+
 function newResolver()
 	local r={	
 				pre=pre,
 				post=post,
-				findSymbol=_findSymbol
+				findSymbol=_findSymbol,
+				findParentLoop=_findParentLoop,
+				findParentClass=_findParentClass,
+				findParentFunc=_findParentFunc,
+				findParentMethod=_findParentMethod,
 			}
 	return yu.newVisitor(r)
 end
@@ -1118,7 +1192,15 @@ local	function findHintType(vi,node,parentLevel,keep)
 		if d then 
 			
 			if isMemberDecl(d) then 
-				return 'replace', {tag='member',l={tag='self'},id=v.id, decl=d, type=getType(d)}
+				return 'replace', {
+					tag='member',
+					l={tag='self'},
+					id=v.id,
+					decl=d,
+					mtype='member',
+					type=getType(d),
+					-- resolveState='done'
+				}
 			end
 			
 			self:visitNode(d)
@@ -1333,7 +1415,6 @@ local	function findHintType(vi,node,parentLevel,keep)
 	
 	function post:member(m)
 		local td=getType(m.l)
-		
 		if not td then
 			self:err('unresolved type<member>',m)
 		end
