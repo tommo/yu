@@ -1,15 +1,20 @@
-class A
-	field f#
+class C
 	field b:B
-	method someB()=>b
-	method getF()=>f
-end
-
-
-class B
-	field a:A
-	method getF()=>a.getF()
-	method geta()->A
-		return self.a
+	method useB()
+		local bb=b.getb_B(v)
 	end
+	global v#
 end
+
+
+class A extends B
+	field _b:B[]
+	method getb_A(n#) =>_b[n]
+end
+
+class B 
+	method getb_B(n1#)=>_a.getb_A(n1)
+	field _a:A
+
+end
+

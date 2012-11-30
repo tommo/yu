@@ -6,8 +6,8 @@ local format=string.format
 module("yu")
 
 local is,isTypeDecl,isBuiltinType=is,isTypeDecl,isBuiltinType
-local getType,getOneType,getTypeDecl,newTypeRef,checkType
-	=getType,getOneType,getTypeDecl,newTypeRef,checkType
+local getType,getTypeDecl,newTypeRef,checkType
+	=getType,getTypeDecl,newTypeRef,checkType
 local getExprTypeList=getExprTypeList
 local makeDeclRefName=yu.makeDeclRefName
 
@@ -235,6 +235,19 @@ function newResolver()
 				findParentClass=_findParentClass,
 				findParentFunc=_findParentFunc,
 				findParentMethod=_findParentMethod,
+
+				getType=function(self,node,noMulRet)
+					return getType(node,noMulRet,self)
+				end,
+
+				getTypeDecl=function(self,node,noMulRet)
+					return getTypeDecl(node,noMulRet,self)
+				end,
+
+				getOneType=function(self,node)
+					return getType(node,true,self)
+				end
+
 			}
 	return yu.newVisitor(r)
 end
@@ -252,8 +265,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 		local hintType
 
 		if ptag=='call' and pnode.l~=v then
-
-			local farg= pnode.l.type.args[v.argId]
+			local lt=getType(pnode.l)
+			local farg= lt.args[v.argId]
 			if farg then
 				local ftype=getType(farg)
 				hintType=ftype
@@ -270,9 +283,10 @@ local	function findHintType(vi,node,parentLevel,keep)
 			hintType=ftype
 
 		elseif ptag=='var' then
-			hintType=pnode.type		
-			if hintType and hintType.tag~='typeref' then 
-				hintType=getTypeDecl(hintType)
+			local t=pnode.type
+
+			if t and t.tag~='typeref' then 
+				hintType=getTypeDecl(t)
 			end
 
 		elseif ptag=='assignstmt' then
@@ -288,7 +302,10 @@ local	function findHintType(vi,node,parentLevel,keep)
 			end
 
 		elseif ptag=='table' then
-			return pnode.type or findHintType(vi,pnode,parentLevel+1)
+			local t=pnode.type or findHintType(vi,pnode,parentLevel+1)
+			if t then
+				hintType=getTypeDecl(t)
+			end
 			--todo:further hint 
 
 		elseif ptag=='item' then
@@ -354,10 +371,17 @@ local	function findHintType(vi,node,parentLevel,keep)
 		if state=='done' then 
 			return 'skip'
 		elseif state=='resolving' then			
-			self:err('cyclic declaration dependecy',n)
+			-- printNodeInfo(n)
+			self:err('cyclic declaration dependecy:'..n.tag..getTokenPosString(n),n)
 		end
 		
 		n.resolveState='resolving'
+
+		-- print('--',
+		-- 	string.sub(n.name or n.id or ' ',1,7),
+		-- 	string.sub(n.tag,1,7), 
+		-- 	n.p0 and getTokenPosString(n) ) 
+		
 		
 		local b=self.currentBlock
 		if b and b.endState then
@@ -371,6 +395,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 	end
 	
 	function pre:module(m)		
+		setTheResolver(self)
 		m.resolving=true
 	end
 	
@@ -843,8 +868,12 @@ local	function findHintType(vi,node,parentLevel,keep)
 			--todo:Const table
 			self:err('constant value expected for:'..v.name,v)
 		end
-		
-		local td=getOneType(v)
+
+		local td=getTypeDecl(
+			v.type,
+			true,
+			self
+		)
 
 		if not td then
 			self:err('unresolved type',v)
@@ -858,11 +887,11 @@ local	function findHintType(vi,node,parentLevel,keep)
 			return self:err('cannot declare a variable of nil type',v)
 		end
 		if not td.valuetype then
-			return self:err('cannot declare a variable of non-value type',v)
+			return self:err('cannot declare a variable of non-value type:'..td.name,v)
 		end
 
 		if v.value then
-			valtype=getOneType(v.value)
+			valtype=self:getOneType(v.value)
 			if valtype==emptyTableType and v.type==emptyTableType then
 				valtype={tag='tabletype',etype=anyType,ktype=anyType,name='any[any]',valuetype=true}
 				v.type=valtype				
@@ -878,8 +907,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 				self:err(format('type mismatch, "%s" expected, "%s" given.',vartype.name,valtype.name),v)
 			end
 
-		else
-			v.value=td.defaultValue
+		-- else
+		-- 	v.value=td.defaultValue
 		end
 
 		return true
@@ -895,6 +924,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 			local iv=item.value
 			if ii[iv] then self:err('duplicated enum item value',item) end
 			ii[iv]=true
+			item.type=e
 		end
 		e.type=enumMetaType
 		e.valuetype=true
@@ -938,6 +968,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 	
 	function pre:classdecl(c)
 		local superclassacc=c.superclassacc
+		local super
 		if superclassacc then
 			self:visitNode(superclassacc)
 			local s=superclassacc.decl
@@ -946,8 +977,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 			if c.extern and not s.extern then self:err('normal class cannot extend extern class:'..supername.id,c) end
 			if s.extern and not c.extern then self:err('extern class cannot extend normal class:'..supername.id,c) end
 			c.superclass=s
+			super=s
 			--todo:avoid node stack level problem
-			self:visitNode(s)
 		end
 
 		--todo: add super init code (instead of runtime checking) 
@@ -957,11 +988,20 @@ local	function findHintType(vi,node,parentLevel,keep)
 		end
 
 		c.resolveState='done'
+		if super then self:visitNode(super) end
 	end
 	
-	local function chekClassAbstract(c)
+	local function chekClassAbstract(c,resolver)
+		local visited={}
 		local nonabstract={}
 		while c do
+			if visited[c] then
+				return resolver:err(
+					'cyclic class inheritence:'..c.name,c
+					)
+			end
+
+			visited[c]=true
 			for k, d in pairs(c.scope) do
 				if d.abstract and not nonabstract[k] then return true end
 				nonabstract[k]=true
@@ -972,6 +1012,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 	end
 
 	function post:classdecl(c)
+		c.abstract=chekClassAbstract(c,self)
+
 		local scope0=c.scope
 		------------TODO:
 
@@ -1015,7 +1057,6 @@ local	function findHintType(vi,node,parentLevel,keep)
 			end			
 		end
 
-		c.abstract=chekClassAbstract(c)
 
 		-- local sc=c.superclass
 
@@ -1182,6 +1223,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 				self:err('upvalue should be inside a closure',v)
 			end
 		end
+
 		if isBuiltinType(v.id) then
 			v.decl=getBuiltinType(v.id)
 			return
@@ -1198,21 +1240,19 @@ local	function findHintType(vi,node,parentLevel,keep)
 					id=v.id,
 					decl=d,
 					mtype='member',
-					type=getType(d),
-					-- resolveState='done'
 				}
 			end
 			
-			self:visitNode(d)
 			
 			v.decl=d
-			local td=getType(d)
-			if td then 
-				v.type=td 
-			else
-				v.type=d.type
-				assert(d.type)
-			end
+			-- local td=self:getType(d)
+
+			-- v.type=td 
+			-- if td then 
+			-- else
+			-- 	v.type=d.type
+			-- 	assert(d.type)
+			-- end
 			return false
 
 		else --check hint type for Enumeration/ ObjectConstruction
@@ -1297,7 +1337,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 	function post:call(c)
 		local f=c.l
-		local lt=getType(c.l)
+		local lt=self:getType(c.l)
 		
 		resolveCall(lt,c,self)
 		
@@ -1414,7 +1454,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 	end
 	
 	function post:member(m)
-		local td=getType(m.l)
+		
+		local td=self:getType(m.l)
 		if not td then
 			self:err('unresolved type<member>',m)
 		end
@@ -1427,7 +1468,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 	
 	function post:index(i)
 		
-		local td=getType(i.l)
+		local td=self:getType(i.l)
 		if not td then
 			self:err('unresolved type<index>',i)
 		end
@@ -1443,6 +1484,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 	local function checkTableHintType(resolver,t)
 		local hintType,ptag=findHintType(resolver,t)
+
 		if hintType and
 			(ptag=='call' or ptag=='var' or ptag=='assignstmt' or ptag=='item' or ptag=='seq')
 		then
@@ -1617,7 +1659,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 ------------------TYPE
 	function post:ttype(t) --template type
 		error('todo!!!!!!!!!')
-		
+
 		local d=self:findSymbol(t.name,t)
 		
 		if not d or d.tag~='classdecl' then 
@@ -1658,24 +1700,10 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 	end
 
-	function post:type(t,parent)  --symbol type
-		-- if isBuiltinType(t.name) then 
-		-- 	t.decl=getBuiltinType(t.name)
-		-- 	return
-		-- end
-		-- table.foreach(t,print)
-		-- local d=self:findSymbol(t.name,t)
-		-- if not (d and isTypeDecl(d)) then 
-			-- self:err(format("type symbol not found:'%s'",t.name),t )
-		-- end
-		
+	function post:type(t,parent)  --symbol type		
 		t.decl=t.acc.decl
 		t.name=t.decl.name
-		--todo:avoid scope level problem
-		self:visitNode(t.decl)
 	end
-
-
 
 	local function makeTableTypeName( ft )
 		local rt=ft.rettype
@@ -1711,9 +1739,13 @@ local	function findHintType(vi,node,parentLevel,keep)
 		if rt.name then  --typeref will be handled by funcdecl
 			makeFuncTypeName(ft)
 		end
+		ft.valuetype=true
 	end
 
 	function post:vararg(va)
 		va.name=format('vararg(%s)',va.type.name)
 	end
 	
+	function post:typeref(r)
+		self:visitNode(r.ref)
+	end

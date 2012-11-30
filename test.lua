@@ -1,4 +1,3 @@
-
 local args={...}
 if MOAISim then
 	os.clock=MOAISim.getDeviceTime
@@ -39,4 +38,4 @@ local function stripExt(p)
 	return p
 end
 
-yu.runtime.run(stripExt(args[1]))
+yu.runtime.launchModule(stripExt(args[1]))

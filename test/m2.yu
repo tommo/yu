@@ -1,8 +1,8 @@
 import 'm1.yu'
 global weather='sun'
 weather='shit'
-
 print(Test.flag)
+
 
 class Test3 extends TestBase
 	field name$='test3'

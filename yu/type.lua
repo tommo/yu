@@ -10,11 +10,11 @@ module ("yu")
 typeMetaType={tag='typemeta',name='type'}
 
 local function makeValueType(tag,name)
-	return {tag=tag,name=name,type=typeMetaType,valuetype=true}
+	return {tag=tag,name=name,type=typeMetaType,valuetype=true,resolveState='done'}
 end
 
 local function makeMetaType(tag,name,valuetype)
-	return {tag=tag,name=name,type=typeMetaType,metatype=true}
+	return {tag=tag,name=name,type=typeMetaType,metatype=true,resolveState='done'}
 end
 
 
@@ -39,7 +39,10 @@ anyFuncType=makeValueType('anyfunc','anyfunc')
 
 
 
-emptyTableType={tag='tabletype',name='[]',type=tableMetaType, valuetype=true}
+emptyTableType={tag='tabletype',name='[]',
+	type=tableMetaType, 
+	valuetype=true,
+	resolveState='done'}
 
 stringTable={}
 numberTable={}
@@ -242,12 +245,20 @@ local function getGenericInstance(class,tvars)
 
 end
 
-local function getTypeDecl(d,noMulRet)
-	-- print('getting type',d.tag)
+local theResolver
 
+function setTheResolver(r)
+	theResolver=r
+end
+
+local function getTypeDecl(d, noMulRet)
 	if d.tag=='mulrettype' and noMulRet then
 		d=d.types[1]--return only the first type
 		assert(d)
+	end
+
+	if d.resolveState~='done' then
+		theResolver:visitNode(d)
 	end
 
 	if isTypeDecl(d) then return d end
@@ -255,11 +266,12 @@ local function getTypeDecl(d,noMulRet)
 	local tag=d.tag
 	if tag=='type' then
 		if not d.decl then
-			-- assert(d.resolveState)
-			compileErr("FATAL:unresolved typenode:"..tag..","..d.name or "", d)
+			compileErr("FATAL:unresolved typenode:"..tag..","..(d.name or ""), d)
 		end
 		return d.decl
+
 	elseif tag=='typeref' then
+		-- print('visit ref',d.ref.resolveState)
 		return getType(d.ref, noMulRet)
 	elseif tag=='ttype' then
 		--TODO:
@@ -283,20 +295,26 @@ local function replaceTableContent(src,dst)
 end
 
 local function getType(node,noMulRet)
+
+	if node.resolveState~='done' then
+		theResolver:visitNode(node)
+	end
+
+	if node.tag=='varacc' then
+		return getType(node.decl,noMulRet,theResolver)
+	end
+
 	local t=node.type
 	if not t then
 		assert(node.resolveState=='done','no resolve:'..node.tag)
 		table.foreach(node,print)
 		error('fatal: type not resolved:'..node.tag)
 	end
-	return getTypeDecl(t, noMulRet)
+	return getTypeDecl(t, noMulRet,theResolver)
 end
 
-local function getOneType( node )
-	return getType(node, true)
-end
 
- function getExprTypeList(values) --for expanding multiple return
+function getExprTypeList(values) --for expanding multiple return
 	local types={}
 	local c=#values
 	local mulret=0
@@ -529,7 +547,8 @@ function typeres.member.classdecl(t,m,resolver)
 		m.decl=d
 		resolver:visitNode(d)
 		
-		m.type=getType(d)
+		m.type=resolver:getType(d)
+
 		if m.l.tag=='super' then
 			if mtype=='signal' then resolver:err('cannot emit signal by super',m) end
 		 	mtype='super' 
@@ -568,12 +587,12 @@ end
 
 
 
-local function checkFuncArgs(targs,cargs)
+local function checkFuncArgs(targs,cargs,resolver)
 	-- assert(t.tag=='functype',t.tag)
 	cargs=cargs or {}
 	targs=targs or {}
 	
-	local ctypes,mulret=getExprTypeList(cargs)
+	local ctypes,mulret=getExprTypeList(cargs,resolver)
 	
 	local varargType
 	local lastArg=targs[#targs] --last func decl arg
@@ -613,7 +632,7 @@ local function checkFuncArgs(targs,cargs)
 end
 
 function typeres.call.functype(t,c,resolver)
-	local ok,err,errnode=checkFuncArgs(t.args,c.args)
+	local ok,err,errnode=checkFuncArgs(t.args,c.args,resolver)
 
 	if not ok then 
 		resolver:err(err,errnode or c) 
@@ -904,7 +923,6 @@ end
 
 _M.getTypeDecl=getTypeDecl
 _M.getType=getType
-_M.getOneType=getOneType
 _M.builtinTypeDecls=builtinTypeDecls
 _M.getSharedSuperType=getSharedSuperType
 _M.getClassMemberDecl=getClassMemberDecl

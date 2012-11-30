@@ -18,6 +18,11 @@
             "cmd":["/usr/local/bin/lua","errortest.lua"],
             "working_dir": "${project_path}"
         },
+         {
+            "name": "Lua-Debug",
+            "cmd":["open","./run"],
+            "working_dir": "${project_path}"
+        },
         {
             "name": "moai",
             "cmd": ["open","./moaitest"],

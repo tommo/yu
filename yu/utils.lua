@@ -374,6 +374,12 @@ function referExternModuleDecl(m,d)
 	referExternModuleDecl(m,d.module)
 end
 
+function printNodeInfo(n)
+	print('---------------')
+	print(getTokenPosString(n))
+	table.foreach(n,print)
+	print('---------------')
+end
 
 _M.getConstNode=getConstNode
 _M.getConst=getConst
