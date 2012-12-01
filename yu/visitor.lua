@@ -129,7 +129,6 @@ function newVisitor(data)
 	data.nodeStack=yu.newStack()
 
 	data.currentNode=false
-	data.currentBlock=false
 	data.currentFunc=false
 	data.pre=data.pre or {}
 	data.post=data.post or {}
@@ -159,10 +158,7 @@ paths={
 	end,
 	
 	block=function(vi,b)
-		local pb=vi.currentBlock
-		vi.currentBlock=b		
 		visitEachNode(vi,b)
-		vi.currentBlock=pb
 	end,
 	
 	import=function(vi,im)

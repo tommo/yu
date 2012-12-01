@@ -149,11 +149,14 @@ function unescape(s)
 		local line2,lpos2=findLine(m.lineInfo,token.p1)
 		return "@"..m.file.."<"..line..":"..lpos..">".."-<"..line2..":"..lpos2..">"
 	end
-	
+	local function printerr(msg)
+		io.stderr:write(tostring(msg)..'\n')
+	end
+
 	function compileErr(msg,token,currentModule)
 		local errmsg=(token and getTokenPosString(token,currentModule) or "")..":"..msg
-		print('[COMPILE ERROR]')
-		print(errmsg)
+		printerr('[COMPILE ERROR]')
+		printerr(errmsg)
 		return error('compile error')
 	end
 

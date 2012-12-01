@@ -456,8 +456,15 @@ end
 function generators.block(gen,b)
 	gen:ii()
 	local nonDecls={}
-	
+	local blockEnd=false
 	for i,s in ipairs(b) do
+		local tag=s.tag
+		if tag=='continuestmt' or tag=='returnstmt' or tag=='breakstmt' then
+			blockEnd=true
+		elseif blockEnd then
+			compileErr('unreachable statement',s)
+		end
+		
 		if isExposable(s) then
 			gen:expose(s)
 		else

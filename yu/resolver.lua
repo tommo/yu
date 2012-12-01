@@ -377,16 +377,6 @@ local	function findHintType(vi,node,parentLevel,keep)
 		
 		n.resolveState='resolving'
 
-		-- print('--',
-		-- 	string.sub(n.name or n.id or ' ',1,7),
-		-- 	string.sub(n.tag,1,7), 
-		-- 	n.p0 and getTokenPosString(n) ) 
-		
-		
-		local b=self.currentBlock
-		if b and b.endState then
-			self:err('unreachable statement',n)
-		end
 		
 	end
 	
@@ -447,7 +437,6 @@ local	function findHintType(vi,node,parentLevel,keep)
 			self:err("'continue' must be inside loop block",c)
 		end
 		l.hasContinue=true
-		self.currentBlock.endState=true
 		return true
 	end
 
@@ -457,18 +446,16 @@ local	function findHintType(vi,node,parentLevel,keep)
 			self:err("'break' must be inside loop block",b)
 		end
 		l.hasBreak=true
-		self.currentBlock.endState=true
 		return true
 	end
+
 	
 	function post:returnstmt(r)
 		local f=self:findParentFunc()
 		if not f then 
 			self:err("'return'/'yield' should be inside function",r)
 		end
-		if r.tag~='yieldstmt' then
-			self.currentBlock.endState=true
-		end
+		
 		local rettype=getTypeDecl(f.type.rettype)
 		
 		if r.values then

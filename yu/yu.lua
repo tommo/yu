@@ -137,4 +137,20 @@ function builder:requireModule(path)
 	end
 	return m
 end
- 
+
+
+function build(src)
+	local err,m=
+	pcall(
+		function()
+			local builder=newBuilder()
+			return builder:build(src)
+		end
+	)
+	if err then
+		return m
+	else
+		return error(m)
+	end
+
+end

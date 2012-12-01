@@ -1032,10 +1032,15 @@ function parseSource(source,allowError,prepEnv)
 	local m= L.match(ModuleMatch,source)
 	
 	if #errors>0 and not allowError then
+		local function printerr(msg)
+				io.stderr:write(tostring(msg)..'\n')
+			end
+
 		for i,e in ipairs(errors) do
-			print(e)
+			printerr(e)
 		end
-		error('Parse Failed')
+
+		error('[PARSING ERROR]')
 	end
 
 	m.lineInfo=lineInfo
