@@ -76,16 +76,27 @@ local function getDeclName(d)
 	if tag=='var' then
 		local vtype=d.vtype
 		if vtype=='local' then return d.refname end
+
 		if vtype=='global' then
 			if d.extern then
 				return '_G.'..d.externname
-			elseif d.module~=currentModule then
-				return getDeclName(d.module)..'.'..d.refname
-			else
-				return d.refname
 			end
+
+			if d.module~=currentModule then
+				return getDeclName(d.module)..'.'..d.refname
+			end
+				
+			return d.refname
 		end
-		if vtype=='const' then return getConst(d.value) end
+
+		if vtype=='const' then 
+			if d.extern then 
+				return '_G.'..d.externname
+			end
+
+			return getConst(d.value)
+		end
+
 		if vtype=='field' then return d.name end
 	end
 	if d.module~=currentModule then
@@ -370,7 +381,11 @@ function generators.module(gen,m)
 		local referModules={}
 		for r in pairs(m.externalReferNames) do
 				local rm=r.module
-				if r~=rm and r.vtype~='global' then --module
+				if r~=rm and not(
+						r.vtype=='global' or
+						r.vtype=='const'
+					)
+				then --module
 					local list=listByModule[rm]
 					if not list then list={} listByModule[rm]=list end
 					list[r]=true
@@ -431,8 +446,10 @@ function generators.module(gen,m)
 		gen:appendf("--------forward class creation------")
 		gen:cr()
 		for i,s in ipairs(classDecls) do
-			gen:appendf('%s={}',getDeclName(s))
-			gen:cr()
+			if not s.extern then
+				gen:appendf('%s = {}',getDeclName(s))
+				gen:cr()
+			end
 		end
 		gen:cr()
 
@@ -869,6 +886,7 @@ end
 function generators.classdecl(gen,c)
 	--TODO:!!!!!!!!!!!!!!!!!
 	if c.extern then
+		gen:appendf('%s = __yu_extern%q',getDeclName(c),c.alias or c.externname)
 		for i,s in ipairs(c.decls) do
 			if isExposable(s) then
 				gen:expose(s)			
@@ -1271,7 +1289,6 @@ function generators.mulval(gen, v )
 end
 
 function generators.member(gen,m)
-	--TODO:!!!
 	local c=getConstNode(m)
 	if c then return codegen(gen,c) end
 	
@@ -1285,9 +1302,16 @@ function generators.member(gen,m)
 		gen:mark(m)
 		gen('.'..m.id)
 	elseif mtype=='static' then
-		gen(getDeclName(m.decl))
-		if m.l.decl then gen:refer(m.l.decl) end
-		gen:refer(m.decl)
+		local ldecl=m.l.decl
+		if ldecl and ldecl.extern then --extern class static member
+			codegen(gen,m.l)
+			gen:mark(m)
+			gen('.'..m.id)
+		else
+			gen(getDeclName(m.decl))
+			if ldecl then gen:refer(ldecl) end
+			gen:refer(m.decl)
+		end
 	elseif mtype=='signal' then
 		gen(getDeclName(m.decl))
 		gen:refer(m.decl)

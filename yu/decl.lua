@@ -46,7 +46,6 @@ local metamethodNames=makeStringCheckTable(
 	'__eq'
 	)
 
-local declPrefix=yu.declPrefix
 
 function newDeclCollector()
 	
@@ -362,6 +361,11 @@ function pre:vardecl(vd)
 	local vars,values=vd.vars,vd.values
 	local varcount,valcount=#vars,values and #values or 0
 	local mulval=false
+
+	if values and vd.extern then
+		return self:err('cannot assign initial value for extern variable',vd)
+	end
+
 	if values and varcount>valcount then
 		if is(values[#values].tag,'call','wait') then 
 			mulval=true  --might be mul value
@@ -579,7 +583,12 @@ function pre.classdecl(vi,c)
 	c.type=classMetaType
 	c.valuetype=true
 	vi:pushName(c.alias or c.name)
-	if c.extern then vi:pushExternName(c.alias or c.name) end
+	if c.extern then 
+		for i,d in ipairs(c.decls) do
+			d.extern=true
+		end
+		vi:pushExternName(c.alias or c.name)
+	end
 	vi:pushScope()
 	vi.depth=vi.depth+1
 end

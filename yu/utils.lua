@@ -237,6 +237,7 @@ function unescape(s)
 	end
 	
 	local function getConstNode(n)
+		if not n then return nil end
 		local tag=n.tag
 		if tag=='string' or tag=='nil' or tag=='number' then return n end
 		if tag=='var' and n.vtype=='const' then return getConstNode(n.value) end

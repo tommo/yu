@@ -51,6 +51,16 @@ trueConst={tag='boolean', v='true', type=booleanType}
 falseConst={tag='boolean', v='false',type=booleanType}
 nilConst={tag='nil',type=nilType}
 
+local function makeBuiltinMethod(name,id,rettypes,argtypes)
+
+end
+
+builtinMethods={
+	stringtype={
+
+	}
+}
+
 
 function makeNumberConst(v)
 	n=tostring(v)
@@ -790,6 +800,9 @@ end
 -------ENTRY
 function resolveMember(t,node,resolver)
 	local tag=t.tag
+	
+	local builtin=builtinMethods[tag]
+
 	local r=typeres.member[tag]
 	--TODO: member for builtin types
 	if r and r(t,node,resolver) then return true end

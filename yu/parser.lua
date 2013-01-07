@@ -249,7 +249,7 @@ local function getModuleMatch()
 	local LOCAL=p"local"
 	local CONST=p"const"
 	local ENUM=p"enum"
-	local NAMESPACE=p"namespace"
+	-- local NAMESPACE=p"namespace"
 
 	local PRIVATE=p"private"
 	local PUBLIC=p"public"
@@ -684,26 +684,32 @@ local function getModuleMatch()
 
 		EnumDecl=	ENUM *__* cerr(Ident,"enumeration name expected") *
 					cerr(BOPEN *__* 
-						ct( v.EnumItem* ( COMMA *__* v.EnumItem )^0 ) *
+						v.EnumItemList*
+						-- ct( v.EnumItem* ( COMMA *__* v.EnumItem )^0 ) *
 					BCLOSE *__ , "enum items expected")
 					/t2('enumdecl','name','items')
 					;
 					
-		EnumItem=	cerr(Ident,"enum item name expected") *
+		EnumItem=	Ident *
 					(ASSIGN *__ * cerr(v.Expr,"expression expected") + cnil)
 					/t2('enumitem','name','value')
 					;
 		
-		LocalDecl=	LOCAL *__*  v.VarDecl
+		EnumItemList=ct(
+			v.EnumItem*(w(COMMA)*v.EnumItem)^0
+			*w(COMMA)^-1
+			+cnil);
+		
+		LocalDecl=	LOCAL *__*  cpos(v.VarDecl)
 						/ function(vd) vd.vtype='local' return vd end;
 						
-		GlobalDecl=	GLOBAL *__* v.VarDecl
+		GlobalDecl=	GLOBAL *__* cpos(v.VarDecl)
 						/ function(vd) vd.vtype='global' return vd end;		
 		
-		ConstDecl=	CONST *__* v.VarDecl
+		ConstDecl=	CONST *__* cpos(v.VarDecl)
 						/ function(vd) vd.vtype='const' return vd end;
 		
-		FieldDecl=	FIELD *__* v.VarDecl * v.MetaData
+		FieldDecl=	FIELD *__* cpos(v.VarDecl) * v.MetaData
 						/ function(vd,meta) vd.vtype='field' vd.meta=meta return vd end 
 					-- 	*
 					-- ( v.GetterBody*v.SetterBody

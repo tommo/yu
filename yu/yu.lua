@@ -139,18 +139,21 @@ function builder:requireModule(path)
 end
 
 
-function build(src)
-	local err,m=
-	pcall(
-		function()
-			local builder=newBuilder()
-			return builder:build(src)
-		end
-	)
-	if err then
-		return m
+function build(src,traceBuild)
+	local building=function()
+		local builder=newBuilder()
+		return builder:build(src)
+	end
+	if traceBuild then
+		return building()
 	else
-		return error(m)
+		local err,m=pcall(building)
+			
+		if err then
+			return m
+		else
+			return error(m)
+		end
 	end
 
 end

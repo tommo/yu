@@ -851,7 +851,10 @@ local	function findHintType(vi,node,parentLevel,keep)
 	-- end
 
 	function post:var(v)
-		if v.vtype=='const' and (not v.value or not getConstNode(v.value))then
+		if v.vtype=='const' and 
+			(not v.value or not getConstNode(v.value)) and
+			(not v.extern)
+		then
 			--todo:Const table
 			self:err('constant value expected for:'..v.name,v)
 		end
@@ -1281,6 +1284,10 @@ local	function findHintType(vi,node,parentLevel,keep)
 		local f=c.l
 		local lt=getType(c.l)
 		if lt.tag=='classmeta' then --raw new object
+			local clas = c.l.decl
+
+			referExternModuleDecl(c.module,clas)
+
 			if c.arg.type~=emptyTableType then --empty object always allowed
 				if c.arg.tag=='seq' then 
 					self:err('key-value-table is expected for object creation',c.arg)
@@ -1289,7 +1296,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 				if c.arg.type.ktype.tag~='stringtype' then
 					self:err('string key expected,given:'..c.arg.ktype.name,c.arg)
 				end
-				local clas = c.l.decl
+
 				for _,item in ipairs(c.arg.items) do
 					local key=item.key.v
 					-- table.foreach(item.key,print)
@@ -1343,6 +1350,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 	end
 
 	function post:new( n )		
+		local m=n.module		
+		if n.constructor then referExternModuleDecl(m,n.constructor) end
 		n.type=n.class.decl
 	end
 	
