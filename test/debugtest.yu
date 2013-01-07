@@ -13,8 +13,17 @@ class A extends B
 end
 
 class B 
-	method getb_B(n1#)=>_a.getb_A(n1)
+	method getb_B(n1#) => _a.getb_A(n1)
 	field _a:A
 
 end
 
+
+
+local a=1
+local b=1
+a=nil
+-- throw 'shit'
+-- assert a, 'A is nil'
+
+b=a+1

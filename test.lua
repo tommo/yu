@@ -11,7 +11,7 @@ local compilerloadtime=os.clock()-t0
 t0=os.clock()
 local builder=yu.newBuilder()
 builder:setPreprocessorEnvironment{
-	DEBUG=true
+	DEBUG=false
 }
 
 local result=builder:build((args[1] or 'test/moai.yu'))
@@ -38,4 +38,4 @@ local function stripExt(p)
 	return p
 end
 
-yu.runtime.launchModule(stripExt(args[1]))
+yu.runtime.run(stripExt(args[1]))

@@ -730,9 +730,10 @@ end
 
 function generators.throwstmt(gen,t)
 	--todo:!!!!!!!!!!!!!!
-	gen'__yu_thro('
+	gen'__yu_throw('
 	codegenList(gen,t.values)
 	gen')'
+	gen:mark(t,false)
 end
 
 function generators.catch(gen,c)
@@ -747,6 +748,7 @@ function generators.assertstmt( gen,t )
 		codegen(gen,t.exception)
 	end
 	gen');'
+	gen:mark(t,false)
 end
 
 function generators.assignstmt(gen,a)
