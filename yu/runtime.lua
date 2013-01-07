@@ -273,13 +273,13 @@ function doThrow(e, savetrace)
 			--TODO:trace
 	end
 	ex=e
-	error("luxex",2)
+	return error(tostring(e))
 end
 
 function doAssert( cond, ex )
 	-- return assert(cond,ex)
 	if not cond then
-		doThrow(ex)
+		return doThrow(ex)
 	end
 end
 
@@ -492,7 +492,6 @@ local function makeYuTraceString(info,modEnv)
 	local lineTarget=dinfo.line_target
 	local line=info.currentline 
 	local lineOffset=dinfo.line_offset
-
 	for i, data in ipairs(lineTarget) do
 		local l=data[1]
 		if line==l then
@@ -503,8 +502,8 @@ local function makeYuTraceString(info,modEnv)
 				l1,off1,l2,off2)		
 		end
 	end
-
-	return 'unkown track in YU:'..getmetatable(modEnv).__name
+	-- table.foreach(getmetatable(modEnv),print)
+	return 'unkown track in YU:'..(getmetatable(modEnv).__path or '?')
 end
 
 local function makeLuaTraceString(info)
@@ -517,7 +516,7 @@ local function makeLuaTraceString(info)
 			whatInfo='main chunk'
 		end
 	elseif what=='Lua' then
-		whatInfo=string.format('function \'%s\'',info.name)
+		whatInfo=string.format('function \'%s\'',info.name or '?')
 	elseif what=='C' then
 		whatInfo=nil
 		return '[C]: ?'
@@ -527,6 +526,7 @@ local function makeLuaTraceString(info)
 	else
 		whatInfo='?'
 	end
+
 	return 
 	string.format(
 		'%s:%d: %s',info.short_src,info.currentline,whatInfo
@@ -536,8 +536,7 @@ end
 function getStackPos(level)
 	local info=debug.getinfo(level)
 	if not info then return false end
-
-	local func=info.func
+	local func=info.func	
 	local env=getfenv(func)
 	local mt=env and getmetatable(env)
 
@@ -553,7 +552,7 @@ function traceBack(level)
 	level=level or 3
 	local output='stack traceback:\n'
 	while true do
-		local info=getStackPos(level)
+		local info=getStackPos(level+1)
 		if not info then break end
 		output=output..'\t'..info..'\n'
 		level=level+1
@@ -564,9 +563,12 @@ end
 function convertLuaErrorMsg(msg)
 end
 
-function errorHandler(msg,b)	
-	local traceInfo=traceBack(4)
+function errorHandler(msg,b)
+	local startLevel=2
+	local info=debug.getinfo(startLevel)
+	if info.func==error then startLevel=startLevel+1 end
 
+	local traceInfo=traceBack(startLevel+1)
 	if errorInYu then
 		msg=convertLuaErrorMsg(msg)
 	end

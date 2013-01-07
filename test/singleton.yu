@@ -17,3 +17,4 @@ class Worker
 end
 
 local w1=Worker(1)
+local m2=Manager()

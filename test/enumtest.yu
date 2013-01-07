@@ -10,7 +10,10 @@ end
 	func printState(s:State)
 		print('state = ', s==OK and 'OK' or s==WAIT and 'WAIT' or 'NO')
 	end
-
+#else
+	func printState(s:State)
+		print('state = ', s==OK and 'YES' or s==WAIT and 'WAIT' or 'DAMN')
+	end
 #end
 
 local s,i=State.OK,1
