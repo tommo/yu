@@ -296,7 +296,7 @@ local function genDebugInfo(gen,m)
 			local node=data[2]
 			gen:appendf('{%d, %d,%d, %q},',
 				line,
-				node.p0,node.p1,
+				node.p0 or 0,node.p1 or 0,
 				node.tag
 				)
 		end
@@ -885,8 +885,36 @@ local function getSuperClassDeclName(c,s)
 end
 
 
+local function genConstTable(gen,t)
+	gen'{'
+		for i,item in ipairs(t) do
+			local k,v=item.k,item.v
+			gen(k)
+			if v==nil then 
+				gen'=true'
+			else
+				local tag=v.tag
+				if tag~='table' then
+					gen'='
+					codegen(gen,v)
+					-- gen:appendf('=%q',v.tag)
+				else
+					error('not implement')
+				end
+			end
+			-- local tt=type(v)
+			-- if tt=='string' then
+			-- 	gen:appendf('%s')
+			-- else
+			gen','
+		end
+	gen'}'
+end
+
+
+
 function generators.classdecl(gen,c)
-	--TODO:!!!!!!!!!!!!!!!!!
+	--TODO:Metadata
 	if c.extern then
 		gen:appendf('%s = __yu_extern%q',getDeclName(c),c.alias or c.externname)
 		for i,s in ipairs(c.decls) do
@@ -897,6 +925,9 @@ function generators.classdecl(gen,c)
 		return
 	end
 	local cons=false
+	
+	local attributes={}
+
 	for i,s in ipairs(c.decls) do
 		if isExposable(s) then
 			if s.name=='__new' then 
@@ -907,7 +938,12 @@ function generators.classdecl(gen,c)
 		elseif s.vtype=='global' then 
 			insert(gen.classGlobalVars,s)
 		end
+
+		if s.meta then
+			attributes[s]=s.meta
+		end
 	end
+
 	gen:cr()
 
 	gen:appendf('__yu_newclass(%q,%s,%s,',			
@@ -927,10 +963,44 @@ function generators.classdecl(gen,c)
 		end
 	end
 	gen:di()
-	gen'})'
+	gen'},'
+	--attribute goes here
+	
+	if c.meta then
+		genConstTable(gen,c.meta)
+	else
+		gen'false'
+	end
+	
+	gen','
+	if next(attributes) then
+		gen'{'
+		for decl,attr in pairs(attributes) do
+			
+			if decl.tag=='vardecl' then --spread?
+				local vars=decl.vars
+				local var1=vars[1]
+				gen:appendf('%s=',var1.name)
+				genConstTable(gen,attr)
+				gen','
+				for i=2, #vars do
+					local var=vars[i]
+					gen:appendf('%s=%q,',var.name,var1.name)
+				end
+			else
+				gen:appendf('%s=',decl.name)
+				genConstTable(gen,attr)
+				gen','
+			end
+
+		end
+		gen'}'
+	else
+		gen'false'
+	end
+	gen')'
 	gen:cr()	
 end
-
 
 function generators.funcdecl(gen,f)
 	--TODO:!!!!!!!!!!!!!!!
@@ -1051,6 +1121,7 @@ function generators.funcdecl(gen,f)
 		-- gen'end ;'	
 	-- end
 end
+
 
 function generators.methoddecl(gen,m)
 	-- if m.extern then return nil end

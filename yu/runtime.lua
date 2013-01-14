@@ -347,12 +347,14 @@ end
 local moduleTable={}
 local classMT={}
 
-function newClass( name, classDecl ,superClass, body)
+function newClass( name, classDecl ,superClass, body,	classAttr, memberAttr)
 	if superClass then setmetatable(body,superClass) end
 	--todo: cache method for class?
 	classDecl.__index=body
 	classDecl.__name=name
 	classDecl.__super=superClass
+	classDecl.__classAttr=classAttr or false
+	classDecl.__memberAttr=memberAttr or false
 	classDecl.__type='class'
 	
 	return classDecl
@@ -586,3 +588,12 @@ function run(file,...)
 		,...)
 	
 end
+
+
+
+function _G.getClassAttribute(class, id)
+	local attr=class.__classAttr
+	return attr and attr[id]
+end
+
+function _G.getClassMember(member)

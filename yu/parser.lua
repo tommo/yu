@@ -867,9 +867,9 @@ local function getModuleMatch()
 		
 	----------------------Reflection-----------------------------
 
-		MetaData=	p':'*BOPEN*__* 
+		MetaData=	p'@'*BOPEN*__* 
 					(ct(v.MetaItem * __ *(  COMMA *__ * cerr(v.MetaItem,"metadata item expected"))^0)+cnil) *__*
-					cerr(BCLOSE*__,"unclosed metadata body")/makeMetaData
+					cerr(BCLOSE*__,"unclosed metadata body")
 					+cnil
 					;
 					

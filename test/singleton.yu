@@ -2,7 +2,8 @@
 class Manager
 	global _mgr:Manager
 	method __new()
-		if _mgr then throw 'manager already created' end
+		assert not _mgr , 'manager already created'
+		-- if _mgr then throw  end
 		_mgr=self
 	end
 end

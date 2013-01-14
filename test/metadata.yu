@@ -5,11 +5,14 @@ end
 class DataBase
 end
 
-class DataEntry extends DataBase	:{export, database='main'}
-	field name$
-	field id#			:{mainkey}
+class DataEntry extends DataBase	@{export, database=[[main]]}
+	
+	field name$    @{mainkey}
+	field id#      @{mainkey}
 
-	method tostring$() final
+	field x,y,z#		@{vector}
+
+	method tostring$() final @{hidden}
 		return 'id:'..id
 	end
 end
