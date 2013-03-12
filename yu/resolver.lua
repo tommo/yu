@@ -1314,7 +1314,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 				end				
 			end
 		elseif lt.tag=='typemeta' and c.l.decl==objectType then
-			-- error('todo: bulding temporaryobject')
+			error('todo: bulding temporaryobject')
 		else
 			self:err('table argument only valid for object creation',c.arg)
 		end

@@ -7,7 +7,7 @@ module ("yu")
 -----Builtin types
 
 
-typeMetaType={tag='typemeta',name='type'}
+typeMetaType={tag='typemeta',name='type',resolveState='done'}
 
 local function makeValueType(tag,name)
 	return {tag=tag,name=name,type=typeMetaType,valuetype=true,resolveState='done'}

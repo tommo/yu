@@ -927,7 +927,7 @@ local function getModuleMatch()
 				+ v.Closure
 				+ v.VarAcc;
 		
-		VarAcc	=	v.Value *
+		VarAcc	=	v.Value * __ *
 				cpos(
 					w(SOPEN) *  v.Expr * w(SCLOSE) /t1('index','key')--index
 				+	DOT * -DOT *__* c(IdentCore) /t1('member','id')		--member
@@ -962,7 +962,7 @@ local function getModuleMatch()
 			+ Boolean/function(v) return v=='true' and trueConst or falseConst end
 			;
 		
-		StringConst=((StringS+StringD)*cc(nil)+StringL*cc(true))*__/makeStringConst;
+		StringConst=w((StringS+StringD)*cc(nil)+StringL*cc(true))/makeStringConst;
 
 		Spawn	=	SPAWN * __ * cerr(v.Expr, "spawn expression expected" )/ t1('spawn','call') ;
 		
