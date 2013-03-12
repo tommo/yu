@@ -58,6 +58,7 @@ end
 
 local function getModuleMatch()
 
+	--HELPER FUNCTIONS
 	local function ccheck(patt,checker,msg)
 		local function checkerfunc(pos,c)
 			if checker(c) then
@@ -74,7 +75,6 @@ local function getModuleMatch()
 	local function cnot(patt,f) return cg(cp(),'p0')*(patt+(cb'p0'*cp()/f)) end
 
 	local function cerr(patt,msg) return cnot(patt,function(s0,s1) 
-
 		return parseErr(msg,s1) 
 	end) end
 
@@ -393,7 +393,7 @@ local function getModuleMatch()
 		WS=(s' \t'+COMMENT+EOL)^0;
 		NotAlpha= #(-ALPHA); --not alpha
 		Ident= c(IdentCore+(DOTDOTDOT))* __;
-		
+
 		String=(StringS+StringD+StringL) * __;
 		
 		M= ct(w(v.HeadStmt)^0) * w(v.Block) * cerr(-p(1),"syntax error") / t2('module','heads','block');
@@ -406,17 +406,17 @@ local function getModuleMatch()
 		Import= w(IMPORT) *__* 
 				(	StringS+StringD
 					+ct(Name*(DOT*cerr(Name,'module name expected'))^0)
-				)*(__*AS*-p's'*__*Ident+cnil) / t2('import','src','alias');
+				)*(__*AS*-p's'*__*Ident+cnil) * __ / t2('import','src','alias');
 		
 		
-		Block= 	ct((__ * v.Stmt  * SemiEOL )^0 )/function(a) a.tag="block" return a end ;
+		Block= 	ct((__ * v.Stmt  * SemiEOL  )^0 )/function(a) a.tag="block" return a end ;
 		
 		-------------END STATEMENTS
 		EndStmt=cpos(v.ReturnStmt
 				+v.BreakStmt
 				+v.ContinueStmt
 				+v.ThrowStmt
-				)
+				) * __
 				;
 		
 		ReturnStmt= (RETURN * __ * v.ReturnValues) /t1('returnstmt','values');
@@ -439,7 +439,7 @@ local function getModuleMatch()
 				+ v.ExternBlock 
 				+ v.FlowStmt
 				+ v.EndStmt
-				)
+				) * __
 				;
 
 		AssertStmt=ASSERT *__ * cerr( v.Expr,'assert expression expected') *
@@ -499,7 +499,7 @@ local function getModuleMatch()
 					
 		
 	-- #--------------------Flow Control-------------------
-		FlowStmt=	v.IfStmt
+		FlowStmt=	(v.IfStmt
 				+	v.WhileStmt				
 				+	v.ForeverStmt
 				+	v.ForEachStmt
@@ -508,11 +508,11 @@ local function getModuleMatch()
 				+	v.RepeatStmt
 				+	v.DoStmt
 				+	v.TryStmt
-				+	v.YieldStmt
+				+	v.YieldStmt) * __
 				;
 		YieldStmt= YIELD *__ * (v.ExprList+cnil) / t1('yieldstmt','values');
 		
-		DoStmt	=	DO * __ * v.Block * cerr(END*__, "unclosed do block") /t1('dostmt','block');
+		DoStmt	=	DO * __ * v.Block * cerr(END, "unclosed do block") /t1('dostmt','block');
 		
 		IfStmt	=	IF *__ * cerr(v.Expr,"condition expression expected") *
 					v.ThenBody / t2('ifstmt','cond','body')
@@ -524,7 +524,7 @@ local function getModuleMatch()
 						v.ElseIfBody
 						+	
 						(ELSE * __ * v.Block)^-1 *
-						cerr(END * __ , "unclosed if-then block")
+						cerr(END , "unclosed if-then block")
 					)/t2(nil,'thenbody','elsebody')
 					;
 					
@@ -538,13 +538,13 @@ local function getModuleMatch()
 							v.Block/t2('case','conds','block')
 						)^0) *
 					(DEFAULT *__ * v.Block) ^-1 *
-					cerr(END*__, "unclosed switch block")/t3('switchstmt','cond','cases','default')
+					cerr(END , "unclosed switch block")/t3('switchstmt','cond','cases','default')
 					;
 					
 		WhileStmt=	WHILE * __ * cerr(v.Expr, "condition expression expected") *
 						cerr(DO*__,"'do' expected for 'while'") * 
 						v.Block *
-					cerr(END * __, "unclosed while block") 
+					cerr(END , "unclosed while block") 
 					/ t2('whilestmt','cond','block')
 					;
 					
@@ -557,7 +557,7 @@ local function getModuleMatch()
 		
 		ForeverStmt=FOREVER*cc(trueConst) *
 						v.Block *
-					cerr(END * __, "unclosed forever loop block")
+					cerr(END , "unclosed forever loop block")
 					/ t2('whilestmt','cond','block')
 					;
 					
@@ -566,7 +566,7 @@ local function getModuleMatch()
 						v.Block *
 					ct( cerr(v.CatchBody^1, "catch block expected" ) ) *
 					(FINALLY * __ * v.Block+cnil ) *
-					cerr(END * __ , "unclosed try-catch block") / t3('trystmt','block','catches','final')
+					cerr(END , "unclosed try-catch block") / t3('trystmt','block','catches','final')
 					;
 					
 		CatchBody=	w(CATCH) * cerr(v.TypedVarList, "catch variable expected") * 
@@ -582,7 +582,7 @@ local function getModuleMatch()
 						,"for loop range error")) *
 						cerr(DO*__,"'do' expected for 'for'") * 
 						v.Block*
-					cerr(END*__, "unclosed for-loop block")/t3('forstmt','var','range','block')
+					cerr(END , "unclosed for-loop block")/t3('forstmt','var','range','block')
 					;
 					
 		ForEachStmt= FOR *__ * 
@@ -590,7 +590,7 @@ local function getModuleMatch()
 					IN*__* cerr(v.Expr/t1('iterator','expr'),"iterator expression expected") *
 						cerr(DO*__,"'do' expected for 'for'") * 
 						v.Block *
-					cerr(END*__, "unclosed foreach-loop block")
+					cerr(END , "unclosed foreach-loop block")
 					/t3('foreachstmt','vars','iterator','block')
 					;
 
@@ -770,7 +770,7 @@ local function getModuleMatch()
 		FuncBlock=	ARROWE *__* cerr(v.ExprList,'expression expected')/t1('exprbody','exprs')
 				+	v.Block * cerr(END *__,"unclosed function block");
 	 
-		FuncType=	(v.TypeSymbol+cnil) * 
+		FuncType=	(v.TypeSymbol+cnil) * __ *
 					v.ArgList *
 					(w(ARROW) * ct(cerr(
 							POpen* v.RetTypeItem * (w(COMMA) * cerr(v.RetTypeItem,"return type expected"))^0 *PClose
@@ -801,8 +801,9 @@ local function getModuleMatch()
 					PClose 
 					;
 
-		ArgDef	=	cpos((Ident+c(DOTDOTDOT)) *__* (v.TypeTag+cnil)
-						/t2('arg','name','type'))
+		ArgDef	=	cpos((Ident+c(DOTDOTDOT)) *__* (v.TypeTag+cnil) *
+						(ASSIGN * __* cerr(v.Expr,"default argument value expected") +cnil)
+						/t2('arg','name','type','value'))
 					;
 			
 		RetTypeItem= cpos((Ident *__* v.TypeTag/function(n,t) t.alias=n return t end)) + v.Type;
@@ -812,7 +813,7 @@ local function getModuleMatch()
 		
 		TypeTag	=	(COLON *__* v.Type) + #v.TypeSymbol*v.Type;
 		
-		Type	=	cpos(v.TableType);
+		Type	=	cpos(v.TableType) * __;
 						
 		TableType=	v.TypeCore * 
 						(w(SOPEN) * 
@@ -885,7 +886,7 @@ local function getModuleMatch()
 	-- #--------------------Expression-------------------	
 		ExprList=ct(v.Expr * ( COMMA *__* cerr(v.Expr,"expression expected") )^0);
 		
-		Expr=	cpos(v.Logic);
+		Expr=	cpos(v.Logic) * __;
 		
 		-- Ternary= v.Logic *
 		-- 		(p'?' * __ * v.Ternary *
@@ -929,7 +930,7 @@ local function getModuleMatch()
 		VarAcc	=	v.Value *
 				cpos(
 					w(SOPEN) *  v.Expr * w(SCLOSE) /t1('index','key')--index
-				+	DOT * -DOT *__* Ident /t1('member','id')		--member
+				+	DOT * -DOT *__* c(IdentCore) /t1('member','id')		--member
 				+	AS * -p's'*__ * cerr(v.Type, 'target type expected') / t1('cast','dst')				--cast
 				+	IS * __ * cerr(v.Type, 'checking type expected') / t1('is','dst') 				--typecheck
 				+	ct(v.StringConst) / t1('call','args') --string call
@@ -942,16 +943,18 @@ local function getModuleMatch()
 		Value = POpen * v.Expr * PClose
 			+	v.ValueCore;
 		
-		ValueCore=  cpos((p'\\'*cc('global')+p'@'*cc('upvalue')+cnil) * Ident * __ /t2('varacc','vartype','id')
-			+ v.Const * __
-			+ NIL *__ /function() return nilConst end
-			+ (p'@'*cc(true)+cc(nil))*SELF * __ /t1('self','upvalue')
-			+ SUPER * __ /t0'super'
+		ValueCore=  
+			(p'\\'*cc('global')+p'@'*cc('upvalue')+cnil) * c(IdentCore) /t2('varacc','vartype','id')
+			+ c(DOTDOTDOT) / t1('varacc','id')
+			+ v.Const
+			+ NIL /function() return nilConst end
+			+ (p'@'*cc(true)+cc(nil))*SELF /t1('self','upvalue')
+			+ SUPER  /t0'super'
 			+ v.SeqBody
 			+ v.TableBody
 			+ v.Spawn
 			+ v.Resume
-			+ v.Wait)
+			+ v.Wait
 			;
 		
 		Const = Number/makeNumberConst
