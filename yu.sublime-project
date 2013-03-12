@@ -11,7 +11,8 @@
         {
             "name": "Lua",
             "cmd":["/usr/local/bin/luajit","test.lua","test/$file_name"],
-            "working_dir": "${project_path}"
+            "working_dir": "${project_path}",
+            "target":"exec_in_window"
         },
         {
             "name": "Lua-ERRTEST",

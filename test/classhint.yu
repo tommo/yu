@@ -46,6 +46,7 @@ class Sprite
 end
 
 func uploadSprite(s:Sprite)
+	local x#
 end
 
 local s1=Sprite{

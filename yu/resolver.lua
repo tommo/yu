@@ -266,7 +266,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 		if ptag=='call' and pnode.l~=v then
 			local lt=getType(pnode.l)
-			local farg= lt.args[v.argId]
+			local farg= lt.args and lt.args[v.argId]
 			if farg then
 				local ftype=getType(farg)
 				hintType=ftype
@@ -1309,7 +1309,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 					end
 					local vtype=getType(item.value)
 					if not checkType(member.type,'>=',vtype) then
-						self:err(format('type mismatch, expecting %q, given %q',member.type.name,vtype.name),item)
+						self:err(format('type mismatch, expecting %q, given %q',member.type.name,vtype.name),item.value)
 					end
 				end				
 			end

@@ -28,9 +28,13 @@ class Stack
 	end
 
 	method pop*()
-		local n=top
-		top=top.next
-		return n.value
+		if top then
+			local n=top
+			top=top.next
+			return n.value
+		else
+			return nil
+		end
 	end
 
 	method __iter() => StackIter{node=top}

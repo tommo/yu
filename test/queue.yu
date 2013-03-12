@@ -49,6 +49,6 @@ end
 -- print(q.pop())
 -- print(q.pop())
 
-for v in q do
+for v in z    do
 	print(v)
 end

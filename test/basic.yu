@@ -15,7 +15,7 @@ class Sprite
 end
 
 class StaticSprite extends Sprite
-	method draw()
+	override draw()
 		print('draw static sprite')
 		super.draw()
 	end

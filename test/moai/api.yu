@@ -613,7 +613,7 @@ extern
 	end
 
 	class MOAIHttpTask 
-		method httpGet(url,useragent$,verbose,blocking?)
+		method httpGet(url,useragent$,verbose,blocking?=true)
 		method httpPost(url,data,useragent$,verbose,blocking?)
 		method setCallback(callback:function(data$))
 		method parseXml() -> parser:MOAIXmlParser

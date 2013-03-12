@@ -591,9 +591,10 @@ end
 
 
 
-function _G.getClassAttribute(class, id)
-	local attr=class.__classAttr
-	return attr and attr[id]
-end
+-- function _G.getClassAttribute(class, id)
+-- 	local attr=class.__classAttr
+-- 	return attr and attr[id]
+-- end
 
-function _G.getClassMember(member)
+-- function _G.getClassMember(member)
+-- end

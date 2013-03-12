@@ -1,0 +1,8 @@
+extern
+	func print(...*)
+end
+
+local x=func(a#, ff:func(x#)->#) => ff(a)
+
+
+print(x(5, func(x#, y#)=>(x+y)*5 ))
