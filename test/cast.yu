@@ -1,0 +1,28 @@
+extern
+	func print(...*)
+end
+local hex='0x25' as number
+print(hex)
+
+class Fruit
+end
+
+class Apple extends Fruit
+end
+
+class Banana extends Fruit
+end
+
+local b=Banana() as Fruit
+print(b is Fruit)
+print(b is Banana)
+print(b is Apple)
+
+local a=b as Apple
+print(a)
+
+local c=Apple()
+b=c as Fruit
+print(b is Fruit, b is Apple)
+
+local x=nil as Apple
