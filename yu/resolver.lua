@@ -347,7 +347,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 			if i>1 then argname=argname..',' end
 			argname=argname..getType(arg).name
 		end
-		local fname=ft.method and 'method' or 'func'
+		-- local fname=ft.method and 'method' or 'func'
+		local fname='func'
 		local name=format('%s(%s)',fname,argname)
 		if rt.name~='void' then
 			name=name..'->'..rt.name

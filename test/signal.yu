@@ -56,8 +56,8 @@ local b2=Button()
 local driver = Driver()
 driver.waitLight(l2)
 -- b1.pressed>>b2.pressed
-b1.pressed>>l1.switchState
-b2.pressed>>l2.switchState
+b1.pressed >> l1.switchState
+b2.pressed >> l2.switchState
 
 -- b1.pressed>>func() print('hello,pressed') end
 

@@ -167,9 +167,9 @@ function codeWriter:append(str,s1,...)
  	self.dirty=false
  end
 
- function codeWriter:mark(node,cr,msg)
+ function codeWriter:mark(node,cr, range,msg) --mark the code where error might occur
  	local line=self.__line
- 	insert(self.__marked_line,{ line,node})
+ 	insert(self.__marked_line,{ line,node, range or 0})
  	
  	-- self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
  	-- if msg then self:append(msg) end
@@ -294,8 +294,10 @@ local function genDebugInfo(gen,m)
 		for i,data in pairs(gen.__marked_line) do
 			local line=data[1]
 			local node=data[2]
-			gen:appendf('{%d, %d,%d, %q},',
+			local range=data[3]
+			gen:appendf('{%d, %d, %d,%d, %q},',
 				line,
+				range,
 				node.p0 or 0,node.p1 or 0,
 				node.tag
 				)
@@ -615,7 +617,7 @@ end
 function generators.connectstmt( gen,conn )
 	local sig,slot,sender,receiver=conn.signal,conn.slot,conn.sender,conn.receiver
 
-	gen '__YU_CONNECT('
+	gen 'yu.runtime.signalConnect('
 	gen:refer(sig,slot)
 
 	gen(getDeclName(sig))
@@ -1136,7 +1138,7 @@ end
 
 function generators.signaldecl( gen,sig )
 	gen:cr()
-	gen:appendf('__YU_LOADED.%s = __YU_RUNTIME.signalCreate(%q);',sig.refname,sig.name)
+	gen:appendf('%s = yu.runtime.signalCreate(%q);',sig.refname,sig.name)
 end
 
 --#EXPRESSION
@@ -1371,9 +1373,16 @@ function generators.member(gen,m)
 		gen:mark(m)
 		gen(':'..m.id)
 	elseif mtype=='member' then
-		codegen(gen,m.l)
-		gen:mark(m)
-		gen('.'..m.id)
+		decl=m.decl
+		if decl.tag=='methoddecl' then --build a methodpointer
+			codegen(gen,m.l)
+			gen:mark(m,true,1) --error maybe in next line
+			gen(':__build_methodpointer("'..m.id..'")')
+		else
+			codegen(gen,m.l)
+			gen:mark(m,true,1) --error maybe in next line
+			gen('.'..m.id)
+		end
 	elseif mtype=='static' then
 		local ldecl=m.l.decl
 		if ldecl and ldecl.extern then --extern class static member

@@ -1,0 +1,22 @@
+extern
+	func print(...*)
+end
+
+
+class Component
+	field name$
+	method getName() => self.name
+end
+
+
+func callbackCaller(f*)
+	local f1=f as func()
+	print(f1())
+end
+
+local c1=Component()
+c1.name='john'
+local n=c1.getName()
+-- c1=nil
+-- print(c1.name)
+callbackCaller(c1.getName)

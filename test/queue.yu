@@ -41,14 +41,3 @@ class QueueIterator
 	end
 end
 
-
-local q=Queue()
-for i=1,10 do
-	q.push('item-'..i)
-end
--- print(q.pop())
--- print(q.pop())
-
-for v in z    do
-	print(v)
-end

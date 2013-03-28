@@ -1,0 +1,49 @@
+__Lua[[
+function getClassAttribute(class, id)
+	local attr=class.__classAttr
+	return attr and attr[id]
+end
+]]
+
+-- extern
+-- 	func print(...*)
+-- 	func getClassAttribute(clas*, id$)
+-- end
+
+
+-- class Test @{good='shit'}	
+-- end
+
+-- local x=Test()
+-- print(getClassAttribute(Test,'good'))
+
+-- class TypeInfo
+-- 	method getName$() abstract
+-- end
+
+-- class Class extends TypeInfo
+-- 	method findMember(id$)->Member
+
+-- 	end
+
+-- 	method getAttribute(id$)->*
+-- 	end
+-- end
+
+-- class Member
+-- 	method getAttribute(id$)->*
+-- 	end
+-- end
+
+-- class Method extends Member
+-- end
+
+-- class Field extends Member
+-- 	method get()->*
+-- 	end
+
+-- 	method set(v*)
+-- 	end
+-- end
+
+

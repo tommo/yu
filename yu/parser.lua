@@ -202,7 +202,6 @@ local function getModuleMatch()
 	local IN=p"in"
 	local REPEAT=p'repeat'
 	local UNTIL=p'until'
-	local FOREVER = p'forever'
 
 	local BREAK=p"break"
 	local CONTINUE=p"continue"
@@ -291,7 +290,7 @@ local function getModuleMatch()
 			+	IF+THEN+ELSEIF+ELSE
 			+	FUNCTION+FUNC+METHOD+OVERRIDE
 			+	CLASS+EXTENDS
-			+	WHILE+FOREVER+FOR+IN+REPEAT+UNTIL
+			+	WHILE+FOR+IN+REPEAT+UNTIL
 			+	SELECT+CASE+DEFAULT
 			+	TRY+CATCH+THROW+FINALLY
 			+	YIELD+SPAWN+SIGNAL+WAIT+RESUME
@@ -501,7 +500,6 @@ local function getModuleMatch()
 	-- #--------------------Flow Control-------------------
 		FlowStmt=	(v.IfStmt
 				+	v.WhileStmt				
-				+	v.ForeverStmt
 				+	v.ForEachStmt
 				+	v.ForStmt
 				+	v.SwitchStmt
@@ -555,13 +553,6 @@ local function getModuleMatch()
 					/ t2('repeatstmt','block','cond')
 					;
 		
-		ForeverStmt=FOREVER*cc(trueConst) *
-						v.Block *
-					cerr(END , "unclosed forever loop block")
-					/ t2('whilestmt','cond','block')
-					;
-					
-
 		TryStmt	=	TRY * __ * 
 						v.Block *
 					ct( cerr(v.CatchBody^1, "catch block expected" ) ) *

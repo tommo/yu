@@ -1,3 +1,4 @@
+local rawget,rawset=rawget,rawset
 local setmetatable=setmetatable
 local getmetatable=getmetatable
 local newproxy=newproxy
@@ -357,6 +358,23 @@ function newClass( name, classDecl ,superClass, body,	classAttr, memberAttr)
 	classDecl.__memberAttr=memberAttr or false
 	classDecl.__type='class'
 	
+	local methodPointers=setmetatable({},{__mode='kv'})
+
+	function body:__build_methodpointer(id)
+		local pointers=rawget(self,'@methodpointers')
+		if not poointers then
+			pointers={}
+			rawget(self,'@methodpointers',pointers)
+		end
+		local mp=pointers[id]
+		if not mp then
+			local f=self[id]
+			mp=function(...) return f(self,...) end
+			pointers[id]=mp
+		end
+		return mp
+	end
+	
 	return classDecl
 end
 
@@ -496,10 +514,10 @@ local function makeYuTraceString(info,modEnv)
 	local lineOffset=dinfo.line_offset
 	for i, data in ipairs(lineTarget) do
 		local l=data[1]
-		if line==l then
-			
-			local l1,off1=findLine(lineOffset,data[2])
-			local l2,off2=findLine(lineOffset,data[3])
+		local range=data[2]
+		if line>=l and line<=l+range then
+			local l1,off1=findLine(lineOffset,data[3])
+			local l2,off2=findLine(lineOffset,data[4])
 			return string.format('%s: %d <%d:%d-%d:%d>',dinfo.path,l1,
 				l1,off1,l2,off2)		
 		end
