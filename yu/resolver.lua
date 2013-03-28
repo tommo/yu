@@ -6,10 +6,13 @@ local format=string.format
 module("yu")
 
 local is,isTypeDecl,isBuiltinType=is,isTypeDecl,isBuiltinType
+local isCompoundExpr=isCompoundExpr
 local getType,getTypeDecl,newTypeRef,checkType
 	=getType,getTypeDecl,newTypeRef,checkType
 local getExprTypeList=getExprTypeList
 local makeDeclRefName=yu.makeDeclRefName
+
+local insert=table.insert
 
 local pre={}
 local post={}
@@ -780,43 +783,70 @@ local	function findHintType(vi,node,parentLevel,keep)
 		end
 			
 		local vartag=var.tag
-		local mode
+		local tempvar=false
+		local tempkey=false
 		
 		if vartag=='varacc' then
-			mode='direct'
+			tempkey=false
+			tempvar=false
 		elseif vartag=='member' or vartag=='index' then
-			mode=is(var.l.tag,'varacc','self') and 'direct' or 'tempvar'
+			tempvar= isCompoundExpr(var.l)
+			tempkey= vartag=='index' and isCompoundExpr(var.key)
 		else
-			error("??")
+			error("FATAL: unimplemented")
 		end
-		
-		if mode=='direct' then
+
+		if (not tempvar) and (not tempkey) then
 			return 'replace',
-					{tag='assignstmt',
-					  vars={a.var},
-					  values={{tag='binop',op=assop[a.op],l=a.var,r=a.value}}
-					}
-					
-		elseif mode=='tempvar' then
-			--need a tempvariable here
-			local tempvar=newTempVar(getType(var.l))
-			local oldl=var.l
-			var.l=tempvar
-			return 'replace',{
-				tag='dostmt',
-				block={tag='block',
-					{tag='vardecl',vars={tempvar},vtype='local',resolveState='done'},
-					{tag='assignstmt',vars={tempvar},values={oldl},resolveState='done'},
-					{tag='assignstmt',
-					  vars={a.var},
-					  values={{tag='binop',op=assop[a.op],l=a.var,r=a.value}}
-					}
-				}
-			}
-		else
-			--??
-			error('??')
+						{tag='assignstmt',
+						  vars={a.var},
+						  values={{tag='binop',op=assop[a.op],l=a.var,r=a.value}},
+						  tempkey=tempkey, --let codegenerator handle this
+						  tempvar=tempvar
+						}
 		end
+		--EXPAND assop for compund index/member variable (lua has support for assop)
+		local block={}
+
+		local tmpvar, tmpkey
+		if tempvar then		--need a tempvariable here
+			tmpvar=newTempVar(getType(var.l))
+			local oldvar=var.l
+			var.l=tmpvar
+			insert(block,{tag='vardecl',vars={tmpvar},vtype='local',resolveState='done'})
+			insert(block,{tag='assignstmt',vars={tmpvar},values={oldvar},resolveState='done'})
+		end
+		if tempkey then
+			tmpkey=newTempVar(getType(var.key))
+			local oldKey=var.key
+			var.key=tmpkey
+			insert(block,{tag='vardecl',vars={tmpkey},vtype='local',resolveState='done'})
+			insert(block,{tag='assignstmt',vars={tmpkey},values={oldKey},resolveState='done'})
+		end
+		insert(block,{tag='assignstmt',
+					  vars={var},
+					  values={{tag='binop',op=assop[a.op],l=var,r=a.value}}
+					})
+		block.tag='block'
+
+		return 'replace',{
+			tag='dostmt',
+			block=block
+		}
+			-- return 'replace',{
+		-- 		tag='dostmt',
+		-- 		block={tag='block',
+		-- 			{tag='vardecl',vars={tmpvar},vtype='local',resolveState='done'},
+		-- 			{tag='assignstmt',vars={tmpvar},values={oldl},resolveState='done'},
+		-- 			{tag='assignstmt',
+		-- 			  vars={a.var},
+		-- 			  values={{tag='binop',op=assop[a.op],l=a.var,r=a.value}}
+		-- 			}
+		-- 		}
+		-- 	}
+		-- end
+
+		-- error("FATAL: unimplemented")
 		
 	end 
 	
@@ -1558,11 +1588,10 @@ local	function findHintType(vi,node,parentLevel,keep)
 		if t.items and t.items[1] then
 			for i,item in ipairs(t.items) do
 				local tt=getType(item)
-				if tt.tag=='niltype' then self:err('table item value is nil') end
-				vts[#vts+1]=tt
+				-- if tt.tag=='niltype' then self:err('table item value is nil') end
+				vts[i]=tt
 			end
 			local vt=getSharedSuperType(unpack(vts))
-			
 			if not vt then 
 				vt=anyType
 				-- self:err('cannot determine table value type',t)

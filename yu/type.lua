@@ -92,6 +92,20 @@ numberType.defaultValue=nilConst
 
 
 -----------TYPE comparison
+local function isSameType(t1,t2)
+	local d1,d2=getTypeDecl(t1),getTypeDecl(t2)
+	if d1==d2 then return true end
+	local tag1,tag2=d1.tag,d2.tag
+	if tag1~=tag2 then return false end
+	
+	if tag1=='tabletype' then
+		return isSameType(d1.ktype,d2.ktype) and 
+				isSameType(d1.etype,d2.etype)
+	end
+	
+	return d1.name==d2.name
+end
+
 
 local function getSuperType(t)
 	--TODO:
@@ -103,6 +117,29 @@ local function getSuperType(t)
 	end
 	return nil
 end
+local function isSuperType(t1,t2) --T1 is super type of T2?
+	if t1==t2 then return true end
+	if t1==anyType then return true end
+	if t2==nilType and t1.valuetype then return true end
+	if t1==anyFuncType and t2.tag=='functype' then return true end
+
+	if t1.tag=='tabletype' then
+		if t2==emptyTableType then return true end
+		return t2.tag=='tabletype' 
+			and	 (isSameType(t1.etype,t2.etype) or isSuperType(t1.etype,t2.etype))
+			and  (isSameType(t1.ktype,t2.ktype) or isSuperType(t1.ktype,t2.ktype))	
+	end
+	
+	local s=t2
+	while true do
+		local s1=getSuperType(s)
+		if not s1 then break end
+		if s1==t1 then return true end
+		s=s1
+	end
+	return false
+end
+
 
 local function getFirstSuperType(t)
 	if t.tag=='classdecl' then return objectType end
@@ -130,6 +167,13 @@ end
 
 local function getSharedSuperType(a,b,c,...)
 	if not b then return a end
+	if isSameType(a,b) then 
+		if c then
+			return getSharedSuperType(a,c,...)
+		else
+			return a
+		end
+	end
 	local asl,bsl=getSuperTypeList(a),getSuperTypeList(b)
 	for i,as in ipairs(asl) do
 		for j,bs in ipairs(bsl) do
@@ -146,42 +190,6 @@ local function getSharedSuperType(a,b,c,...)
 end
 
 
-local function isSameType(t1,t2)
-	local d1,d2=getTypeDecl(t1),getTypeDecl(t2)
-	if d1==d2 then return true end
-	local tag1,tag2=d1.tag,d2.tag
-	if tag1~=tag2 then return false end
-	
-	if tag1=='tabletype' then
-		return isSameType(d1.ktype,d2.ktype) and 
-				isSameType(d1.etype,d2.etype)
-	end
-	
-	return d1.name==d2.name
-end
-
-
-local function isSuperType(t1,t2) --T1 is super type of T2?
-	if t1==t2 then return true end
-	if t1==anyType then return true end
-	if t2==nilType and t1.valuetype then return true end
-	if t1==anyFuncType and t2.tag=='functype' then return true end
-
-	if t1.tag=='tabletype' then
-		if t2==emptyTableType then return true end
-		return (isSameType(t1.etype,t2.etype) or isSuperType(t1.etype,t2.etype))
-			and  (isSameType(t1.ktype,t2.ktype) or isSuperType(t1.ktype,t2.ktype))	
-	end
-	
-	local s=t2
-	while true do
-		local s1=getSuperType(s)
-		if not s1 then break end
-		if s1==t1 then return true end
-		s=s1
-	end
-	return false
-end
 
 
 -- '>' t1 is super of t2, vice vesa
@@ -262,6 +270,10 @@ function setTheResolver(r)
 end
 
 local function getTypeDecl(d, noMulRet)
+	if not d then
+		clidebugger.pause()
+	end
+
 	if d.tag=='mulrettype' and noMulRet then
 		d=d.types[1]--return only the first type
 		assert(d)

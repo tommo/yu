@@ -1,0 +1,18 @@
+
+do
+	class X		
+	end
+	func goo()
+		class XX
+			global xx=1
+		end
+		local z=XX()
+	end
+	local z=X()
+end
+
+
+class X
+end
+local z=X()
+

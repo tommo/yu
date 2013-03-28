@@ -178,6 +178,13 @@ function unescape(s)
 		local tag=c.tag
 		return tag=='number' or tag=='boolean' or tag=='string' or tag=='nil'
 	end
+
+	function isCompoundExpr(c)
+		local tag=c.tag
+		if tag=='number' or tag=='boolean' or tag=='string' or tag=='nil'	then return false end
+		if tag=='varacc' or tag=='self' then return false end
+		return true
+	end
 	
 	isDecl=makeTagCheckerT("vardecl" ,"classdecl" ,"funcdecl" ,"enumdecl" ,"methoddecl" 
 		,"var","externfunc","externclass",'signaldecl')
@@ -314,7 +321,9 @@ function newTempVar(t,vtype)
 			resolveState='done',
 			type=t,
 			vtype=vtype or 'local',
-			name='_TMP_'..tempvarCount}
+			name='_TMP_'..tempvarCount,
+			refname='_TMP_'..tempvarCount
+		}
 	tempvarCount=tempvarCount+1
 	return tempvar
 end

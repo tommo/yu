@@ -108,7 +108,7 @@ local function getDeclName(d)
 			return n
 		end
 	else
-		return d.refname
+		return d.refname 
 	end
 end
 
@@ -764,6 +764,20 @@ function generators.assignstmt(gen,a)
 		codegen(gen,a.values[1])
 		gen' end'
 		gen:mark(a,false)
+	-- elseif a.tempvar or a.tempkey then --index/member assop
+	-- 	local var,value=a.vars[1],a.values[1]
+	-- 	gen'do' gen:ii() gen:cr()
+	-- 	if var.tag=='member' then
+	-- 		gen'local __tmp_assop_var = '
+	-- 		codegen(gen, var.l)
+	-- 		gen('__tmp_assop_var.'..var.id)
+	-- 		gen'='
+
+	-- 	codegen(gen, var)
+	-- 	gen'='
+	-- 	codegen(gen, value)
+	-- 	gen:mark(a,false)
+	-- 	gen:di() gen:cr() gen'end'
 	else
 		codegenList(gen,a.vars)
 		gen'='

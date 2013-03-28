@@ -1,0 +1,15 @@
+extern
+	func print(...*)
+end
+
+local lists={
+	{1,2,3},
+	{3,4,5},
+	{5,6,7}
+}
+
+for i,l in lists do
+	for i,v in l do
+		print(v)
+	end
+end

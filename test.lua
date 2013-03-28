@@ -2,9 +2,11 @@ local args={...}
 if MOAISim then
 	os.clock=MOAISim.getDeviceTime
 end
+-- require 'tools.clidebugger'
+require "tools.printtable"
 
 -- setmetatable(_G,{__index=function(t,k) error("undefined symbol:"..k,2) end})
-require "tools.printtable"
+
 local t0=os.clock()
 require "yu.yu"
 local compilerloadtime=os.clock()-t0
