@@ -228,7 +228,6 @@ function castType(node,targetType)
 	local td=getTypeDecl(node)
 	if td==targetType then return node end
 	--TODO:
-	
 end
 
 
@@ -761,23 +760,22 @@ end
 
 -------CAST
 function typeres.cast.numbertype(t,n,target)
-	--TODO:...
-	
 	local td=getTypeDecl(target)
 	if td==booleanType then
 		return 'replace',convertToBool(n.l)
 	elseif td==stringType then
-		return n
+		return n --let codegen handle this
 	end
 end
 
 function typeres.cast.stringtype(t,n,target)
-	--TODO:...
 	local td=getTypeDecl(target)
-	if target==numberType then
-	elseif target==booleanType then
+	if td==numberType then
+		return n --let codegen handle this
+	elseif td==booleanType then
 		return 'replace',convertToBool(n.l)
 	end
+	return false
 end
 
 function typeres.cast.niltype(t,n,target)
@@ -897,12 +895,11 @@ function resolveCast(t,node,resolver)
 		return 'replace',node.l
 	end
 	
-	if checkType(t,'<',dst) then
+	if checkType(t,'<',dst) and t.tag~='niltype' then
 		node.type=dst
 		node.nocast=true
 		return true
 	end
-
 	
 	local r=typeres.cast[tag]
 	if r then 

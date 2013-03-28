@@ -269,10 +269,7 @@ local next=next
 local ex
 
 
-function doThrow(e, savetrace)
-	if savetrace then 
-			--TODO:trace
-	end
+function doThrow(e)
 	ex=e
 	return error(tostring(e))
 end

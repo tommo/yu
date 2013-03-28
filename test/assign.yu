@@ -8,8 +8,12 @@ local lists={
 	{5,6,7}
 }
 
+local a=2
+lists[a+1][a+1]+=1
+
 for i,l in lists do
+	print "------"
 	for i,v in l do
-		print(v)
+		print(i,v)		
 	end
 end
