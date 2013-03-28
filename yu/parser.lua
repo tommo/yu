@@ -733,21 +733,29 @@ local function getModuleMatch()
 		
 		VarDeclBody= cpos((Ident* (v.TypeTag + cnil) )/t2('var','name','type'));
 						
-		MethodDecl	=(METHOD*cnil+OVERRIDE*cc(true)*(__*METHOD)^-1) * __ * 
+		MethodDecl	= v.AbstractMethodDecl + v.NormalMethodDecl ;
+
+		AbstractMethodDecl =
+								ABSTRACT * __ *
+								v.MethodDeclHeader 
+							 /function(m) m.abstract=true return m end
+								;
+
+		NormalMethodDecl = (FINAL*cc(true)+cnil) * __ *
+							v.MethodDeclHeader *
+							v.FuncBlock / 
+							function(final, m, block)
+								m.final=final
+								m.block=block
+								return m
+							end
+							;
+
+
+		MethodDeclHeader=(METHOD*cnil+OVERRIDE*cc(true)*(__*METHOD)^-1) * __ * 
 						cerr(Ident,"method name/operator expected") *
-						v.FuncType
-						/t3('methoddecl','override','name','type')
-						*
-						(	ABSTRACT * cc('abstract') * __ * v.MetaData
-						+	FINAL*cc('final')*__* v.MetaData * v.FuncBlock
-						+	cnil* v.MetaData * v.FuncBlock					
-						)/function(head,mtype,meta,block) 
-							head.meta=meta 
-							head.abstract=mtype=='abstract'
-							head.final=mtype=='final'
-							head.block=block
-							return head 
-						end
+						v.FuncType * __ * v.MetaData
+						/t4('methoddecl','override','name','type', 'meta')
 						;
 		
 		Operators	=s('+-*/%^<>')+ p'>='+p'<='+p'=='+p'~='+p'as'+p'[]'+p'[]=';

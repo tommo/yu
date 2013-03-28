@@ -1079,26 +1079,21 @@ local	function findHintType(vi,node,parentLevel,keep)
 		end
 
 
-		-- local sc=c.superclass
+		local sc=c.superclass
 
-		-- while sc do
-		-- 	local scope1=sc.scope
+		while sc do
+			local scope1=sc.scope
 
-		-- 	for k,d0 in pairs(scope0) do
-		-- 		local d1=scope1[k]				
-		-- 		if d1 then 
-		-- 			if d1.tag==d0.tag and d0.tag=='methoddecl' then
-		-- 				 if not d0.override then
-		-- 				 	self:err(format('method "%s" already defined in superclass "%s", use override keyword instead',d0.name,sc.name),d0)
-		-- 				 end
-		-- 			-- else
-		-- 			-- 	self:err(format('member "%s" already defined in superclass "%s"',d0.name,sc.name),d0)
-		-- 			end
-		-- 		end
-		-- 	end
-		-- 	sc=sc.superclass
-		-- end
-
+			for k,d0 in pairs(scope0) do
+				local d1=scope1[k]				
+				if d1 then 
+					if d1.tag~=d0.tag or d1.tag=='var' then
+						self:err(format('member "%s" already defined in superclass "%s"',d0.name,sc.name),d0)
+					end
+				end
+			end
+			sc=sc.superclass
+		end
 
 	end
 	
@@ -1163,7 +1158,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 			if next(m.type.args) then
 				self:err('initializer/finalizer takes no argument',m)
 			end
-		elseif name=='__add' then
+		-- elseif name=='__add' then
 		end
 		
 	end
@@ -1344,8 +1339,6 @@ local	function findHintType(vi,node,parentLevel,keep)
 					end
 				end				
 			end
-		elseif lt.tag=='typemeta' and c.l.decl==objectType then
-			error('todo: bulding temporaryobject')
 		else
 			self:err('table argument only valid for object creation',c.arg)
 		end

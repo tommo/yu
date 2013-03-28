@@ -2,19 +2,21 @@ extern
 	func print(...*)
 end
 
+class Colorful
+	field color$
+end
 
 class Apple extends Fruit
 	override name$()=>'apple'
 end
 
 class Banana extends Fruit
-	override name$() final
+	final override name$()
 		=>'banana'
 end
 
-class Fruit
-	field color$
-	method name$() abstract
+class Fruit extends Colorful
+	abstract method name$()
 end
 
 class TropicalFruit extends Banana
