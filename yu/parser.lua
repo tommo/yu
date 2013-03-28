@@ -655,7 +655,8 @@ local function getModuleMatch()
 					v.MetaData *
 						ct(v.ClassInnerDecls^0)*
 					cerr(END *__, "unclosed class block")
-					/t5('classdecl','name','tvars','superclassacc','meta','decls');
+					/t5('classdecl','name','tvars','superclassacc','meta','decls')
+					;
 		
 		TVar	=	Ident/t1('tvar','name');
 		
@@ -692,34 +693,21 @@ local function getModuleMatch()
 			+cnil);
 		
 		LocalDecl=	LOCAL *__*  cpos(v.VarDecl)
-						/ function(vd) vd.vtype='local' return vd end;
+						/ function(vd) vd.vtype='local' return vd end
+						;
 						
 		GlobalDecl=	GLOBAL *__* cpos(v.VarDecl)
-						/ function(vd) vd.vtype='global' return vd end;		
+						/ function(vd) vd.vtype='global' return vd end
+						;		
 		
 		ConstDecl=	CONST *__* cpos(v.VarDecl)
-						/ function(vd) vd.vtype='const' return vd end;
+						/ function(vd) vd.vtype='const' return vd end
+						;
 		
 		FieldDecl=	FIELD *__* cpos(v.VarDecl) * v.MetaData
 						/ function(vd,meta) vd.vtype='field' vd.meta=meta return vd end 
-					-- 	*
-					-- ( v.GetterBody*v.SetterBody
-					-- + v.SetterBody*v.GetterBody *cc(true))
-					-- /function(fd,g,s,setterFirst) 
-					-- 	if setterFirst then g,s=s,g end
-					-- 	fd.getter=g 
-					-- 	fd.setter=s 
-					-- 	return fd 
-					-- end
-					;
+						;
 
-		-- UpvalueDecl= UPVALUE *__* cerr(ct(v.Ident*(COMMA*__*v.Ident)^0),"upvalue name expected")
-		-- 				/t1('upvalue','vars')
-		-- 			;
-
-		-- GetterBody= p'::get' *__* cerr(v.FuncBlock,"property getter block expected") +cnil;
-		-- SetterBody= p'::set' *__* cerr(v.FuncBlock,"property setter block expected") +cnil;
-		
 		VarDecl=	ct(
 							cerr(v.VarDeclBody,"variable expected") * 
 							(COMMA *__* cerr(v.VarDeclBody ,"variable expected"))^0
@@ -764,10 +752,12 @@ local function getModuleMatch()
 					FUNCKW * __ * cerr(Ident ,"function name expected") * __ *
 					( AS *__ * cerr(v.FuncAlias, "function alias expected")+cnil ) *
 					cerr(v.FuncType,"function type expected")* __ *
-					v.FuncBlock / t5('funcdecl','localfunc','name','alias','type','block');
+					v.FuncBlock / t5('funcdecl','localfunc','name','alias','type','block')
+					;
 		
 		FuncBlock=	ARROWE *__* cerr(v.ExprList,'expression expected')/t1('exprbody','exprs')
-				+	v.Block * cerr(END *__,"unclosed function block");
+					+	v.Block * cerr(END *__,"unclosed function block")
+					;
 	 
 		FuncType=	(v.TypeSymbol+cnil) * __ *
 					v.ArgList *
@@ -797,13 +787,13 @@ local function getModuleMatch()
 
 		ArgList	=	POpen *
 						ct((v.ArgDef * (w(COMMA)* cerr(v.ArgDef, "argument expected"))^0 )^-1) *
-					PClose 
-					;
+						PClose 
+						;
 
 		ArgDef	=	cpos((Ident+c(DOTDOTDOT)) *__* (v.TypeTag+cnil) *
 						(ASSIGN * __* cerr(v.Expr,"default argument value expected") +cnil)
 						/t2('arg','name','type','value'))
-					;
+						;
 			
 		RetTypeItem= cpos((Ident *__* v.TypeTag/function(n,t) t.alias=n return t end)) + v.Type;
 			
@@ -815,11 +805,11 @@ local function getModuleMatch()
 		Type	=	cpos(v.TableType) * __;
 						
 		TableType=	v.TypeCore * 
-						(w(SOPEN) * 
-							(v.Type+cc('empty')) * 
-						cerr(w(SCLOSE),"unclosed squre bracket")
-						/t1('tabletype','ktype')
-						)^0/foldtype
+					(w(SOPEN) * 
+						(v.Type+cc('empty')) * 
+					cerr(w(SCLOSE),"unclosed squre bracket")
+					/t1('tabletype','ktype')
+					)^0/foldtype
 					;
 						
 		TypeCore=	v.TypeSymbol
@@ -854,9 +844,9 @@ local function getModuleMatch()
 					;
 		
 		NameSpaceIdent=
-				Ident/t1('varacc','id')
-				*(DOT*-DOT*Ident)^0/foldmember
-				;
+					Ident/t1('varacc','id')
+					*(DOT*-DOT*Ident)^0/foldmember
+					;
 		-- TemplateVar=LT*__*
 		-- 				ct(cerr(Ident * (COMMA *__* Ident)^0,"type variable expected")) *
 		-- 			cerr(GT*__,"'>' expected")
@@ -894,37 +884,43 @@ local function getModuleMatch()
 		-- 		)^0/foldexpr;
 		
 		Logic=	v.NotOp *
-				(	c(AND+OR) * - ASSIGN *
-					cerr(__ * v.NotOp, "right operand expected for logic expr")/t2('binop','op','r')
-				)^0/foldexpr;
+					(	c(AND+OR) * - ASSIGN *
+						cerr(__ * v.NotOp, "right operand expected for logic expr")/t2('binop','op','r')
+					)^0/foldexpr
+					;
 
 		NotOp=	c(NOT_KW) * cerr( __ * v.NotOp, "operand expected for 'not' expr")/ t2('unop','op','l')
 				+v.Compare;
 		
 		Compare= v.Concat *
-				(	c(EQ + NOTEQ + LESSEQ + GREATEQ + GREATER*#(-GREATER) + LESS) *
-					cerr(__ * v.Concat, "right operand expected for comparison expr")/t2('binop','op','r')
-				)^0/foldexpr;
+					(	c(EQ + NOTEQ + LESSEQ + GREATEQ + GREATER*#(-GREATER) + LESS) *
+						cerr(__ * v.Concat, "right operand expected for comparison expr")/t2('binop','op','r')
+					)^0/foldexpr
+					;
 				
 
 		Concat	=v.Sum *
-				(	c(DOTDOT) * -ASSIGN *
-					cerr(__ * v.Sum, "right operand expected for concat expr")/t2('binop','op','r')
-				)^0/foldexpr;
+					(	c(DOTDOT) * -ASSIGN *
+						cerr(__ * v.Sum, "right operand expected for concat expr")/t2('binop','op','r')
+					)^0/foldexpr
+					;
 		
 		Sum		=v.Product *
-				cpos(	c(PLUS+MINUS) * -ASSIGN *
-					cerr(__ * v.Product, "right operand expected for arith expr")/t2('binop','op','r')
-				)^0/foldexpr;
+					cpos(	c(PLUS+MINUS) * -ASSIGN *
+						cerr(__ * v.Product, "right operand expected for arith expr")/t2('binop','op','r')
+					)^0/foldexpr
+					;
 				
 		Product=v.Unary *
-				(	c(STAR+SLASH+PERCENT+POW) * -ASSIGN *
-					cerr(__ * v.Unary, "right operand expected for arith expr")/t2('binop','op','r')
-				)^0/foldexpr;
+					(	c(STAR+SLASH+PERCENT+POW) * -ASSIGN *
+						cerr(__ * v.Unary, "right operand expected for arith expr")/t2('binop','op','r')
+					)^0/foldexpr
+					;
 				
 		Unary	= c(MINUS*-Number) * cerr( __ * v.Unary, "operand expected for unary expr") / t2('unop','op','l')
-				+ v.Closure
-				+ v.VarAcc;
+					+ v.Closure
+					+ v.VarAcc
+					;
 		
 		VarAcc	=	v.Value * __ *
 				cpos(
@@ -940,7 +936,8 @@ local function getModuleMatch()
 				;
 				
 		Value = POpen * v.Expr * PClose
-			+	v.ValueCore;
+				+	v.ValueCore
+				;
 		
 		ValueCore=  
 			(p'\\'*cc('global')+p'@'*cc('upvalue')+cnil) * c(IdentCore) /t2('varacc','vartype','id')
@@ -972,21 +969,28 @@ local function getModuleMatch()
 		Closure	=	FUNCKW * __ *_NA * cerr(v.FuncType, "function type expected" ) * __ * v.FuncBlock/t2('closure','type','block');
 		
 		SeqBody	=	w(BOPEN)* 
-						ct(v.Expr * (w(COMMA) * v.Expr)^0 *w(COMMA)^-1 + cnil)
-					* w(BCLOSE) / t1('seq','items')	;
+					ct(v.Expr * (w(COMMA) * v.Expr)^0 *w(COMMA)^-1 + cnil) *
+					w(BCLOSE) / t1('seq','items')
+					;
 		
 
 		TableBody=	w(BOPEN)*				
-				v.TableItemList
-				* cerr(w(BCLOSE),"unclosed table body") / t1('table','items') ;
+				v.TableItemList	* 
+				cerr(w(BCLOSE),"unclosed table body") / t1('table','items')
+				;
 			
-		TableItem = (Ident/makeStringConst + (w(SOPEN)*v.Expr*w(SCLOSE)))
-					* ASSIGN * __* cerr(v.Expr,"table item value expected") / t2('item','key','value');
+		TableItem = (Ident/makeStringConst + (w(SOPEN)*v.Expr*w(SCLOSE)))	* 
+					ASSIGN * __ * 
+					cerr(v.Expr,"table item value expected") / t2('item','key','value')
+					;
 
 		TableItemList=ct(
-			v.TableItem*(w(COMMA+SEMI)*v.TableItem)^0
-			*w(COMMA+SEMI)^-1
-			+cnil);
+			v.TableItem*(w(COMMA+SEMI)*v.TableItem)^0 *
+			w(COMMA+SEMI)^-1
+			+
+			cnil
+			)
+			;
 		
 	}
 
