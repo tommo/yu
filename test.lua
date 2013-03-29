@@ -16,7 +16,7 @@ builder:setPreprocessorEnvironment{
 	DEBUG=false
 }
 local targetFile=args[1]
-local result=builder:build((targetFile or 'test/moai.yu'))
+builder:build((targetFile or 'test/moai.yu'))
 
 local buildtime=os.clock()-t0
 t0=os.clock()

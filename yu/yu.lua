@@ -50,14 +50,33 @@ function builder:setPreprocessorEnvironment(env)
 	self.prepEnv=env or {}
 end
 
-function builder:build(path)
- 	local generatedModules={}
+
+
+function builder:build(src, traceBuild)
+
+	if traceBuild then
+		return self:startBuild(src)		
+	else --hide compiler traceback
+		local suc,m=pcall(function()		
+				return self:startBuild(src)
+			end
+			)
+		if suc then
+			return m
+		else
+			return error(m)
+		end
+	end
+	
+end
+
+function builder:startBuild(path, traceBuild)
+ 	-- local generatedModules={}
 	self.baseDir=extractDir(path)
 	local m=self:requireModule(path)
 	local t1=os.clock()
 	for i,mm in ipairs(self.buildingModules) do
 		local res=yu.newResolver()
-		-- print('---------resolving module:',mm.path)
 		res:visitNode(mm)
 	end
 	totalResolveTime=totalResolveTime+os.clock()-t1
@@ -66,7 +85,14 @@ function builder:build(path)
 	
 	for i,mm in ipairs(self.buildingModules) do
 		local code=yu.generateModule(mm)
-		generatedModules[mm.name]=loadstring(code)
+		if traceBuild then --test generated code 
+			local res, err=loadstring(code)
+			if not res then
+				error(
+					string.format("FATAL error in generated code(%s):\n%s", mm.path, err)
+						)
+			end
+		end
 		local outfile=stripExt(mm.path)..'.yo'
 		local file=io.open(outfile,'w')
 		file:write(code)
@@ -74,7 +100,7 @@ function builder:build(path)
 	end
 
 	totalGenerateTime=os.clock()-t0
-	return generatedModules
+	return true
 end
  
 function builder:getAbsPath(path)
@@ -136,24 +162,4 @@ function builder:requireModule(path)
 		m=self:buildModule(path)
 	end
 	return m
-end
-
-
-function build(src,traceBuild)
-	local building=function()
-		local builder=newBuilder()
-		return builder:build(src)
-	end
-	if traceBuild then
-		return building()
-	else
-		local err,m=pcall(building)
-			
-		if err then
-			return m
-		else
-			return error(m)
-		end
-	end
-
 end

@@ -595,7 +595,7 @@ function errorHandler(msg,b)
 end
 
 local _dofile=dofile
-function run(file,...)
+function run(file,...) --yu module launcher
 	return xpcall(function(...)
 			return launchModule(file,...)
 		end
