@@ -755,7 +755,7 @@ local function getModuleMatch()
 					v.FuncBlock / t5('funcdecl','localfunc','name','alias','type','block')
 					;
 		
-		FuncBlock=	ARROWE *__* cerr(v.ExprList,'expression expected')/t1('exprbody','exprs')
+		FuncBlock=	ASSIGN *__* cerr(v.ExprList,'expression expected')/t1('exprbody','exprs')
 					+	v.Block * cerr(END *__,"unclosed function block")
 					;
 	 

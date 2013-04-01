@@ -3,12 +3,21 @@ require "yu.visitor"
 require "yu.decl"
 require "yu.resolver"
 require "yu.codegen"
+require "yu.yigen"
 module("yu")
 
 local builder={}
 totalDeclTime=0
 totalResolveTime=0
 totalGenerateTime=0
+
+local function compareFileTime(f1, f2)
+	if rawget(_G,'lfs') then
+		--TODO: use lfs
+	end
+	local r=os.execute(string.format)
+end
+
 
 local function fixpath(p)
 	p=string.gsub(p,'\\','/')
@@ -84,6 +93,7 @@ function builder:startBuild(path, traceBuild)
 	local t0=os.clock()
 	
 	for i,mm in ipairs(self.buildingModules) do
+		--save generated code
 		local code=yu.generateModule(mm)
 		if traceBuild then --test generated code 
 			local res, err=loadstring(code)
@@ -97,6 +107,21 @@ function builder:startBuild(path, traceBuild)
 		local file=io.open(outfile,'w')
 		file:write(code)
 		file:close()
+		
+		--save generated interface info
+		local interfaceCode=yu.generateInterface(mm)
+		if traceBuild then --test generated code 
+			local res, err=loadstring(interfaceCode)
+			if not res then
+				error(
+					string.format("FATAL error in generated interface(%s):\n%s", mm.path, err)
+						)
+			end
+		end
+		local outfile=stripExt(mm.path)..'.yi'
+		local file=io.open(outfile,'w')
+		file:write(interfaceCode)
+		file:close() 
 	end
 
 	totalGenerateTime=os.clock()-t0

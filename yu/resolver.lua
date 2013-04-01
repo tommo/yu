@@ -103,8 +103,9 @@ local function _findSymbol(vi,name,token,limit)
 				elseif dtag=='methoddecl' then
 					if outMethod==1 then found=true end 
 				elseif dtag=='funcdecl' and decl.localfunc then
-					if  decl.p0<token.p0 and decl.resolveState=='done' 
-						and not (outFunc>0 and limit~='upvalue') then 
+					-- print(decl.p0,token.p0, decl.resolveState, name, outFunc,limit)
+					if  decl.p0<token.p0 and decl.resolveState=='done' then
+						-- and not (outFunc>0 and limit~='upvalue') then 
 						found=true
 					end
 				else
@@ -1239,6 +1240,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 				self:err('upvalue should be inside a closure',v)
 			end
 		end
+
 
 		if isBuiltinType(v.id) then
 			v.decl=getBuiltinType(v.id)
