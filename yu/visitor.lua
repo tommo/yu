@@ -162,7 +162,7 @@ paths={
 	end,
 	
 	import=function(vi,im)
-		--TODO:...
+		--Handle by resolver/decl collector
 	end,
 	
 	private=false,

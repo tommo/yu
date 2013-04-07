@@ -74,10 +74,9 @@ local function getModuleMatch()
 
 	local function cnot(patt,f) return cg(cp(),'p0')*(patt+(cb'p0'*cp()/f)) end
 
-	local function cerr(patt,msg) return cnot(patt,function(s0,s1) 
+	local function cassert(patt,msg) return cnot(patt,function(s0,s1) 
 		return parseErr(msg,s1) 
 	end) end
-
 
 	local function c1 (s, o) return s end
 
@@ -305,25 +304,25 @@ local function getModuleMatch()
 	------------------------CONSTANT
 
 	 
-	local StringS= QUOTES * c( (p"\\'"+(1-QUOTES-EOL))^0 )* cerr(QUOTES, "broken string")
-	local StringD= QUOTE  * c( (p'\\"'+(1-QUOTE -EOL))^0 )* cerr(QUOTE, "broken string")
+	local StringS= QUOTES * c( (p"\\'"+(1-QUOTES-EOL))^0 )* cassert(QUOTES, "broken string")
+	local StringD= QUOTE  * c( (p'\\"'+(1-QUOTE -EOL))^0 )* cassert(QUOTE, "broken string")
 
 
 	local StringLOpen = "[" * cg(p'='^0, "init") * "[" * EOL^-1
 	local StringLClose = "]" * c(p'='^0) * "]"
 	local StringLCloseEQ = cmt(StringLClose * cb("init"), function (s, i, a, b) return a == b end)
-	local StringL = StringLOpen * c((EOL+(1 - StringLCloseEQ))^0) * cerr(StringLClose,"mismatched long string/block comment") / c1 
+	local StringL = StringLOpen * c((EOL+(1 - StringLCloseEQ))^0) * cassert(StringLClose,"mismatched long string/block comment") / c1 
 
 
 	local NegativeSymbol=(MINUS * _ )^-1
 	local IntegerCore=NegativeSymbol * DIGIT^1 
-	local RationalCore=NegativeSymbol * DIGIT^0 * '.' * #DIGIT* cerr(DIGIT^1,"malformed rational")
+	local RationalCore=NegativeSymbol * DIGIT^0 * '.' * #DIGIT* cassert(DIGIT^1,"malformed rational")
 
 	local Integer= c( IntegerCore ) * _
 	local Rational=c( RationalCore) * _
-	local Exponetional=c( (RationalCore+IntegerCore) * 'e' * cerr(IntegerCore, "malformed exponetional") ) * _
+	local Exponetional=c( (RationalCore+IntegerCore) * 'e' * cassert(IntegerCore, "malformed exponetional") ) * _
 	local HexElem= DIGIT+r'af'+r'AF'
-	local Hexdigit = c(p'0x'*cerr(HexElem^1,'malformed hexadecimal'))
+	local Hexdigit = c(p'0x'*cassert(HexElem^1,'malformed hexadecimal'))
 
 	local Number = Hexdigit+Exponetional+Rational+Integer
 	local Boolean= c(TRUE+FALSE)
@@ -395,18 +394,29 @@ local function getModuleMatch()
 
 		String=(StringS+StringD+StringL) * __;
 		
-		M= ct(w(v.HeadStmt)^0) * w(v.Block) * cerr(-p(1),"syntax error") / t2('module','heads','block');
+		M = ct(w(v.HeadStmt * SemiEOL)^0) * 
+				w(v.Block) * 
+				cassert(-p(1),"syntax error") 
+				/ 
+				t2('module','heads','block')
+				;
 		
 		HeadStmt=
-			cpos(v.Import)+
-			v.CommonDirective
-			;
+					cpos(v.Import)
+					;
 		
 		Import= w(IMPORT) *__* 
-				(	StringS+StringD
-					+ct(Name*(DOT*cerr(Name,'module name expected'))^0)
-				)*(__*AS*-p's'*__*Ident+cnil) * __ / t2('import','src','alias');
-		
+					(	StringS + 
+						StringD	+ 
+						ct( Name *(DOT*cassert(Name,'module name expected') )^0 )
+					) * 
+					( w(AS * -p's') * Ident + cnil)
+					/ 
+					t2('import','src','alias')
+					;
+
+		-- ImportWarn=cassert( -v.Import, 'import should be at head of source')
+		-- 			;
 		
 		Block= 	ct((__ * v.Stmt  * SemiEOL  )^0 )/function(a) a.tag="block" return a end ;
 		
@@ -438,17 +448,18 @@ local function getModuleMatch()
 				+ v.ExternBlock 
 				+ v.FlowStmt
 				+ v.EndStmt
+				+ v.Import
 				) * __
 				;
 
-		AssertStmt=ASSERT *__ * cerr( v.Expr,'assert expression expected') *
-				(COMMA*__ * cerr( v.Expr,'assert exception expected'))^-1
+		AssertStmt=ASSERT *__ * cassert( v.Expr,'assert expression expected') *
+				(COMMA*__ * cassert( v.Expr,'assert exception expected'))^-1
 				/t2('assertstmt','expr','exception');
 
 
-		CommonDirective=PRIVATE * cerr(w(COLON),"':' expected")/t0('private')
-					+	PUBLIC * cerr(w(COLON),"':' expected")/t0('public')
-					+	RAWLUA * cerr(w(StringL),"long string expected")/t1('rawlua','src')
+		CommonDirective=PRIVATE * cassert(w(COLON),"':' expected")/t0('private')
+					+	PUBLIC * cassert(w(COLON),"':' expected")/t0('public')
+					+	RAWLUA * cassert(w(StringL),"long string expected")/t1('rawlua','src')
 						;
 
 		ExprStmt=	v.Expr /t1('exprstmt','expr');
@@ -456,7 +467,7 @@ local function getModuleMatch()
 		-----------------------EXTERN BLOCK
 		ExternBlock=EXTERN * __ *
 						ct((v.ExternDecl*SemiEOL)^0)*
-					cerr(END*__, "unclosed extern block")/t1('extern','decls')
+					cassert(END*__, "unclosed extern block")/t1('extern','decls')
 					;
 				
 		ExternDecl=	cpos(v.ConstDecl
@@ -478,7 +489,7 @@ local function getModuleMatch()
 		
 		ExternClassDecl=CLASS *__* cc(true)* (v.FuncAlias *AS*__ * Ident
 							+cnil*Ident) *
-						(EXTENDS * __ * cerr(v.NamedType,'super class name expected')+cnil) *
+						(EXTENDS * __ * cassert(v.NamedType,'super class name expected')+cnil) *
 							(ct(v.ExternClassItemDecl^0)) *
 						END *__ /t5('classdecl','extern','alias','name','superclassacc','decls')
 						;
@@ -510,89 +521,89 @@ local function getModuleMatch()
 				;
 		YieldStmt= YIELD *__ * (v.ExprList+cnil) / t1('yieldstmt','values');
 		
-		DoStmt	=	DO * __ * v.Block * cerr(END, "unclosed do block") /t1('dostmt','block');
+		DoStmt	=	DO * __ * v.Block * cassert(END, "unclosed do block") /t1('dostmt','block');
 		
-		IfStmt	=	IF *__ * cerr(v.Expr,"condition expression expected") *
+		IfStmt	=	IF *__ * cassert(v.Expr,"condition expression expected") *
 					v.ThenBody / t2('ifstmt','cond','body')
 					;
 					
-		ThenBody=	cerr(THEN*__,"'then' expected") *
+		ThenBody=	cassert(THEN*__,"'then' expected") *
 						v.Block *
 					(
 						v.ElseIfBody
 						+	
 						(ELSE * __ * v.Block)^-1 *
-						cerr(END , "unclosed if-then block")
+						cassert(END , "unclosed if-then block")
 					)/t2(nil,'thenbody','elsebody')
 					;
 					
-		ElseIfBody=	ELSEIF * __ * cerr(v.Expr,"condition expression expected") *
+		ElseIfBody=	ELSEIF * __ * cassert(v.Expr,"condition expression expected") *
 					v.ThenBody / t2('ifstmt','cond','body') ;
 					
 					
-		SwitchStmt=	SELECT *__ * cerr(v.Expr,"condition expression expected") *
-					ct((CASE * __ * cerr(v.ExprList,"case condition expressions expected") *
-						cerr(THEN*__,"'then' expected for 'case'") * 
+		SwitchStmt=	SELECT *__ * cassert(v.Expr,"condition expression expected") *
+					ct((CASE * __ * cassert(v.ExprList,"case condition expressions expected") *
+						cassert(THEN*__,"'then' expected for 'case'") * 
 							v.Block/t2('case','conds','block')
 						)^0) *
 					(DEFAULT *__ * v.Block) ^-1 *
-					cerr(END , "unclosed switch block")/t3('switchstmt','cond','cases','default')
+					cassert(END , "unclosed switch block")/t3('switchstmt','cond','cases','default')
 					;
 					
-		WhileStmt=	WHILE * __ * cerr(v.Expr, "condition expression expected") *
-						cerr(DO*__,"'do' expected for 'while'") * 
+		WhileStmt=	WHILE * __ * cassert(v.Expr, "condition expression expected") *
+						cassert(DO*__,"'do' expected for 'while'") * 
 						v.Block *
-					cerr(END , "unclosed while block") 
+					cassert(END , "unclosed while block") 
 					/ t2('whilestmt','cond','block')
 					;
 					
 		RepeatStmt=	REPEAT *
 						v.Block *
-					cerr(UNTIL * __, "'until' expected for 'repeat'") * __ *
-						cerr(v.Expr, "condition expression expected") 
+					cassert(UNTIL * __, "'until' expected for 'repeat'") * __ *
+						cassert(v.Expr, "condition expression expected") 
 					/ t2('repeatstmt','block','cond')
 					;
 		
 		TryStmt	=	TRY * __ * 
 						v.Block *
-					ct( cerr(v.CatchBody^1, "catch block expected" ) ) *
+					ct( cassert(v.CatchBody^1, "catch block expected" ) ) *
 					(FINALLY * __ * v.Block+cnil ) *
-					cerr(END , "unclosed try-catch block") / t3('trystmt','block','catches','final')
+					cassert(END , "unclosed try-catch block") / t3('trystmt','block','catches','final')
 					;
 					
-		CatchBody=	w(CATCH) * cerr(v.TypedVarList, "catch variable expected") * 
-						cerr( DO *__ , "'do' expected for 'catch'" ) * 
-						cerr(v.Block,"syntax error in catch block") /t2('catch','vars','block')
+		CatchBody=	w(CATCH) * cassert(v.TypedVarList, "catch variable expected") * 
+						cassert( DO *__ , "'do' expected for 'catch'" ) * 
+						cassert(v.Block,"syntax error in catch block") /t2('catch','vars','block')
 					;			
 					
 		ForStmt	=	FOR *__	* cpos(v.NoTypedVar) * 
-					#(-IN-COMMA) * cerr(ASSIGN,"'=' expected in for-loop") * __ * 
-						ct(cerr(
+					#(-IN-COMMA) * cassert(ASSIGN,"'=' expected in for-loop") * __ * 
+						ct(cassert(
 							v.Expr * COMMA *__ * v.Expr *
 							(COMMA * __ * v.Expr )^-1
 						,"for loop range error")) *
-						cerr(DO*__,"'do' expected for 'for'") * 
+						cassert(DO*__,"'do' expected for 'for'") * 
 						v.Block*
-					cerr(END , "unclosed for-loop block")/t3('forstmt','var','range','block')
+					cassert(END , "unclosed for-loop block")/t3('forstmt','var','range','block')
 					;
 					
 		ForEachStmt= FOR *__ * 
 					v.NoTypedVarList *
-					IN*__* cerr(v.Expr/t1('iterator','expr'),"iterator expression expected") *
-						cerr(DO*__,"'do' expected for 'for'") * 
+					IN*__* cassert(v.Expr/t1('iterator','expr'),"iterator expression expected") *
+						cassert(DO*__,"'do' expected for 'for'") * 
 						v.Block *
-					cerr(END , "unclosed foreach-loop block")
+					cassert(END , "unclosed foreach-loop block")
 					/t3('foreachstmt','vars','iterator','block')
 					;
 
 		NoTypedVar	=Ident/t1('var','name')
 					;
-		NoTypedVarList=ct((v.NoTypedVar * ( COMMA *__* cerr(v.NoTypedVar,"variable expected"))^0)^-1)
+		NoTypedVarList=ct((v.NoTypedVar * ( COMMA *__* cassert(v.NoTypedVar,"variable expected"))^0)^-1)
 					;
 
 		TypedVar	=Ident * v.TypeTag^-1 / t2('var','name','type')
 					;
-		TypedVarList=ct((v.TypedVar * ( COMMA *__* cerr(v.TypedVar,"variable expected"))^0)^-1)
+		TypedVarList=ct((v.TypedVar * ( COMMA *__* cassert(v.TypedVar,"variable expected"))^0)^-1)
 					;
 		
 	---------------------------ASSIGN----------------------
@@ -600,20 +611,20 @@ local function getModuleMatch()
 		
 		AssOpStmt	=	v.Expr	* 
 						c(ASSADD + ASSSUB + ASSMUL + ASSDIV+ ASSMOD + ASSPOW + ASSAND + ASSOR + ASSCON) *__ *
-						cerr(v.Expr, "expression expected") / t3('assopstmt','var','op','value')
+						cassert(v.Expr, "expression expected") / t3('assopstmt','var','op','value')
 					;
-		Assign	=	v.ExprList	*__* v.AssignSymbol *__*	cerr(v.ExprList , "values expected")
+		Assign	=	v.ExprList	*__* v.AssignSymbol *__*	cassert(v.ExprList , "values expected")
 					/ t3('assignstmt','vars','autocast','values');
 		
 		BatchAssign=	v.Expr	* DOT *__*
-					POpen* ct(cerr(Ident* (COMMA * __ * Ident)^0 ,"member names expected")) *PClose *
+					POpen* ct(cassert(Ident* (COMMA * __ * Ident)^0 ,"member names expected")) *PClose *
 					v.AssignSymbol * v.ExprList / t4('batchassign','var','members','autocast','values') 
 					;
 
 		-- AssignSymbol= w(ASSCAST*cc(true)+ASSIGN*cc(nil));
 		AssignSymbol=w(ASSIGN*cc(nil));
 	-------------------------CONNECT SIGNAL-------------------
-		ConnectStmt=v.Expr * __ * p'>>'* __ * cerr(v.Expr,'connection slot expected')
+		ConnectStmt=v.Expr * __ * p'>>'* __ * cassert(v.Expr,'connection slot expected')
 					/t2('connectstmt','signal','slot')
 					;
 
@@ -645,16 +656,16 @@ local function getModuleMatch()
 				;
 			
 		ClassDecl=	CLASS * __ * 
-					cerr(Ident*
+					cassert(Ident*
 						(ct(LT*__*
-							cerr(v.TVar*(COMMA*__*cerr(v.TVar,'template variable expected'))^0,"template variable expected")*
-							cerr(GT*__,"'>' expected"))
+							cassert(v.TVar*(COMMA*__*cassert(v.TVar,'template variable expected'))^0,"template variable expected")*
+							cassert(GT*__,"'>' expected"))
 						+cnil) 
 					,"class name expected") *
-					(EXTENDS * __ * cerr(v.NamedType,'super class name expected')+cnil) *
+					(EXTENDS * __ * cassert(v.NamedType,'super class name expected')+cnil) *
 					v.MetaData *
 						ct(v.ClassInnerDecls^0)*
-					cerr(END *__, "unclosed class block")
+					cassert(END *__, "unclosed class block")
 					/t5('classdecl','name','tvars','superclassacc','meta','decls')
 					;
 		
@@ -662,20 +673,20 @@ local function getModuleMatch()
 		
 		-- SuperName=	v.NameSpaceIdent*
 		-- 			(ct(LT*__*
-		-- 				cerr(v.Type*(COMMA*__*v.Type)^0,"type expected")*
-		-- 				cerr(GT*__,"'>' expected"))
+		-- 				cassert(v.Type*(COMMA*__*v.Type)^0,"type expected")*
+		-- 				cassert(GT*__,"'>' expected"))
 		-- 			+cnil)
 		-- 			/t2('supername','id','template')
 		-- 			;
 		
 	-- #-------------------Symbol Delcaration-------------------
-		SignalDecl=	SIGNAL *__* cerr(Ident,"signal name expected")*
-					cerr(v.ArgList,"signal arguments expected")
+		SignalDecl=	SIGNAL *__* cassert(Ident,"signal name expected")*
+					cassert(v.ArgList,"signal arguments expected")
 					/t2('signaldecl','name','args')
 					;
 
-		EnumDecl=	ENUM *__* cerr(Ident,"enumeration name expected") *
-					cerr(BOPEN *__* 
+		EnumDecl=	ENUM *__* cassert(Ident,"enumeration name expected") *
+					cassert(BOPEN *__* 
 						v.EnumItemList*
 						-- ct( v.EnumItem* ( COMMA *__* v.EnumItem )^0 ) *
 					BCLOSE *__ , "enum items expected")
@@ -683,14 +694,15 @@ local function getModuleMatch()
 					;
 					
 		EnumItem=	Ident *
-					(ASSIGN *__ * cerr(v.Expr,"expression expected") + cnil)
+					(ASSIGN *__ * cassert(v.Expr,"expression expected") + cnil)
 					/t2('enumitem','name','value')
 					;
 		
 		EnumItemList=ct(
-			v.EnumItem*(w(COMMA)*v.EnumItem)^0
-			*w(COMMA)^-1
-			+cnil);
+					v.EnumItem*(w(COMMA)*v.EnumItem)^0
+					*w(COMMA)^-1
+					+cnil)
+					;
 		
 		LocalDecl=	LOCAL *__*  cpos(v.VarDecl)
 						/ function(vd) vd.vtype='local' return vd end
@@ -709,15 +721,15 @@ local function getModuleMatch()
 						;
 
 		VarDecl=	ct(
-							cerr(v.VarDeclBody,"variable expected") * 
-							(COMMA *__* cerr(v.VarDeclBody ,"variable expected"))^0
-					)
-					*
-					(	w(ASSIGN) * v.ExprList
-					+	w(ASSDEF) * v.ExprList*cc(true)
-					+	cnil
-					)/ t3('vardecl','vars','values','def')
-					;
+							cassert(v.VarDeclBody,"variable expected") * 
+							(COMMA *__* cassert(v.VarDeclBody ,"variable expected"))^0
+						)
+						*
+						(	w(ASSIGN) * v.ExprList
+						+	w(ASSDEF) * v.ExprList*cc(true)
+						+	cnil
+						)/ t3('vardecl','vars','values','def')
+						;
 		
 		VarDeclBody= cpos((Ident* (v.TypeTag + cnil) )/t2('var','name','type'));
 						
@@ -741,7 +753,7 @@ local function getModuleMatch()
 
 
 		MethodDeclHeader=(METHOD*cnil+OVERRIDE*cc(true)*(__*METHOD)^-1) * __ * 
-						cerr(Ident,"method name/operator expected") *
+						cassert(Ident,"method name/operator expected") *
 						v.FuncType * __ * v.MetaData
 						/t4('methoddecl','override','name','type', 'meta')
 						;
@@ -749,22 +761,22 @@ local function getModuleMatch()
 		Operators	=s('+-*/%^<>')+ p'>='+p'<='+p'=='+p'~='+p'as'+p'[]'+p'[]=';
 
 		FuncDecl=	(cc(true)*LOCAL+cc(nil))*__* 
-					FUNCKW * __ * cerr(Ident ,"function name expected") * __ *
-					( AS *__ * cerr(v.FuncAlias, "function alias expected")+cnil ) *
-					cerr(v.FuncType,"function type expected")* __ *
+					FUNCKW * __ * cassert(Ident ,"function name expected") * __ *
+					( AS *__ * cassert(v.FuncAlias, "function alias expected")+cnil ) *
+					cassert(v.FuncType,"function type expected")* __ *
 					v.FuncBlock / t5('funcdecl','localfunc','name','alias','type','block')
 					;
 		
-		FuncBlock=	ASSIGN *__* cerr(v.ExprList,'expression expected')/t1('exprbody','exprs')
-					+	v.Block * cerr(END *__,"unclosed function block")
+		FuncBlock=	ASSIGN *__* cassert(v.ExprList,'expression expected')/t1('exprbody','exprs')
+					+	v.Block * cassert(END *__,"unclosed function block")
 					;
 	 
 		FuncType=	(v.TypeSymbol+cnil) * __ *
 					v.ArgList *
-					(w(ARROW) * ct(cerr(
-							POpen* v.RetTypeItem * (w(COMMA) * cerr(v.RetTypeItem,"return type expected"))^0 *PClose
-						+	v.RetTypeItem * (w(COMMA) * cerr(v.RetTypeItem,"return type expected"))^0
-						-- +	v.RetTypeItem * cerr(w(COMMA),"multiple return type must be inside parenthesis")
+					(w(ARROW) * ct(cassert(
+							POpen* v.RetTypeItem * (w(COMMA) * cassert(v.RetTypeItem,"return type expected"))^0 *PClose
+						+	v.RetTypeItem * (w(COMMA) * cassert(v.RetTypeItem,"return type expected"))^0
+						-- +	v.RetTypeItem * cassert(w(COMMA),"multiple return type must be inside parenthesis")
 						,"return type syntax error"))
 						+  cnil
 					)
@@ -786,12 +798,12 @@ local function getModuleMatch()
 					;
 
 		ArgList	=	POpen *
-						ct((v.ArgDef * (w(COMMA)* cerr(v.ArgDef, "argument expected"))^0 )^-1) *
+						ct((v.ArgDef * (w(COMMA)* cassert(v.ArgDef, "argument expected"))^0 )^-1) *
 						PClose 
 						;
 
 		ArgDef	=	cpos((Ident+c(DOTDOTDOT)) *__* (v.TypeTag+cnil) *
-						(ASSIGN * __* cerr(v.Expr,"default argument value expected") +cnil)
+						(ASSIGN * __* cassert(v.Expr,"default argument value expected") +cnil)
 						/t2('arg','name','type','value'))
 						;
 			
@@ -802,43 +814,44 @@ local function getModuleMatch()
 		
 		TypeTag	=	(COLON *__* v.Type) + #v.TypeSymbol*v.Type;
 		
-		Type	=	cpos(v.TableType) * __;
+		Type	=	cpos(v.TableType) * __ ;
 						
 		TableType=	v.TypeCore * 
 					(w(SOPEN) * 
 						(v.Type+cc('empty')) * 
-					cerr(w(SCLOSE),"unclosed squre bracket")
+					cassert(w(SCLOSE),"unclosed squre bracket")
 					/t1('tabletype','ktype')
 					)^0/foldtype
 					;
 						
 		TypeCore=	v.TypeSymbol
-				+	v.NamedType				
-				+	POpen*cerr(v.Type,"inner type missing")*PClose
-				+	FUNCKW *__* cerr(v.FuncType, "function type syntax error")
-						/function(ft) 
-								if type(ft)~='table' then return false end
-								ft.typeonly=true
-								return ft
-							end;
+						+	v.NamedType				
+						+	POpen*cassert(v.Type,"inner type missing")*PClose
+						+	FUNCKW *__* cassert(v.FuncType, "function type syntax error")
+								/function(ft) 
+										if type(ft)~='table' then return false end
+										ft.typeonly=true
+										return ft
+									end
+						;
 		
 		NamedType=	cpos(v.TemplateType+(v.NameSpaceIdent+NIL) /t1('type','acc'));
 		
 		TypeSymbol=	cpos(
-						(p'#'/'number'
-					+	p'?'/'boolean'
-					+	p'$'/'string'
-					+	p'*'/'any')*__
-					/function(x)
-							return {tag='type',acc={tag='varacc', id=x}}
-						end
-				)
-				;
+							(p'#'/'number'
+						+	p'?'/'boolean'
+						+	p'$'/'string'
+						+	p'*'/'any')*__
+						/function(x)
+								return {tag='type',acc={tag='varacc', id=x}}
+							end
+					)
+					;
 				
 		TemplateType=Ident*
 					(ct(LT*__*
-						cerr(v.Type*(COMMA*__*v.Type)^0,"type expected")*
-						cerr(GT*__,"'>' expected"))
+						cassert(v.Type*(COMMA*__*v.Type)^0,"type expected")*
+						cassert(GT*__,"'>' expected"))
 					)
 					/t2('ttype','name','args')
 					;
@@ -848,76 +861,76 @@ local function getModuleMatch()
 					*(DOT*-DOT*Ident)^0/foldmember
 					;
 		-- TemplateVar=LT*__*
-		-- 				ct(cerr(Ident * (COMMA *__* Ident)^0,"type variable expected")) *
-		-- 			cerr(GT*__,"'>' expected")
+		-- 				ct(cassert(Ident * (COMMA *__* Ident)^0,"type variable expected")) *
+		-- 			cassert(GT*__,"'>' expected")
 		-- 			;
 					
-		-- TemplateVarItem=Ident *(EXTENDS * cerr(Ident,"type name expected") + cnil )/t2('tvar','name','super')
+		-- TemplateVarItem=Ident *(EXTENDS * cassert(Ident,"type name expected") + cnil )/t2('tvar','name','super')
 		-- 			;
 		
 	----------------------Reflection-----------------------------
 
 		MetaData=	p'@'*BOPEN*__* 
-					(ct(v.MetaItem * __ *(  COMMA *__ * cerr(v.MetaItem,"metadata item expected"))^0)+cnil) *__*
-					cerr(BCLOSE*__,"unclosed metadata body")
+					(ct(v.MetaItem * __ *(  COMMA *__ * cassert(v.MetaItem,"metadata item expected"))^0)+cnil) *__*
+					cassert(BCLOSE*__,"unclosed metadata body")
 					+cnil
 					;
 					
 		MetaItem=	c(Name) *__* ASSIGN *__* 
 				ccheck(
-					cerr(v.Expr ,"metadata item value expected"),
+					cassert(v.Expr ,"metadata item value expected"),
 					checkConst,
 					'metadata item must be constant'
 				)/t2('mitem','k','v')
 				+	c(Name) *__ /t1('mitem','k')
-					;
+				;
 		
 	-- #--------------------Expression-------------------	
-		ExprList=ct(v.Expr * ( COMMA *__* cerr(v.Expr,"expression expected") )^0);
+		ExprList=ct(v.Expr * ( COMMA *__* cassert(v.Expr,"expression expected") )^0);
 		
 		Expr=	cpos(v.Logic) * __;
 		
 		-- Ternary= v.Logic *
 		-- 		(p'?' * __ * v.Ternary *
-		-- 			cerr( __ * STICK , "'|' expected") *
+		-- 			cassert( __ * STICK , "'|' expected") *
 		-- 			__ * v.Ternary / t2('ternary','vtrue','vfalse')
 		-- 		)^0/foldexpr;
 		
 		Logic=	v.NotOp *
 					(	c(AND+OR) * - ASSIGN *
-						cerr(__ * v.NotOp, "right operand expected for logic expr")/t2('binop','op','r')
+						cassert(__ * v.NotOp, "right operand expected for logic expr")/t2('binop','op','r')
 					)^0/foldexpr
 					;
 
-		NotOp=	c(NOT_KW) * cerr( __ * v.NotOp, "operand expected for 'not' expr")/ t2('unop','op','l')
+		NotOp=	c(NOT_KW) * cassert( __ * v.NotOp, "operand expected for 'not' expr")/ t2('unop','op','l')
 				+v.Compare;
 		
 		Compare= v.Concat *
 					(	c(EQ + NOTEQ + LESSEQ + GREATEQ + GREATER*#(-GREATER) + LESS) *
-						cerr(__ * v.Concat, "right operand expected for comparison expr")/t2('binop','op','r')
+						cassert(__ * v.Concat, "right operand expected for comparison expr")/t2('binop','op','r')
 					)^0/foldexpr
 					;
 				
 
 		Concat	=v.Sum *
 					(	c(DOTDOT) * -ASSIGN *
-						cerr(__ * v.Sum, "right operand expected for concat expr")/t2('binop','op','r')
+						cassert(__ * v.Sum, "right operand expected for concat expr")/t2('binop','op','r')
 					)^0/foldexpr
 					;
 		
 		Sum		=v.Product *
 					cpos(	c(PLUS+MINUS) * -ASSIGN *
-						cerr(__ * v.Product, "right operand expected for arith expr")/t2('binop','op','r')
+						cassert(__ * v.Product, "right operand expected for arith expr")/t2('binop','op','r')
 					)^0/foldexpr
 					;
 				
 		Product=v.Unary *
 					(	c(STAR+SLASH+PERCENT+POW) * -ASSIGN *
-						cerr(__ * v.Unary, "right operand expected for arith expr")/t2('binop','op','r')
+						cassert(__ * v.Unary, "right operand expected for arith expr")/t2('binop','op','r')
 					)^0/foldexpr
 					;
 				
-		Unary	= c(MINUS*-Number) * cerr( __ * v.Unary, "operand expected for unary expr") / t2('unop','op','l')
+		Unary	= c(MINUS*-Number) * cassert( __ * v.Unary, "operand expected for unary expr") / t2('unop','op','l')
 					+ v.Closure
 					+ v.VarAcc
 					;
@@ -926,8 +939,8 @@ local function getModuleMatch()
 				cpos(
 					w(SOPEN) *  v.Expr * w(SCLOSE) /t1('index','key')--index
 				+	DOT * -DOT *__* c(IdentCore) /t1('member','id')		--member
-				+	AS * -p's'*__ * cerr(v.Type, 'target type expected') / t1('cast','dst')				--cast
-				+	IS * __ * cerr(v.Type, 'checking type expected') / t1('is','dst') 				--typecheck
+				+	AS * -p's'*__ * cassert(v.Type, 'target type expected') / t1('cast','dst')				--cast
+				+	IS * __ * cassert(v.Type, 'checking type expected') / t1('is','dst') 				--typecheck
 				+	ct(v.StringConst) / t1('call','args') --string call
 				+	POpen * (v.ExprList+cnil) * PClose / t1('call','args')--call
 				+	(v.SeqBody+v.TableBody)/t1('tcall','arg')
@@ -960,13 +973,13 @@ local function getModuleMatch()
 		
 		StringConst=w((StringS+StringD)*cc(nil)+StringL*cc(true))/makeStringConst;
 
-		Spawn	=	SPAWN * __ * cerr(v.Expr, "spawn expression expected" )/ t1('spawn','call') ;
+		Spawn	=	SPAWN * __ * cassert(v.Expr, "spawn expression expected" )/ t1('spawn','call') ;
 		
-		Resume	=	RESUME * __ * cerr(v.Expr, "resume expression expected")/t1('resume','thread');
+		Resume	=	RESUME * __ * cassert(v.Expr, "resume expression expected")/t1('resume','thread');
 
-		Wait	=	WAIT * __ * cerr(v.Expr, "signal expected for wait expression")/t1('wait','signal');
+		Wait	=	WAIT * __ * cassert(v.Expr, "signal expected for wait expression")/t1('wait','signal');
 
-		Closure	=	FUNCKW * __ *_NA * cerr(v.FuncType, "function type expected" ) * __ * v.FuncBlock/t2('closure','type','block');
+		Closure	=	FUNCKW * __ *_NA * cassert(v.FuncType, "function type expected" ) * __ * v.FuncBlock/t2('closure','type','block');
 		
 		SeqBody	=	w(BOPEN)* 
 					ct(v.Expr * (w(COMMA) * v.Expr)^0 *w(COMMA)^-1 + cnil) *
@@ -976,12 +989,12 @@ local function getModuleMatch()
 
 		TableBody=	w(BOPEN)*				
 				v.TableItemList	* 
-				cerr(w(BCLOSE),"unclosed table body") / t1('table','items')
+				cassert(w(BCLOSE),"unclosed table body") / t1('table','items')
 				;
 			
 		TableItem = (Ident/makeStringConst + (w(SOPEN)*v.Expr*w(SCLOSE)))	* 
 					ASSIGN * __ * 
-					cerr(v.Expr,"table item value expected") / t2('item','key','value')
+					cassert(v.Expr,"table item value expected") / t2('item','key','value')
 					;
 
 		TableItemList=ct(

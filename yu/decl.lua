@@ -139,9 +139,12 @@ function newDeclCollector()
 			return self.currentScope
 		end,
 		
-		addEachDecl=function(self,list)
+		addEachDecl=function(self,list, parent)
 			for i,n in ipairs(list) do
 				local tag=n.tag
+				if tag=='import' and parent.name~='@name' then
+					self:err('import must be in head of source', n)
+				end
 				if isDecl(n) then
 					self:addDecl(n) 
 				elseif tag=="public" or tag=="private" then 
@@ -300,7 +303,7 @@ function pre.block(vi,b,parent)
 	-- if not is(parent.tag,'funcdecl','methoddecl','forstmt','catch','foreachstmt')
 		-- b.scope=vi:pushScope()
 	-- end
-	vi:addEachDecl(b)
+	vi:addEachDecl(b, parent)
 	
 	if parent.name=='@main' then -- top block? add named imported module into scope
 		local module=parent.module

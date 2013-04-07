@@ -71,7 +71,9 @@ function makeNumberConst(v)
 	end
 	return c
 end
+
 local unescape=unescape
+
 function makeStringConst(s,longstring)
 	if not longstring then s=unescape(s) end
 	local c=stringTable[s]

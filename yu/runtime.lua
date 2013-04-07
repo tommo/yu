@@ -407,8 +407,8 @@ function loadExternSymbol( name )
 	for w in gmatch(name, "(%w+)[.]?") do
        t=t[w]
        if not t then
-       	print('warning:extern symbol not found :',name)
-       	return false
+       	-- print('warning:extern symbol not found :',name)
+       	return nil
        end
     end
     return t

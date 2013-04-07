@@ -1,6 +1,12 @@
-local ipairs,pairs,format=ipairs,pairs,string.format
-local stringrep=string.rep
-local format=string.format
+
+local ipairs,pairs=ipairs,pairs
+local next=next
+local insert=table.insert
+local stringrep,format,gsub = string.rep, string.format,string.gsub
+
+
+local codegen,codegenList
+local insert=table.insert
 
 module("yu",package.seeall)
 
@@ -378,6 +384,48 @@ function makeDeclRefName(decl,id)
 	end
 end
 
+local function getDeclName(d, currentModule)
+	if not currentModule then currentModule=d.module end	
+	local tag = d.tag
+	if tag=='var' then
+		local vtype=d.vtype
+		if vtype=='local' then return d.refname end
+
+		if vtype=='global' then
+			if d.extern then
+				return '_G.'..d.externname
+			end
+
+			if d.module~=currentModule then
+				return getDeclName(d.module)..'.'..d.refname
+			end
+				
+			return d.refname
+		end
+
+		if vtype=='const' then 
+			if d.extern then 
+				return '_G.'..d.externname
+			end
+
+			return getConst(d.value)
+		end
+
+		if vtype=='field' then return d.name end
+	end
+	if d.module~=currentModule then
+		local n= currentModule.externalReferNames[d]
+		if not n then
+			print('getting ext ref name',d.name,currentModule.name)
+			error('internal error,refername not defined:'..d.name)
+		else
+			return n
+		end
+	else
+		return d.refname 
+	end
+end
+
 function referExternModuleDecl(m,d)
 	if m==d.module then return end
 	if m.externalReferNames[d] then return end
@@ -397,5 +445,117 @@ end
 _M.getConstNode=getConstNode
 _M.getConst=getConst
 _M.makeStringCheckTable=makeStringCheckTable
+_M.getDeclName=getDeclName
 
-	
+---------code writer
+
+ local codeWriter={}
+ local codeWriterMT={
+	__index=codeWriter,
+	__call=function(t,...)
+		return t:appends(...)
+	end
+	}
+
+ local function newCodeWriter(str)
+	return setmetatable({
+			__line=1,
+			__count=0,
+			__indent=0,
+			__list={str and tostring(str) or ''}, --string buffer part
+			__marked_line={},
+			__level=0,
+
+			referedDecls={},		--context part
+			exposeDecls={},
+			classGlobalVars={},
+		},
+		codeWriterMT)
+ end
+ 
+function codeWriter:append(str,s1,...)
+	local l=self.__list
+	local count=self.__count
+	l[count+1]=str
+	self.__count=count+1
+	self.dirty=true
+	if s1 then return self:append(s1,...) end
+ end
+
+ function codeWriter:appends(str,s1,...)
+	local l=self.__list
+	local count=self.__count
+	l[count+1]=str..' '
+	self.__count=count+1
+	if s1 then return self:appends(s1,...) end
+ end
+ 
+ function codeWriter:appendf(pattern,...)
+	return self:append(format(pattern,...))
+ end
+ 
+ local stringrep = string.rep
+ function codeWriter:cr()
+ 	-- if not self.dirty then return end
+ 	self:append(
+ 		-- '--'..self.__line..
+ 		'\n'..stringrep('\t',self.__indent))
+ 	self.__line=self.__line+1
+ 	self.dirty=false
+ end
+
+ function codeWriter:mark(node,cr, range,msg) --mark the code where error might occur
+ 	local line=self.__line
+ 	insert(self.__marked_line,{ line,node, range or 0})
+ 	
+ 	-- self:appendf('--[[<%d>->:%d,%d:%s]]',line, node.p0,node.p1, node.tag)
+ 	-- if msg then self:append(msg) end
+
+ 	if cr~=false then
+ 		self.dirty=true
+ 		self:cr() 
+ 		self:append'\t'
+ 	end
+ end
+
+ function codeWriter:ii()--increase indent
+ 	self.__indent=self.__indent+1
+ 	self.dirty=true
+ end
+
+ function codeWriter:di()--increase indent
+ 	self.__indent=self.__indent-1
+ 	self.dirty=true
+ end
+
+ function codeWriter:tostring()
+	return table.concat(self.__list)
+ end
+
+function codeWriter:writefile(file)
+	for i,t in ipairs(self.__list) do
+		file:write(t)
+	end
+end
+
+function codeWriter:refer(d,a,...)
+	local tag=d.tag
+	if tag=='methoddecl' 
+		or (tag=='funcdecl' and not d.localfunc)
+		or tag=='classdecl' 
+		or tag=='enumdecl' 
+		or tag=='signaldecl' then
+		self.referedDecls[d]=true
+	elseif tag=='varacc' or tag=='member' or tag=='type' then
+		return self:refer(d.decl,a,...)
+	end
+
+	if a then return self:refer(a,...) end
+end
+
+function codeWriter:expose(d,a,...)
+	self.exposeDecls[d]=true
+	if a then return self:expose(a,...) end
+end
+
+_M.newCodeWriter=newCodeWriter
