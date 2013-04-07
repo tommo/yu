@@ -466,8 +466,8 @@ local function getModuleMatch()
 		
 		-----------------------EXTERN BLOCK
 		ExternBlock=EXTERN * __ *
-						ct((v.ExternDecl*SemiEOL)^0)*
-					cassert(END*__, "unclosed extern block")/t1('extern','decls')
+						ct(( v.ExternDecl * __ * SemiEOL)^0)*
+					cassert(END , "unclosed extern block")/t1('extern','decls')
 					;
 				
 		ExternDecl=	cpos(v.ConstDecl
@@ -491,7 +491,7 @@ local function getModuleMatch()
 							+cnil*Ident) *
 						(EXTENDS * __ * cassert(v.NamedType,'super class name expected')+cnil) *
 							(ct(v.ExternClassItemDecl^0)) *
-						END *__ /t5('classdecl','extern','alias','name','superclassacc','decls')
+						END /t5('classdecl','extern','alias','name','superclassacc','decls')
 						;
 
 		ExternClassItemDecl=
@@ -610,21 +610,21 @@ local function getModuleMatch()
 		AssignStmt	=	v.AssOpStmt + v.Assign + v.BatchAssign;
 		
 		AssOpStmt	=	v.Expr	* 
-						c(ASSADD + ASSSUB + ASSMUL + ASSDIV+ ASSMOD + ASSPOW + ASSAND + ASSOR + ASSCON) *__ *
-						cassert(v.Expr, "expression expected") / t3('assopstmt','var','op','value')
+						c(ASSADD + ASSSUB + ASSMUL + ASSDIV+ ASSMOD + ASSPOW + ASSAND + ASSOR + ASSCON) *
+						cassert( __ * v.Expr, "expression expected") / t3('assopstmt','var','op','value')
 					;
-		Assign	=	v.ExprList	*__* v.AssignSymbol *__*	cassert(v.ExprList , "values expected")
+		Assign	=	v.ExprList	*__* v.AssignSymbol * cassert( __ * v.ExprList , "values expected")
 					/ t3('assignstmt','vars','autocast','values');
 		
 		BatchAssign=	v.Expr	* DOT *__*
-					POpen* ct(cassert(Ident* (COMMA * __ * Ident)^0 ,"member names expected")) *PClose *
-					v.AssignSymbol * v.ExprList / t4('batchassign','var','members','autocast','values') 
+					POpen* ct( cassert ( Ident* (COMMA * __ * Ident)^0 ,"member names expected")) *PClose *
+					v.AssignSymbol * __ * v.ExprList / t4('batchassign','var','members','autocast','values') 
 					;
 
 		-- AssignSymbol= w(ASSCAST*cc(true)+ASSIGN*cc(nil));
-		AssignSymbol=w(ASSIGN*cc(nil));
+		AssignSymbol= ASSIGN*cc(nil);
 	-------------------------CONNECT SIGNAL-------------------
-		ConnectStmt=v.Expr * __ * p'>>'* __ * cassert(v.Expr,'connection slot expected')
+		ConnectStmt=v.Expr * __ * p'>>'* cassert( __ * v.Expr,'connection slot expected')
 					/t2('connectstmt','signal','slot')
 					;
 
@@ -656,16 +656,19 @@ local function getModuleMatch()
 				;
 			
 		ClassDecl=	CLASS * __ * 
-					cassert(Ident*
+					cassert(
+						Ident *
 						(ct(LT*__*
-							cassert(v.TVar*(COMMA*__*cassert(v.TVar,'template variable expected'))^0,"template variable expected")*
+							cassert(v.TVar*(COMMA * cassert( __ * v.TVar,'template variable expected'))^0,"template variable expected")*
 							cassert(GT*__,"'>' expected"))
 						+cnil) 
-					,"class name expected") *
-					(EXTENDS * __ * cassert(v.NamedType,'super class name expected')+cnil) *
+						,"class name expected")
+					*
+					(EXTENDS * cassert( __ * v.NamedType,'super class name expected')+cnil) 
+					*
 					v.MetaData *
 						ct(v.ClassInnerDecls^0)*
-					cassert(END *__, "unclosed class block")
+					cassert(END , "unclosed class block")
 					/t5('classdecl','name','tvars','superclassacc','meta','decls')
 					;
 		
@@ -680,12 +683,12 @@ local function getModuleMatch()
 		-- 			;
 		
 	-- #-------------------Symbol Delcaration-------------------
-		SignalDecl=	SIGNAL *__* cassert(Ident,"signal name expected")*
+		SignalDecl=	SIGNAL * cassert( __ * Ident,"signal name expected")*
 					cassert(v.ArgList,"signal arguments expected")
 					/t2('signaldecl','name','args')
 					;
 
-		EnumDecl=	ENUM *__* cassert(Ident,"enumeration name expected") *
+		EnumDecl=	ENUM * cassert( __ * Ident,"enumeration name expected") *
 					cassert(BOPEN *__* 
 						v.EnumItemList*
 						-- ct( v.EnumItem* ( COMMA *__* v.EnumItem )^0 ) *
@@ -694,7 +697,7 @@ local function getModuleMatch()
 					;
 					
 		EnumItem=	Ident *
-					(ASSIGN *__ * cassert(v.Expr,"expression expected") + cnil)
+					(ASSIGN * cassert( __ * v.Expr,"expression expected") + cnil)
 					/t2('enumitem','name','value')
 					;
 		
@@ -722,7 +725,7 @@ local function getModuleMatch()
 
 		VarDecl=	ct(
 							cassert(v.VarDeclBody,"variable expected") * 
-							(COMMA *__* cassert(v.VarDeclBody ,"variable expected"))^0
+							(COMMA * cassert( __ * v.VarDeclBody ,"variable expected"))^0
 						)
 						*
 						(	w(ASSIGN) * v.ExprList
@@ -761,14 +764,14 @@ local function getModuleMatch()
 		Operators	=s('+-*/%^<>')+ p'>='+p'<='+p'=='+p'~='+p'as'+p'[]'+p'[]=';
 
 		FuncDecl=	(cc(true)*LOCAL+cc(nil))*__* 
-					FUNCKW * __ * cassert(Ident ,"function name expected") * __ *
-					( AS *__ * cassert(v.FuncAlias, "function alias expected")+cnil ) *
-					cassert(v.FuncType,"function type expected")* __ *
+					FUNCKW * cassert( __ * Ident ,"function name expected") * __ *
+					( AS * cassert( __ * v.FuncAlias, "function alias expected")+cnil ) *
+					cassert( v.FuncType, "function type expected" ) * __ *
 					v.FuncBlock / t5('funcdecl','localfunc','name','alias','type','block')
 					;
 		
-		FuncBlock=	ASSIGN *__* cassert(v.ExprList,'expression expected')/t1('exprbody','exprs')
-					+	v.Block * cassert(END *__,"unclosed function block")
+		FuncBlock=	ASSIGN * cassert( __ * v.ExprList,'expression expected')/t1('exprbody','exprs')
+					+	v.Block * cassert( END ,"unclosed function block")
 					;
 	 
 		FuncType=	(v.TypeSymbol+cnil) * __ *
@@ -798,16 +801,16 @@ local function getModuleMatch()
 					;
 
 		ArgList	=	POpen *
-						ct((v.ArgDef * (w(COMMA)* cassert(v.ArgDef, "argument expected"))^0 )^-1) *
+						ct((v.ArgDef * ( __ * COMMA * cassert( __ * v.ArgDef, "argument expected"))^0 )^-1) *
 						PClose 
 						;
 
 		ArgDef	=	cpos((Ident+c(DOTDOTDOT)) *__* (v.TypeTag+cnil) *
-						(ASSIGN * __* cassert(v.Expr,"default argument value expected") +cnil)
+						(ASSIGN * cassert( __ * v.Expr,"default argument value expected") +cnil)
 						/t2('arg','name','type','value'))
 						;
 			
-		RetTypeItem= cpos((Ident *__* v.TypeTag/function(n,t) t.alias=n return t end)) + v.Type;
+		RetTypeItem= cpos((Ident * __ * v.TypeTag/function(n,t) t.alias=n return t end)) + v.Type;
 			
 
 	---------------------------------------TYPE
@@ -827,7 +830,7 @@ local function getModuleMatch()
 		TypeCore=	v.TypeSymbol
 						+	v.NamedType				
 						+	POpen*cassert(v.Type,"inner type missing")*PClose
-						+	FUNCKW *__* cassert(v.FuncType, "function type syntax error")
+						+	FUNCKW * cassert( __ * v.FuncType, "function type syntax error")
 								/function(ft) 
 										if type(ft)~='table' then return false end
 										ft.typeonly=true
@@ -871,8 +874,8 @@ local function getModuleMatch()
 	----------------------Reflection-----------------------------
 
 		MetaData=	p'@'*BOPEN*__* 
-					(ct(v.MetaItem * __ *(  COMMA *__ * cassert(v.MetaItem,"metadata item expected"))^0)+cnil) *__*
-					cassert(BCLOSE*__,"unclosed metadata body")
+					(ct(v.MetaItem * __ *(  COMMA * cassert( __ * v.MetaItem,"metadata item expected"))^0)+cnil) *
+					cassert( __* BCLOSE ,"unclosed metadata body") * __
 					+cnil
 					;
 					
@@ -886,7 +889,7 @@ local function getModuleMatch()
 				;
 		
 	-- #--------------------Expression-------------------	
-		ExprList=ct(v.Expr * ( COMMA *__* cassert(v.Expr,"expression expected") )^0);
+		ExprList=ct(v.Expr * ( COMMA * cassert( __ * v.Expr,"expression expected") )^0);
 		
 		Expr=	cpos(v.Logic) * __;
 		

@@ -37,6 +37,7 @@ local function visitNode(vi,n,list)
 	
 	--spread token info
 	if not n.p0 and parentNode then
+		-- print(n.tag)
 		n.p0=parentNode.p0
 		n.p1=parentNode.p1
 		n.module=parentNode.module

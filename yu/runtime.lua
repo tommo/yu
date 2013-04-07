@@ -481,6 +481,7 @@ function module(path)
 
 	moduleTable[path]=moduleEnv
 	setfenv(2, moduleEnv)
+	return moduleEnv
 end
 
 
