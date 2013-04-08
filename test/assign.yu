@@ -2,7 +2,8 @@ extern
 	func print(...*)
 end
 
-func assignTest()
+
+func assignTest1()
 	local lists={
 		{1,2,3},
 		{3,4,5},
@@ -18,4 +19,9 @@ func assignTest()
 			print(i,v)		
 		end
 	end
+end
+
+
+func assignTest()
+	print('shit')
 end

@@ -971,7 +971,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 			i.value=cv
 			e.currentValue=cv
 		end
-		i.type=i.value.type
+		-- i.type=i.value.type
 	end
 	
 	-- local function checkConst(n)

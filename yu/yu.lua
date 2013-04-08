@@ -4,6 +4,7 @@ require "yu.decl"
 require "yu.resolver"
 require "yu.codegen"
 require "yu.yigen"
+
 module("yu")
 
 local builder={}
@@ -11,13 +12,49 @@ totalDeclTime=0
 totalResolveTime=0
 totalGenerateTime=0
 
-local function compareFileTime(f1, f2)
-	if rawget(_G,'lfs') then
-		--TODO: use lfs
+local _fileBuildTime={}
+
+local function getFileBuildTime(path)
+	if not rawget(_G,'lfs') then
+		return 0
 	end
-	local r=os.execute(string.format)
+	local t0=_fileBuildTime[path] or 0
+	local t1=lfs.attributes(path,'modification') or 0
+	if t1>t0 then
+		_fileBuildTime[path]=t1 
+		return t1
+	else
+		return t0
+	end	
 end
 
+local function setFileBuildTime(path, t1)
+	local t0=getFileBuildTime(path)
+	if t0<t1 then
+		_fileBuildTime[path]=t1
+	end
+end
+
+local function inheritFileBuildTime(src, dep)
+	setFileBuildTime(src,getFileBuildTime(dep))
+end
+
+local function isFileNewer(f1, f2)
+	if rawget(_G,'lfs') then
+		local m1=getFileBuildTime(f1)
+		local m2=getFileBuildTime(f2)
+		return m1>m2
+	else
+		--TODO: some os-specific workaround?
+		return true
+	end	
+end
+
+local function fileExists(f)
+	local h=io.open(f,'r')
+	if h then h:close() return true end
+	return false
+end
 
 local function fixpath(p)
 	p=string.gsub(p,'\\','/')
@@ -45,6 +82,15 @@ local function extractModName(p)
 	p=string.gsub(p,'%..*$','')
 	return string.gsub(p,'%.','_')
 end
+
+local function getYIPath(path)
+	return stripExt(path)..'.yi'
+end
+
+local function getYOPath(path)
+	return stripExt(path)..'.yo'
+end
+
 
  
 function newBuilder(option)
@@ -103,7 +149,8 @@ function builder:startBuild(path, traceBuild)
 						)
 			end
 		end
-		local outfile=stripExt(mm.path)..'.yo'
+
+		local outfile=getYOPath(mm.path)
 		local file=io.open(outfile,'w')
 		file:write(code)
 		file:close()
@@ -118,7 +165,8 @@ function builder:startBuild(path, traceBuild)
 						)
 			end
 		end
-		local outfile=stripExt(mm.path)..'.yi'
+
+		local outfile=getYIPath(mm.path)
 		local file=io.open(outfile,'w')
 		file:write(interfaceCode)
 		file:close() 
@@ -135,7 +183,13 @@ end
 function builder:buildModule(path)
 	local prepEnv=setmetatable({},{__index=self.prepEnv})
 
-	local m=parseFile(path,false,prepEnv)
+	local m, errors =parseFile(path,false,prepEnv)
+	local errCount=#errors
+	if errCount>0 then --error in parsing
+		for i, e in pairs(errors) do
+			print(tostring(e))
+		end
+	end
 	m.externModules={}
 	m.path=path
 	m.modpath=stripExt(path)
@@ -179,12 +233,55 @@ function builder:addBuildingModule(m)
 	b[#b+1]=m
 end
 
+function builder:checkNeedBuild(path)
+	local yi=getYIPath(path)
+	local yo=getYOPath(path)
+
+	local needBuild = 
+						(not	fileExists(yo)) or
+						(not	fileExists(yi)) or
+						isFileNewer(path, yi) or
+						isFileNewer(path, yo)
+
+	return needBuild
+end
+
 function builder:requireModule(path)
 	path=fixpath(path)
 	local m=self.moduleTable[path]
-	if not m then
-		--todo:search for precompiled module first		
-		m=self:buildModule(path)
+	if m then return m end
+
+	local needBuild=self:checkNeedBuild(path)
+
+	if not needBuild then
+		m=self:loadCompiledModule(path)
+		if m then 
+			self.moduleTable[path]=m
+			return m
+		end
 	end
+
+	m = self:buildModule(path)
 	return m
 end
+
+
+function builder:loadCompiledModule(path)
+	local yi=getYIPath(path)
+	local data=dofile(yi)
+	local needBuild=false
+	for i, im in ipairs(data.import) do
+		self:requireModule(im)
+		local yi1=getYIPath(im)
+		if isFileNewer(yi1, yi) then 
+			inheritFileBuildTime(yi, yi1) --mark file with newer timestamp
+			needBuild=true
+		end
+	end
+	if needBuild then return false end
+	local m=loadInterface(data)
+	print('>loaded',yi)
+
+	return m
+end
+

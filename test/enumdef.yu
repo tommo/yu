@@ -1,7 +1,10 @@
+import 'assign.yu'
 enum State{
+	NONE,
 	OK,
 	NO,
-	WAIT
+	WAIT,
+	DEAD
 }
 
 private:

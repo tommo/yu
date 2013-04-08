@@ -1,3 +1,8 @@
+pcall(function()
+	require'lfs'
+end
+)
+
 
 local ipairs,pairs=ipairs,pairs
 local next=next
@@ -427,6 +432,10 @@ local function getDeclName(d, currentModule)
 end
 
 function referExternModuleDecl(m,d)
+	if not d.module then
+		table.foreach(d,print)
+		error()
+	end
 	if m==d.module then return end
 	if m.externalReferNames[d] then return end
 	local id=m.maxDeclId+1

@@ -51,7 +51,7 @@ end
 
 local function parseErr(msg,pos)
 	local lpos=pos-currentLineOffset
-	local m="parse error@"..currentFilePath.."<"..currentLine..":"..lpos..">:"..msg
+	local m=currentFilePath.."<"..currentLine..":"..lpos..">:"..msg
 	errors[#errors+1]=m
 end
 	--cmt(p(1),f
@@ -668,7 +668,7 @@ local function getModuleMatch()
 					*
 					v.MetaData *
 						ct(v.ClassInnerDecls^0)*
-					cassert(END , "unclosed class block")
+					cassert(__ * END , "unclosed class block")
 					/t5('classdecl','name','tvars','superclassacc','meta','decls')
 					;
 		
@@ -1087,7 +1087,7 @@ function parseSource(source,allowError,prepEnv)
 
 	m.block=nil
 
-	return m
+	return m, errors
 end
 
 totalParseTime=0
@@ -1098,10 +1098,10 @@ function parseFile(file,allowError,prepEnv)
 	assert(f,'file not found:'..file)
 	local src=f:read("*a")
 	f:close()
-	local m=parseSource(src,allowError,prepEnv)
+	local m, errors = parseSource(src,allowError,prepEnv)
 	m.file=file
 	totalParseTime=totalParseTime+os.clock()-t1
-	return m
+	return m, errors
 end
 
 
