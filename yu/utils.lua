@@ -203,7 +203,7 @@ function unescape(s)
 	-- function isDecl(b)
 	-- 	return declCheckTable[b.tag]
 	-- end
-	local globalDeclNames=makeStringCheckTable("classdecl" ,"funcdecl" ,"enumdecl" ,"methoddecl",'signaldecl')
+	local globalDeclNames=makeStringCheckTable("classdecl" ,"funcdecl" ,"enumdecl" ,"methoddecl",'signaldecl','import')
 	function isGlobalDecl(b)
 		local tag=b.tag		
 		if tag=="vardecl" or tag=='var' then

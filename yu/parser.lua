@@ -402,7 +402,10 @@ local function getModuleMatch()
 				;
 		
 		HeadStmt=
-					cpos(v.Import)
+					cpos(
+						v.Import +
+						v.CommonDirective
+						)
 					;
 		
 		Import= w(IMPORT) *__* 
@@ -1073,6 +1076,11 @@ function parseSource(source,allowError,prepEnv)
 
 	m.lineInfo=lineInfo
 	m.file='<string...>'
+	
+	for i,n in ipairs(m.heads) do
+		n.ishead=true
+		table.insert(m.block, i, n)
+	end
 
 	m.mainfunc={
 		tag='funcdecl',

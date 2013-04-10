@@ -3,6 +3,8 @@ extern
 end
 
 
+
+
 func assignTest1()
 	local lists={
 		{1,2,3},
@@ -19,9 +21,10 @@ func assignTest1()
 			print(i,v)		
 		end
 	end
+
 end
 
 
 func assignTest()
-	print('shit')
+	print('shit x')
 end

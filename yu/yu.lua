@@ -43,6 +43,7 @@ local function isFileNewer(f1, f2)
 	if rawget(_G,'lfs') then
 		local m1=getFileBuildTime(f1)
 		local m2=getFileBuildTime(f2)
+		-- print('\t',f1,f2,m1-m2)
 		return m1>m2
 	else
 		--TODO: some os-specific workaround?
@@ -126,35 +127,8 @@ function builder:build(src, traceBuild)
 end
 
 function builder:startBuild(path, traceBuild)
- 	-- local generatedModules={}
-	self.baseDir=extractDir(path)
-	local m=self:requireModule(path)
-	local t1=os.clock()
-	for i,mm in ipairs(self.buildingModules) do
-		local res=yu.newResolver()
-		res:visitNode(mm)
-	end
-	totalResolveTime=totalResolveTime+os.clock()-t1
-	--generatecode
-	local t0=os.clock()
-	
-	for i,mm in ipairs(self.buildingModules) do
-		--save generated code
-		local code=yu.generateModule(mm)
-		if traceBuild then --test generated code 
-			local res, err=loadstring(code)
-			if not res then
-				error(
-					string.format("FATAL error in generated code(%s):\n%s", mm.path, err)
-						)
-			end
-		end
 
-		local outfile=getYOPath(mm.path)
-		local file=io.open(outfile,'w')
-		file:write(code)
-		file:close()
-		
+	local function genYiFile(mm)
 		--save generated interface info
 		local interfaceCode=yu.generateInterface(mm)
 		if traceBuild then --test generated code 
@@ -170,9 +144,41 @@ function builder:startBuild(path, traceBuild)
 		local file=io.open(outfile,'w')
 		file:write(interfaceCode)
 		file:close() 
+
 	end
 
-	totalGenerateTime=os.clock()-t0
+	local function genYoFile(mm)
+		--save generated code
+		local code=yu.generateModule(mm)
+		if traceBuild then --test generated code 
+			local res, err=loadstring(code)
+			if not res then
+				error(
+					string.format("FATAL error in generated code(%s):\n%s", mm.path, err)
+						)
+			end
+		end
+
+		local outfile=getYOPath(mm.path)
+		local file=io.open(outfile,'w')
+		file:write(code)
+		file:close()
+	end
+
+ 	-- local generatedModules={}
+	self.baseDir=extractDir(path)
+	local m=self:requireModule(path, false)
+	for i,mm in ipairs(self.buildingModules) do
+		local t1=os.clock()
+			local res=yu.newResolver()
+			res:visitNode(mm)
+		totalResolveTime=totalResolveTime+os.clock()-t1
+		local t0=os.clock()
+			genYiFile(mm)
+			genYoFile(mm)
+		totalGenerateTime=totalGenerateTime+os.clock()-t0
+	end
+
 	return true
 end
  
@@ -181,6 +187,8 @@ function builder:getAbsPath(path)
 end
 
 function builder:buildModule(path)
+	-- print('>build',path)
+	setFileBuildTime(path,os.time())
 	local prepEnv=setmetatable({},{__index=self.prepEnv})
 
 	local m, errors =parseFile(path,false,prepEnv)
@@ -203,7 +211,7 @@ function builder:buildModule(path)
 			local tag=node.tag
 			if tag=='import' then
 				local modpath=currentBase..node.src
-				local requiredModule=self:requireModule(modpath)
+				local requiredModule=self:requireModule(modpath, path)
 				if m==requiredModule then
 					yu.compileErr('attempt to import self',node,m)
 				end
@@ -246,7 +254,7 @@ function builder:checkNeedBuild(path)
 	return needBuild
 end
 
-function builder:requireModule(path)
+function builder:requireModule(path, from)
 	path=fixpath(path)
 	local m=self.moduleTable[path]
 	if m then return m end
@@ -260,27 +268,36 @@ function builder:requireModule(path)
 			return m
 		end
 	end
-
 	m = self:buildModule(path)
 	return m
 end
 
 
 function builder:loadCompiledModule(path)
+	-- print('loadYi',path)
 	local yi=getYIPath(path)
+	inheritFileBuildTime(path, yi)
+
 	local data=dofile(yi)
 	local needBuild=false
+	local req={}
+	local named={}
+
 	for i, im in ipairs(data.import) do
-		self:requireModule(im)
-		local yi1=getYIPath(im)
-		if isFileNewer(yi1, yi) then 
-			inheritFileBuildTime(yi, yi1) --mark file with newer timestamp
+		local r=self:requireModule(im.path, path)
+		if isFileNewer(im.path, path) then 
 			needBuild=true
 		end
+		if im.alias then named[r]=true end
+		req[im]=r
 	end
+
+
 	if needBuild then return false end
-	local m=loadInterface(data)
-	print('>loaded',yi)
+
+	local m=loadInterface(data, req, named)
+
+	-- print('>loaded',yi)
 
 	return m
 end
