@@ -2,7 +2,6 @@ local args={...}
 if MOAISim then
 	os.clock=MOAISim.getDeviceTime
 end
--- require 'tools.clidebugger'
 require "tools.printtable"
 
 -- setmetatable(_G,{__index=function(t,k) error("undefined symbol:"..k,2) end})
@@ -15,7 +14,7 @@ local builder=yu.newBuilder()
 builder:setPreprocessorEnvironment{
 	DEBUG=false
 }
-local targetFile=args[3] or 'test/moai.yu'
+local targetFile=args[1] or 'test/moai.yu'
 builder:build((targetFile), true)
 
 local buildtime=os.clock()-t0

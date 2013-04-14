@@ -17,7 +17,6 @@ local insert=table.insert
 local pre={}
 local post={}
 
-local __searchSeq=0 
 
 local function copyTable(a)
 	local b={}
@@ -27,21 +26,21 @@ local function copyTable(a)
 	return b
 end
 
-local function _findExternSymbol(entryModule,name,found)
+local function _findExternSymbol(entryModule,name,found, searchSeq)
 	found=found or {}
 	local externModules=entryModule.externModules
 	
 	if externModules then
-		entryModule._seq=__searchSeq
+		entryModule._seq=searchSeq --a random table as sequence
 
-		for p,m in pairs(externModules) do			
-			if m.__seq~=__searchSeq and not entryModule.namedExternModule[m] then
-				m.__seq=__searchSeq
+		for p , m in pairs(externModules) do			
+			if m.__seq~=searchSeq and not entryModule.namedExternModule[m] then
+				m.__seq=searchSeq
 				local decl=m.scope[name]
 				if decl and not decl.private then 
 					found[#found+1]={module=m,decl=decl}
 				end
-				_findExternSymbol(m,name,found)
+				_findExternSymbol(m,name,found, searchSeq)
 			end
 		end
 	end
@@ -140,16 +139,15 @@ local function _findSymbol(vi,name,token,limit)
 	local d=m.externalRefers[name]
 	if d then return d end
 
-	__searchSeq=__searchSeq+1
-	
-	local found=_findExternSymbol(token.module,name)
+	local found=_findExternSymbol(token.module, name, {}, {})
 	
 	local i=0
 	local foundCount=#found
 	if foundCount>1 then
-		msg='multiple declaration found:'..name..'\n'
+		msg=string.format('multiple declaration for %q :\n',name)
+
 		for i,f in pairs(found) do
-			msg=msg..getTokenPosString(f.decl)..'\n'
+			msg=msg..'\t'..getTokenPosString(f.decl)..'\n'
 		end
 		return vi:err(msg,token)
 		

@@ -26,13 +26,13 @@ local v=setmetatable({},{__index=function(t,k) return lpegv(k) end})
 local currentLine=1
 local currentLineOffset=0
 local currentOffsetTable={0}
-local lineInfo={}
+local lineOffset={}
 local currentFilePath=''
 local errors = {}
 local function newline(off) 
 	currentLine=currentLine+1
 	currentLineOffset=off
-	lineInfo[currentLine]=off
+	lineOffset[currentLine]=off
 	currentOffsetTable[currentLine]=off
 end
 
@@ -40,7 +40,7 @@ local function resetContext()
 	currentLine=1
 	currentLineOffset=0
 	currentOffsetTable={0}
-	lineInfo={}
+	lineOffset={}
 	errors={}
 end
 
@@ -670,8 +670,8 @@ local function getModuleMatch()
 					(EXTENDS * cassert( __ * v.NamedType,'super class name expected')+cnil) 
 					*
 					v.MetaData *
-						ct(v.ClassInnerDecls^0)*
-					cassert(__ * END , "unclosed class block")
+						ct( ( __ * v.ClassInnerDecls) ^0 )*
+					cassert( __ * END , "unclosed class block")
 					/t5('classdecl','name','tvars','superclassacc','meta','decls')
 					;
 		
@@ -1058,7 +1058,7 @@ local ModuleMatch
 function parseSource(source,allowError,prepEnv)
 	if not ModuleMatch then ModuleMatch=getModuleMatch() end
 	resetContext()
-	lineInfo={[1]=0}
+	lineOffset={[1]=0}
 	source=doPreprocessor(source,prepEnv)
 	local m= L.match(ModuleMatch,source)
 	
@@ -1074,7 +1074,7 @@ function parseSource(source,allowError,prepEnv)
 		error('[PARSING ERROR]')
 	end
 
-	m.lineInfo=lineInfo
+	m.lineOffset=lineOffset
 	m.file='<string...>'
 	
 	for i,n in ipairs(m.heads) do

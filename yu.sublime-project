@@ -17,11 +17,13 @@
         {
             "name": "Lua-ERRTEST",
             "cmd":["/usr/local/bin/lua","errortest.lua"],
+            "target":"exec_in_window",
             "working_dir": "${project_path}"
         },
          {
             "name": "Lua-Debug",
-            "cmd":["open","./run"],
+            "cmd":["open","./runtest"],
+            "target":"exec_in_window",
             "working_dir": "${project_path}"
         },
         {
@@ -29,5 +31,13 @@
             "cmd": ["open","./moaitest"],
             "working_dir": "${project_path}"
         }
-    ]
+    ],
+    "settings":
+    {
+        "build_switcher_systems":
+        [
+            "Lua",
+            "Lua-Debug"            
+        ]
+    }
 }

@@ -135,11 +135,11 @@ function unescape(s)
 	end
 	
 	
-	function findLine(lineInfo,pos)
+	function findLine(lineOffset,pos)
 		local off0=0
 		local l0=0
 		
-		for l,off in ipairs(lineInfo) do
+		for l,off in ipairs(lineOffset) do
 			if pos>=off0 and pos<off then 
 				return l0,pos-off0
 			end
@@ -156,8 +156,8 @@ function unescape(s)
 			table.foreach(token,print)
 			error('fatal')
 		end
-		local line,lpos=findLine(m.lineInfo,pos)
-		local line2,lpos2=findLine(m.lineInfo,token.p1)
+		local line,lpos=findLine(m.lineOffset,pos)
+		local line2,lpos2=findLine(m.lineOffset,token.p1)
 		return "@"..m.file.."<"..line..":"..lpos..">".."-<"..line2..":"..lpos2..">"
 	end
 	local function printerr(msg)
@@ -379,7 +379,7 @@ end
 
 function makeDeclRefName(decl,id)
 	if decl.name=='...' then return '...' end
-	local strip=true
+	local strip=false
 	local dtag=(declPrefix[decl.tag] or 'v')
 	local mangle=makeMangle(id)--format('%x',id)
 	if strip then
@@ -402,7 +402,7 @@ local function getDeclName(d, currentModule)
 			end
 
 			if d.module~=currentModule then
-				return getDeclName(d.module)..'.'..d.refname
+				return getDeclName(d.module, currentModule)..'.'..d.refname
 			end
 				
 			return d.refname
@@ -427,7 +427,8 @@ local function getDeclName(d, currentModule)
 			return n
 		end
 	else
-		return d.refname 
+		local res=assert(d.refname)
+		return res 
 	end
 end
 

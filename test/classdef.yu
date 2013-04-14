@@ -1,0 +1,33 @@
+-- extern
+-- 	func print(...*)
+-- end
+
+class Foo
+	func staticFunc()
+	end
+
+	field x,y#
+
+	abstract method abstractMethod(a,b,c#)
+
+	final method finalMethod(arg?)
+	end
+
+	method normalMethod(arg*)
+	end
+	
+	private:
+	method privateMethod()
+	end
+
+end
+
+
+class Foo2 extends Foo
+	override abstractMethod(a,b,c#) 
+	end
+end
+
+global f=Foo2()
+f.x=100
+f.privateMethod()

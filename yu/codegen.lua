@@ -151,7 +151,7 @@ local function genDebugInfo(gen,m)
 		gen:cr()
 		gen'line_offset={'
 		local off1=0
-		for l,off in ipairs(m.lineInfo) do
+		for l,off in ipairs(m.lineOffset) do
 			gen:append((off-off1)..',')
 			off1=off
 		end

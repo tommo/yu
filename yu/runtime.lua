@@ -486,11 +486,11 @@ end
 
 
 ---------------Lua Debug Injections---
-local function findLine(lineInfo,pos)
+local function findLine(lineOffset,pos)
 	local off0=0
 	local l0=0
 	local off=0
-	for l,linesize in ipairs(lineInfo) do
+	for l,linesize in ipairs(lineOffset) do
 		off=off+linesize
 		if pos>=off0 and pos<off then 
 			return l0,pos-off0

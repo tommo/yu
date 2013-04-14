@@ -241,7 +241,7 @@ local builtinTypeDecls={
 	['number']=numberType,
 	['string']=stringType,
 	['object']=objectType,
-	['@void']=voidType,
+	['void']=voidType,
 	['any']=anyType,
 	['anyfunc']=anyFuncType,
 	
@@ -708,7 +708,7 @@ function typeres.call.classmeta(t,n,resolver )
 	if clas.abstract then
 		local msg=''
 		while clas do
-			for i, m in ipairs(clas.decls) do
+			for k, m in pairs(clas.scope) do
 				if m.abstract then
 					msg=msg..format('\n\t%s.%s:%s',clas.name,m.name,m.type.name)
 				end

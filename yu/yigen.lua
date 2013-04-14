@@ -7,6 +7,7 @@ module('yu', package.seeall)
 local getDeclName=getDeclName
 local getType,getTypeDecl=getType,getTypeDecl
 local yigenModule, yigenClass, yigenFunc,  yigenEnum, yigenNode, yigenVar
+local isBuiltinType,getBuiltinType=isBuiltinType,getBuiltinType
 
 function yigenNode(gen, node)
 	local tag=node.tag
@@ -20,6 +21,16 @@ function yigenNode(gen, node)
 		gen:appendf('p0 = %d; p1 = %d;', node.p0, node.p1)
 
 		if tag=='funcdecl' or tag=='methoddecl' then
+			if node.abstract then
+				gen:cr()
+				gen'abstract = true ;'
+			end
+
+			if node.final then
+				gen:cr()
+				gen'final = true ;'
+			end
+
 			yigenFunc(gen,node)
 		elseif tag=='var' then
 			yigenVar(gen,node)
@@ -50,6 +61,15 @@ function yigenImport(gen, i)
 end
 
 function yigenClass(gen,c)
+	if c.superclass then
+		gen:cr()
+		gen:appendf('superclass = %q ;', c.superclass.name)
+	end
+	if c.abstract then
+		gen:cr()
+		gen'abstract = true;'
+	end
+
 	gen:cr()
 	gen'scope = {'
 	gen:ii() 
@@ -90,9 +110,11 @@ function yigenModule(gen,m)
 		gen:cr()
 		gen:appendf('file=%q;', m.file)
 		gen:cr()
+		gen:appendf('name=%q;', m.name)
+		gen:cr()
 		gen'line_offset={'
 		local off1=0
-		for l,off in ipairs(m.lineInfo) do
+		for l,off in ipairs(m.lineOffset) do
 			gen:append((off-off1)..',')
 			off1=off
 		end
@@ -221,10 +243,21 @@ function yigenType(gen, t, typekey)
 			gen:cr()
 			gen:appendf('name = %q;', td.name or '??')
 			yigenType(gen, td.ktype, 'ktype')
-			yigenType(gen, td.ktype, 'etype')
+			yigenType(gen, td.etype, 'etype')
 		gen:di()
 		gen:cr()
 		gen'};'
+	elseif tag=='vararg' then
+		gen'{'
+		gen:ii()
+			gen:cr()
+			gen'tag = "vararg";'
+			gen:cr()
+			gen:appendf('name = %q;', td.name or '??')
+			yigenType(gen, td.type, "type")
+		gen:di()
+		gen:cr()
+		gen'};'	
 	else
 		if not td.name then table.foreach(td,print) end
 		gen:appendf( '%q ;', td.name)
@@ -240,14 +273,43 @@ end
 
 
 ------------YI Loader----
--- function 
-
-local currentModule
--- local 
 local yiloadNode, yiloadClass, yiloadVar, yiloadFunc, yiloadType
 
+
+local function yifindExternSymbol(entryModule,name,searchSeq) --should be safe without check duplications
+	local externModules=entryModule.externModules
+	if externModules then
+		entryModule._seq=searchSeq --a random table as sequence
+
+		for p,m in pairs(externModules) do			
+			if m.__seq~=searchSeq and not entryModule.namedExternModule[m] then
+				m.__seq=searchSeq
+				local decl=m.scope[name]
+				if decl and not decl.private then 
+					return decl
+				end
+				decl=yifindExternSymbol(m,name,searchSeq)
+				if decl then return decl end
+			end
+		end
+	end
+	
+	return nil
+end
+
+local function yifindSymbol(m, name)
+	local s=getBuiltinType(name)
+	if s then return s end
+	s=m.scope[name]
+	if s then return s end
+	
+	s = yifindExternSymbol(m, name, {})
+	assert(s)
+	return s
+	-- error('todo extern symbol:'..name)
+end
+
 function yiloadNode(d)
-	d.module=currentModule
 	d.resolveState='done'
 
 	local tag=d.tag
@@ -263,15 +325,21 @@ function yiloadNode(d)
 end
 
 function yiloadFunc(f)
-	f.type=yiloadType(f.type)
+	f.type=yiloadType(f.module, f.type)
 end
 
 function yiloadClass(c)
+
 	for k, d in pairs(c.scope) do
+		d.module=c.module
 		yiloadNode(d)
 	end 
 	c.valuetype=true
 	c.type=classMetaType
+	if c.superclass then
+		c.superclass=yifindSymbol(c.module, c.superclass)
+	end
+	c.resolveState='done'
 end
 
 function yiloadEnum(e)
@@ -291,26 +359,56 @@ function yiloadEnum(e)
 end
 
 function yiloadVar(v)
-	v.type=yiloadType(v.type)
+	v.type=yiloadType(v.module, v.type)
 end
 
-function yiloadType(t)
+function yiloadType(m, t)
 	local tt=type(t)
-	if tt=='string' then --TODO: find symbol
-		error('todo find type:'..t)
 
+	if tt=='string' then 
+		return yifindSymbol(m, t)
 	elseif tt=='table' then
 		local tag=t.tag
 		if tag=='functype' then
 			t.resolveState='done'
 			t.valuetype=true
 			t.type=funcMetaType
+			
+			local args=t.args
+			for i, arg in ipairs(args) do
+				arg.type=yiloadType(m, arg.type)
+			end
+
+			local ret=t.rettype
+			local converted={}
+			for i, rt in ipairs(ret) do
+				converted[i]=yiloadType(m,rt.type)
+			end
+			if #converted>0 then
+				t.rettype={
+					tag='mulrettype',
+					types=converted
+				}
+			else
+				t.rettype=converted[1]
+			end
+
 			return t
 		elseif tag=='tabletype' then
 			t.resolveState='done'
 			t.valuetype=true
 			t.type=tableMetaType
+			t.ktype=yiloadType(m,t.ktype)
+			t.etype=yiloadType(m,t.etype)
 			return t
+		elseif tag=='vararg' then
+			t.resolveState='done'
+			t.valuetype=false
+			t.type=yiloadType(m, t.type)
+			return t
+		else
+
+			error("???")
 		end
 	end
 
@@ -328,22 +426,29 @@ local function stripExt(p)
 	return p
 end
 
-function loadInterface(data, externModules, namedExternModule)
+function loadInterface(data, imports, namedExternModule)
 	local m={}
+	m.file=data.file
 	m.path=data.file
+	m.name=data.name
 	m.modpath=stripExt(m.path)
+	
+	local externModules={}
+	for im, mod in pairs(imports) do
+		externModules[mod.path]=mod
+	end
 
 	m.externModules=externModules
 	m.namedExternModule=namedExternModule
 
-	m.line_offset=data.line_offset
+	m.lineOffset=data.line_offset
 	m.scope=data.scope
-	currentModule=m
+	m.module=m
+
 	for k, d in pairs(m.scope) do
+		d.module=m
 		yiloadNode(d)
 	end
-	m.module=m
 	m.resolveState='done'
-	currentModule=nil
 	return m
 end
