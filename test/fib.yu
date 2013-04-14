@@ -1,0 +1,10 @@
+extern
+	func print(...*)
+end
+
+local func fib#(n#) = 
+		n<=0 and 0
+or	n==1 and 1
+or	fib(n-1) + fib(n-2)
+
+print(fib(6))
