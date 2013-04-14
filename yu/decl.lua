@@ -466,8 +466,18 @@ end
 function pre.functype(vi,ft)
 	local args=ft.args
 	if args then
-		spreadVarTypes(args,true,vi)
+		-- spreadVarTypes(args,true,vi)
+		local prevHasDefault=false
 		for i,arg in ipairs(args) do
+			if not arg.type then
+				vi:err('argument type expected',arg)
+			end
+			if arg.value then
+				prevHasDefault=true
+			elseif prevHasDefault and arg.name~='...' then
+				vi:err('non-optional argument follows optional argument', arg)
+			end
+
 			if not ft.typeonly then
 				vi:addDecl(arg)
 			end

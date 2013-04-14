@@ -73,7 +73,7 @@ extern
 		method getLocalCenter() -> centerX#,centerY#
 		method isAwake() -> isAwake?
 		method setActive(active?)
-		method setMassData(mass,I,centerX,centerY#)
+		method setMassData(mass,inertia,centerX,centerY#)
 		method applyForce(forceX,forceY,pointX,pointY#)
 		method getPosition() -> positionX#,positionY#
 		method getAngularVelocity() -> omega#

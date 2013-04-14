@@ -291,6 +291,13 @@ local	function findHintType(vi,node,parentLevel,keep)
 				hintType=getTypeDecl(t)
 			end
 
+		elseif ptag=='arg' then
+			local t=pnode.type
+
+			if t and t.tag~='typeref' then 
+				hintType=getTypeDecl(t)
+			end
+
 		elseif ptag=='assignstmt' then
 			if v.assignId then
 				local var=pnode.vars[v.assignId]
@@ -935,6 +942,20 @@ local	function findHintType(vi,node,parentLevel,keep)
 	end
 	
 	function post:arg(a)
+		--check const type for default value
+		if a.value then
+			local c=getConstNode(a.value)
+			if not c then --todo: allow empty table
+				self:err('default argument must be constant, give:'..a.value.type.name)
+			end
+			local argt, vt=a.type, getType(a.value)
+			if not checkType(argt, '>=' , vt) then
+				self:err(format('arguement/default value type mismatch,expecting: %s ,given: %s',
+						argt.name,vt.name),
+						a.value
+					)
+			end
+		end
 		return true
 	end
 	

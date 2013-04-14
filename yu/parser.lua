@@ -810,7 +810,7 @@ local function getModuleMatch()
 
 		ArgDef	=	cpos((Ident+c(DOTDOTDOT)) *__* (v.TypeTag+cnil) *
 						(ASSIGN * cassert( __ * v.Expr,"default argument value expected") +cnil)
-						/t2('arg','name','type','value'))
+						/t3('arg','name','type','value'))
 						;
 			
 		RetTypeItem= cpos((Ident * __ * v.TypeTag/function(n,t) t.alias=n return t end)) + v.Type;

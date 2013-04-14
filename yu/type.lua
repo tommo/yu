@@ -610,55 +610,77 @@ end
 
 
 
-local function checkFuncArgs(targs,cargs,resolver)
+local function checkFuncArgs(funcArgs,callerArgs,resolver)
 	-- assert(t.tag=='functype',t.tag)
-	cargs=cargs or {}
-	targs=targs or {}
+	callerArgs=callerArgs or {}
+	funcArgs=funcArgs or {}
 	
-	local ctypes,mulret=getExprTypeList(cargs,resolver)
+	local callerArgTypes,mulret=getExprTypeList(callerArgs,resolver)
 	
 	local varargType
-	local lastArg=targs[#targs] --last func decl arg
+	local lastArg=funcArgs[#funcArgs] --last func decl arg
+
 	if lastArg and lastArg.name=='...' then
 		varargType=lastArg.type.type
 	end
+	
+	local callerArgTypesCount = #callerArgTypes
+	local funcArgTypesCount   = #funcArgs-(varargType and 1 or 0)
 
-	if #ctypes<#targs-(varargType and 1 or 0) then
-		return false, format('too less arguments, %d expected, given %d',#targs,#ctypes)
+	if callerArgTypesCount < funcArgTypesCount then
+		local addedArg=0
+		for i = callerArgTypesCount +1, funcArgTypesCount do
+			-- fill caller with default argument
+			local funcArg=funcArgs[i]
+			if funcArg.value then
+				callerArgs[i]=funcArg.value
+				callerArgTypes[i]=getType(funcArg.value)
+				addedArg=addedArg+1
+			end
+		end
+		callerArgTypesCount=callerArgTypesCount+addedArg
+
+		if callerArgTypesCount < funcArgTypesCount then
+			return false, format(
+					'given too less arguments, %d expected, given %d',
+					funcArgTypesCount, #callerArgTypes
+				)
+		end
+
 	end
 	
-	for i,cat in ipairs(ctypes) do
-		local ta=targs[i]
-		local tat
+	for i,callerType in ipairs(callerArgTypes) do
+		local funcArg=funcArgs[i]
+		local funcArgType
 		
-		if not ta then
+		if not funcArg then
 			if varargType then
-				tat=varargType
-			elseif mulret>0 and #ctypes-mulret<#targs then
+				funcArgType=varargType
+			elseif mulret>0 and #callerArgTypes-mulret<#funcArgs then
 				break
 			else
-				return false,format('too many arguments, %d expected, given %d',#targs,#ctypes)
+				return false,format('too many arguments, %d expected, given %d',#funcArgs,#callerArgTypes)
 			end
-		elseif ta.name=='...' then
-			tat=varargType
+		elseif funcArg.name=='...' then
+			funcArgType=varargType
 		else
-			tat=getType(ta)
+			funcArgType=getType(funcArg)
 		end
-		if not checkType(tat,'>=',cat) then 
+		if not checkType(funcArgType,'>=',callerType) then 
 			return false, 
-				format('argument type mismatch,expecting:%s ,given: %s',tat.name,cat.name), 
-				cargs[i>#cargs and #cargs or i]
+				format('argument type mismatch,expecting:%s ,given: %s',funcArgType.name,callerType.name), 
+				callerArgs[i>#callerArgs and #callerArgs or i]
 		end
 	end
-	--todo: rate by type matching
+	--todo: rate by type matching (for function overload)
 	return 1
 end
 
 function typeres.call.functype(t,c,resolver)
-	local ok,err,errnode=checkFuncArgs(t.args,c.args,resolver)
+	local ok,errMsg,errNode=checkFuncArgs(t.args,c.args,resolver)
 
 	if not ok then 
-		resolver:err(err,errnode or c) 
+		resolver:err(errMsg,errNode or c) 
 	end
 
 	local rettype=t.rettype

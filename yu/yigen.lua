@@ -9,6 +9,9 @@ local getType,getTypeDecl=getType,getTypeDecl
 local yigenModule, yigenClass, yigenFunc,  yigenEnum, yigenNode, yigenVar
 local isBuiltinType,getBuiltinType=isBuiltinType,getBuiltinType
 
+local getConstNode,constToString =getConstNode, constToString
+
+
 function yigenNode(gen, node)
 	local tag=node.tag
 	local name=node.name
@@ -186,12 +189,17 @@ function yigenType(gen, t, typekey)
 				gen'args = {' 
 				gen:ii()
 					for i,arg in ipairs(td.args) do
-					gen:cr()
+						gen:cr()
 						gen'{'
 						gen:ii()
 							gen:cr()
 							gen:appendf('name = %q;',arg.name)
 							yigenType(gen, arg.type, 'type')
+							if arg.value then
+								gen:cr()
+								local c=getConstNode(arg.value)
+								gen:appendf('value = %s;', constToString(c))
+							end
 						gen:di()
 						gen:cr()
 						gen'},'
@@ -210,21 +218,26 @@ function yigenType(gen, t, typekey)
 				for i, rt in ipairs(ret.types) do
 					gen:cr()
 					gen'{'
+					gen:ii()
 					if rt.alias then
 						gen:cr()
 						gen:appendf('alias=%q;',rt.alias)
 					end
 					yigenType(gen, rt)
+					gen:di()
 					gen'},'
 				end
 			else
 				gen:cr()
 				gen'{'
-				if ret.alias then
-					gen:cr()
-					gen:appendf('alias=%q;',ret.alias)
-				end
+					gen:ii()
+					if ret.alias then
+						gen:cr()
+						gen:appendf('alias=%q;',ret.alias)
+					end
 					yigenType(gen, ret)
+					gen:di()
+					gen:cr()
 				gen'}'
 			end
 			gen:di()
@@ -376,7 +389,21 @@ function yiloadType(m, t)
 			
 			local args=t.args
 			for i, arg in ipairs(args) do
+				arg.tag='arg'
 				arg.type=yiloadType(m, arg.type)
+				if arg.value then
+					--turn into constNode
+					local tt= type(arg.value)
+					if tt=='nil' then
+						arg.value=nilConst
+					elseif tt=='number' then
+						arg.value=makeNumberConst(arg.value)
+					elseif tt=='string' then
+						arg.value=makeStringConst(arg.value)
+					elseif tt=='boolean' then
+						arg.value=arg.value and trueConst or falseConst
+					end
+				end
 			end
 
 			local ret=t.rettype

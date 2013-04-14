@@ -190,6 +190,17 @@ function unescape(s)
 		return tag=='number' or tag=='boolean' or tag=='string' or tag=='nil'
 	end
 
+	function constToString(c)
+		local tag=c.tag
+		if tag=='string' then
+			return string.format("%q",c.v):gsub('\\\n','\\n')
+		elseif tag=='nil' then 
+			return 'nil'
+		else
+			return tostring(c.v)
+		end
+	end
+
 	function isCompoundExpr(c)
 		local tag=c.tag
 		if tag=='number' or tag=='boolean' or tag=='string' or tag=='nil'	then return false end
