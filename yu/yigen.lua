@@ -404,6 +404,7 @@ function yiloadType(m, t)
 						arg.value=arg.value and trueConst or falseConst
 					end
 				end
+				arg.resolveState='done'
 			end
 
 			local ret=t.rettype

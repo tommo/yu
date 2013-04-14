@@ -1,0 +1,16 @@
+private:
+extern
+	func print(...*)
+end
+
+public:
+enum FileMode{
+	Read, ReadWrite
+}
+
+func openFile(filename$, mode = FileMode.Read, streamBlocked = false)
+	print('opening file:', filename)
+	print('file mode   :', mode == Read and 'read' or 'readwrite')
+	print('blocked     :', streamBlocked)
+end
+

@@ -470,7 +470,11 @@ function pre.functype(vi,ft)
 		local prevHasDefault=false
 		for i,arg in ipairs(args) do
 			if not arg.type then
-				vi:err('argument type expected',arg)
+				if arg.value then
+					arg.type=newTypeRef(arg.value)
+				else
+					vi:err('argument type expected',arg)
+				end
 			end
 			if arg.value then
 				prevHasDefault=true

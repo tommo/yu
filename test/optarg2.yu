@@ -1,0 +1,3 @@
+import 'optarg.yu'
+
+openFile('test', ReadWrite, true)
