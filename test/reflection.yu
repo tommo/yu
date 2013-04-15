@@ -1,3 +1,8 @@
+private:
+extern
+	func print(...*)
+end
+
 __Lua[[
 function getClassAttribute(class, id)
 	local attr=class.__classAttr
@@ -5,14 +10,14 @@ function getClassAttribute(class, id)
 end
 ]]
 
--- extern
--- 	func print(...*)
--- 	func getClassAttribute(clas*, id$)
--- end
 
 
--- class Test @{good='shit'}	
--- end
+class Test 
+	field x,y,z#
+end
+
+local a=Test()
+print( a.type +1)
 
 -- local x=Test()
 -- print(getClassAttribute(Test,'good'))

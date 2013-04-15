@@ -904,7 +904,7 @@ local function getModuleMatch()
 		-- 			__ * v.Ternary / t2('ternary','vtrue','vfalse')
 		-- 		)^0/foldexpr;
 		
-		Logic=	v.NotOp *
+		Logic=	v.NotOp * __ *
 					(	c(AND+OR) * - ASSIGN *
 						cassert(__ * v.NotOp, "right operand expected for logic expr")/t2('binop','op','r')
 					)^0/foldexpr
@@ -913,26 +913,26 @@ local function getModuleMatch()
 		NotOp=	c(NOT_KW) * cassert( __ * v.NotOp, "operand expected for 'not' expr")/ t2('unop','op','l')
 				+v.Compare;
 		
-		Compare= v.Concat *
+		Compare= v.Concat * __ *
 					(	c(EQ + NOTEQ + LESSEQ + GREATEQ + GREATER*#(-GREATER) + LESS) *
 						cassert(__ * v.Concat, "right operand expected for comparison expr")/t2('binop','op','r')
 					)^0/foldexpr
 					;
 				
 
-		Concat	=v.Sum *
+		Concat	=v.Sum * __ *
 					(	c(DOTDOT) * -ASSIGN *
 						cassert(__ * v.Sum, "right operand expected for concat expr")/t2('binop','op','r')
 					)^0/foldexpr
 					;
 		
-		Sum		=v.Product *
+		Sum		=v.Product * __ *
 					cpos(	c(PLUS+MINUS) * -ASSIGN *
 						cassert(__ * v.Product, "right operand expected for arith expr")/t2('binop','op','r')
 					)^0/foldexpr
 					;
 				
-		Product=v.Unary *
+		Product=v.Unary * __ *
 					(	c(STAR+SLASH+PERCENT+POW) * -ASSIGN *
 						cassert(__ * v.Unary, "right operand expected for arith expr")/t2('binop','op','r')
 					)^0/foldexpr
@@ -961,11 +961,11 @@ local function getModuleMatch()
 				;
 		
 		ValueCore=  
-			(p'\\'*cc('global')+p'@'*cc('upvalue')+cnil) * c(IdentCore) /t2('varacc','vartype','id')
+			(p'\\'*cc('global')+p'&'*cc('upvalue')+cnil) * c(IdentCore) /t2('varacc','vartype','id')
 			+ c(DOTDOTDOT) / t1('varacc','id')
 			+ v.Const
 			+ NIL /function() return nilConst end
-			+ (p'@'*cc(true)+cc(nil))*SELF /t1('self','upvalue')
+			+ (p'&'*cc(true)+cc(nil))*SELF /t1('self','upvalue')
 			+ SUPER  /t0'super'
 			+ v.SeqBody
 			+ v.TableBody

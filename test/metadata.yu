@@ -17,6 +17,72 @@ class DataEntry extends DataBase	@{export, database=[[main]]}
 	end
 end
 
+
+
+@export
+@database('main')
+class DataEntry extends DataBase
+	
+	@unique  field name$ 
+	@mainkey field id#
+
+	@vector  field x,y,z#
+
+	@hidden
+	final method tostring$()
+		return 'id:'..id
+	end
+end
+
+
+class @EditableObject
+	field label$
+
+	field @reference, subobject, hidden
+
+end
+
+
+
+class Tank extends GObject          @{editable}
+	
+	field pilot:Person                @{reference=true, label='Pilot'}
+
+	field ammoType:AmmoType           @{reference=true, label='Ammo Type'}
+	field ammoCount#                  @{label='Ammo Count'}
+
+	field reloadTime#                 @{min=0, max=1}
+
+end
+
+
+@class Editable
+	field reference=false
+	field label$
+	field min,max#
+	field widget='default'
+end
+
+
+class Tank extends GObject
+	
+	@Editable{ reference , label='Pilot' }
+	field pilot:Person
+
+	@Editable{ reference , label='Ammo Type' }
+	field ammoType:AmmoType
+
+	@Editable{ reference , label='Ammo Count' }
+	field ammoCount#
+
+	@Editable{ min=0, max=1 }
+	field reloadTime#
+
+end
+
+local t=Tank()
+local typeinfo = reflect(t) --> return Tank
+
 local e1=DataEntry{
 	id=1,
 	name='John'
