@@ -422,8 +422,9 @@ function requireModule(path)
 	if not m then	
 		--load module
 		-- print('loading module:',path)
-		local f=loadfile(path..'.yo')
+		local f,err=loadfile(path..'.yo')
 		if not f then
+			print(err)
 			return error('Module not load:'..path)
 		end
 		f()
@@ -579,6 +580,7 @@ function traceBack(level)
 end
 
 function convertLuaErrorMsg(msg)
+	return msg
 end
 
 function errorHandler(msg,b)
@@ -590,8 +592,9 @@ function errorHandler(msg,b)
 	if errorInYu then
 		msg=convertLuaErrorMsg(msg)
 	end
-	
-	io.stderr:write(msg,'\n')
+	if msg then
+		io.stderr:write(msg,'\n')
+	end
 	io.stderr:write(traceInfo,'\n')
 end
 

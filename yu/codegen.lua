@@ -1155,7 +1155,7 @@ function generators.new(gen,n)
 			gen','
 			gen(getDeclName(n.constructor))
 		end
-		if n.args then 
+		if n.args and #n.args>0 then 
 			gen',' 
 			codegenList(gen,n.args)
 		end

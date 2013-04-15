@@ -752,7 +752,7 @@ function typeres.call.classmeta(t,n,resolver )
 		else
 			n.constructor=proto
 		end
-	elseif n.args then
+	elseif #n.args>0 then
 		resolver:err(format('class "%s" has no constructor',clas.name),n)
 	end
 	n.type=clas
@@ -906,6 +906,7 @@ end
 
 function resolveCall(t,node,resolver)
 	local tag=t.tag
+	if not node.args then node.args={} end
 	local r=typeres.call[tag]
 	if r and r(t,node,resolver) then return true end
 	resolver:err('cannot invoke type:'..t.name,node)

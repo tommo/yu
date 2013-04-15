@@ -390,7 +390,7 @@ end
 
 function makeDeclRefName(decl,id)
 	if decl.name=='...' then return '...' end
-	local strip=true
+	local strip=false
 	local dtag=(declPrefix[decl.tag] or 'v')
 	local mangle=makeMangle(id)--format('%x',id)
 	if strip then
