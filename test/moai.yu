@@ -22,8 +22,8 @@ class CatHead
 
 		local function mainthread()
 			while true do
-				MOAIThread.blockOnAction ( self.prop.moveRot ( 360, 1.5,nil ))
-				MOAIThread.blockOnAction ( self.prop.moveRot ( -360, 1.5,nil ))
+				MOAIThread.blockOnAction ( self.prop.moveRot ( 360, 1.5))
+				MOAIThread.blockOnAction ( self.prop.moveRot ( -360, 1.5 ))
 			end
 		end
 

@@ -1015,7 +1015,7 @@ local function getModuleMatch()
 		
 	}
 
-	lpeg.setmaxstack(400)
+	lpeg.setmaxstack(800)
 
 	return Module
 end

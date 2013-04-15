@@ -1,5 +1,6 @@
 --MOAI wrapper for YU language
 --Copyright 2012 Tommo Zhou(tommo.zhou@gmail)
+import 'moaiEnum.yu'
 extern
 	class MOAIAction 
 		method clear() -> this:MOAIAction
@@ -468,9 +469,11 @@ extern
 		method setLink(idx#,target:MOAINode,attrID,value,mode#)
 		func new()->MOAIEaseDriver
 	end
-	class MOAIEaseType 
+	
+	-- class MOAIEaseType 
 		
-	end
+	-- end
+
 	class MOAIEnvironment 
 		func getScreenSize() -> width#,height#
 		func isRetinaDisplay() -> isRetinaDisplay:boolean
@@ -749,8 +752,8 @@ extern
 	class MOAINode 
 		method clearAttrLink(attrID#)
 		method setNodeLink(sourceNode:MOAINode)
-		method seekAttr(attrID,goal,length,mode#) -> easeDriver:MOAIEaseDriver
-		method moveAttr(attrID,delta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method seekAttr(attrID,goal,length#,mode:MOAIEaseType) -> easeDriver:MOAIEaseDriver
+		method moveAttr(attrID,delta,length#,mode:MOAIEaseType) -> easeDriver:MOAIEaseDriver
 		method scheduleUpdate()
 		method setAttrLink(attrID#,sourceNode:MOAINode,sourceAttrID#)
 		method forceUpdate()
@@ -1091,26 +1094,26 @@ extern
 		method setLoc(x,y#)
 		method modelToWorld(x,y#) -> x#,y#
 		method addScl(xSclDelta,ySclDelta#)
-		method movePiv(xDelta,yDelta,length,mode#) -> easeDriver:MOAIEaseDriver
-		method seekRot(rGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method movePiv(xDelta,yDelta,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
+		method seekRot(rGoal,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
 		method worldToModel(x,y#) -> x#,y#
-		method moveLoc(xDelta,yDelta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method moveLoc(xDelta,yDelta,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
 		method setRot(rot#)
 		method getLoc() -> xLoc#,yLoc#
 		method addLoc(xDelta,yDelta#)
 		method getPiv() -> xPiv#,yPiv#
 		method getScl() -> xScl#,yScl#
-		method move(xDelta,yDelta,rDelta,xSclDelta,ySclDelta,length,mode#) -> easeDriver:MOAIEaseDriver
-		method seekPiv(xGoal,yGoal,length,mode#) -> easeDriver:MOAIEaseDriver
-		method moveRot(rDelta,length,mode#) -> easeDriver:MOAIEaseDriver
+		method move(xDelta,yDelta,rDelta,xSclDelta,ySclDelta,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
+		method seekPiv(xGoal,yGoal,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
+		method moveRot(rDelta,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
 		method addPiv(xDelta,yDelta#)
 		method setScl(xScl,yScl#)
 		method setParent(parent:MOAINode)
-		method seekLoc(xGoal,yGoal,length,mode#) -> easeDriver:MOAIEaseDriver
-		method seekScl(xSclGoal,ySclGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method seekLoc(xGoal,yGoal,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
+		method seekScl(xSclGoal,ySclGoal,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
 		method setPiv(xPiv,yPiv#)
-		method moveScl(xSclDelta,ySclDelta,length,mode#) -> easeDriver:MOAIEaseDriver
-		method seek(xGoal,yGoal,rGoal,xSclGoal,ySclGoal,length,mode#) -> easeDriver:MOAIEaseDriver
+		method moveScl(xSclDelta,ySclDelta,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
+		method seek(xGoal,yGoal,rGoal,xSclGoal,ySclGoal,length#,mode:MOAIEaseType=nil) -> easeDriver:MOAIEaseDriver
 		method addRot(rDelta#)
 		func new()->MOAITransform
 	end
