@@ -182,7 +182,7 @@ function yigenType(gen, t, typekey)
 			gen:cr()
 			gen'tag = "functype";'
 			gen:cr()
-			gen:appendf('name = %q; ', td.name or '??')
+			gen:appendf('name = %q; ', td.name)
 			--args
 			gen:cr()
 			if next(td.args) then
@@ -404,7 +404,6 @@ function yiloadType(m, t)
 						arg.value=arg.value and trueConst or falseConst
 					end
 				end
-				arg.resolveState='done'
 			end
 
 			local ret=t.rettype

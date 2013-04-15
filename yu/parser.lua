@@ -483,9 +483,11 @@ local function getModuleMatch()
 				
 		ExternFuncDecl=FUNCKW *__* v.ExternFuncBody;
 						
-		ExternFuncBody=	cc(true)*(v.FuncAlias *AS*__ * Ident
+		ExternFuncBody=	cpos(
+						cc(true)*(v.FuncAlias *AS*__ * Ident
 						+cnil*Ident)*
 						v.FuncType/t4('funcdecl','extern','alias','name','type')
+						)
 						;
 						
 		FuncAlias	=(StringS+StringD+IdentCore)*__;
@@ -743,12 +745,12 @@ local function getModuleMatch()
 
 		AbstractMethodDecl =
 								ABSTRACT * __ *
-								v.MethodDeclHeader 
+								cpos(v.MethodDeclHeader)
 							 /function(m) m.abstract=true return m end
 								;
 
 		NormalMethodDecl = (FINAL*cc(true)+cnil) * __ *
-							v.MethodDeclHeader *
+							cpos(v.MethodDeclHeader) *
 							v.FuncBlock / 
 							function(final, m, block)
 								m.final=final

@@ -1125,8 +1125,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 	end
 
 	function post:methoddecl(m,parent)
-		if m.extern then return end
 		post.funcdecl(self,m)
+		if m.extern then return true end --don't check override for extern methods
 
 		local ftype=m.type
 		-- assert(m.block or m.abstract,'abstract?'..m.name)
@@ -1205,8 +1205,6 @@ local	function findHintType(vi,node,parentLevel,keep)
 	end
 	
 	function post:funcdecl(f)
-		if f.extern then return end
-		
 		local rettype=f.type.rettype
 
 		if rettype.tag=='typeref' then
@@ -1223,14 +1221,15 @@ local	function findHintType(vi,node,parentLevel,keep)
 			makeMulRetTypeName(rettype)
 		end
 
-		if not f.hasReturn and rettype.tag~='voidtype' and not f.abstract then
-			self:err('return value(s) expected',f)
-		end
-
 		if not f.type.name then --typeref
 			makeFuncTypeName(f.type)
 		end
 
+		if f.extern or f.abstract then return true end
+
+		if not f.hasReturn and rettype.tag~='voidtype' then
+			self:err('return value(s) expected',f)
+		end
 
 		return true
 	end

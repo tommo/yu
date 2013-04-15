@@ -1,6 +1,5 @@
 --MOAI wrapper for YU language
 --Copyright 2012 Tommo Zhou(tommo.zhou@gmail)
-
 extern
 	class MOAIAction 
 		method clear() -> this:MOAIAction
