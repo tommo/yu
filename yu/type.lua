@@ -739,6 +739,7 @@ function typeres.call.classmeta(t,n,resolver )
 		end
 		resolver:err('class has abstract method(s):'..msg,n.l)
 	end
+
 	local constructor=getClassMemberDecl(clas,'__new',false)
 	if constructor then
 		local proto,noMatch=findCallProto(constructor,n,resolver)		

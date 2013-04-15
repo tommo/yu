@@ -5,58 +5,42 @@ end
 class DataBase
 end
 
-class DataEntry extends DataBase	@{export, database=[[main]]}
+class DataEntry extends DataBas
 	
-	field name$    @{mainkey}
-	field id#      @{mainkey}
+	field name$
+	field id#
 
-	field x,y,z#		@{vector}
+	field x,y,z#
 
-	method tostring$() final @{hidden}
-		return 'id:'..id
-	end
-end
-
-
-
-@export
-@database('main')
-class DataEntry extends DataBase
-	
-	@unique  field name$ 
-	@mainkey field id#
-
-	@vector  field x,y,z#
-
-	@hidden
 	final method tostring$()
 		return 'id:'..id
 	end
 end
 
 
-class @EditableObject
-	field label$
 
-	field @reference, subobject, hidden
-
-end
-
-
-
-class Tank extends GObject          @{editable}
+-- @export
+-- @database('main')
+-- class DataEntry extends DataBase
 	
-	field pilot:Person                @{reference=true, label='Pilot'}
+-- 	@unique  field name$ 
+-- 	@mainkey field id#
 
-	field ammoType:AmmoType           @{reference=true, label='Ammo Type'}
-	field ammoCount#                  @{label='Ammo Count'}
+-- 	@vector  field x,y,z#
 
-	field reloadTime#                 @{min=0, max=1}
+-- 	@hidden
+-- 	final method tostring$()
+-- 		return 'id:'..id
+-- 	end
+-- end
 
+
+class EditableObject
+	field label$
+	field reference, subobject, hidden?
 end
 
-
-@class Editable
+class Property
 	field reference=false
 	field label$
 	field min,max#
@@ -64,18 +48,20 @@ end
 end
 
 
+@Serializable
 class Tank extends GObject
 	
-	@Editable{ reference , label='Pilot' }
+	@Property{reference=true , label='Pilot'}
 	field pilot:Person
 
-	@Editable{ reference , label='Ammo Type' }
+	@Property{reference=true , label='Ammo Type'}
 	field ammoType:AmmoType
 
-	@Editable{ reference , label='Ammo Count' }
+	@Property{reference=true , label='Ammo Count'}
+	@Test
 	field ammoCount#
 
-	@Editable{ min=0, max=1 }
+	@Property{ min=0, max=1 }
 	field reloadTime#
 
 end
@@ -94,3 +80,4 @@ local func test()
 end
 local m=1
 test()
+

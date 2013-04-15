@@ -106,6 +106,11 @@ local function getModuleMatch()
 		return function(v1,v2,v3,v4,v5) return {tag=tag,[k1]=v1,[k2]=v2,[k3]=v3,[k4]=v4,[k5]=v5} end
 	end
 
+	local function t6(tag,k1,k2,k3,k4,k5,k6)
+		assert(k1 and k2 and k3 and k4 and k5 and k6)
+		return function(v1,v2,v3,v4,v5,v6) return {tag=tag,[k1]=v1,[k2]=v2,[k3]=v3,[k4]=v4,[k5]=v5,[k6]=v6} end
+	end
+
 	local function tt(tag,t)
 		return function(...)  return {tag=tag,[t]={...}} end
 	end
@@ -492,11 +497,13 @@ local function getModuleMatch()
 						
 		FuncAlias	=(StringS+StringD+IdentCore)*__;
 		
-		ExternClassDecl=CLASS *__* cc(true)* (v.FuncAlias *AS*__ * Ident
+		ExternClassDecl=
+							v.Annotations * 
+							CLASS *__* cc(true)* (v.FuncAlias *AS*__ * Ident
 							+cnil*Ident) *
 						(EXTENDS * __ * cassert(v.NamedType,'super class name expected')+cnil) *
 							(ct(v.ExternClassItemDecl^0)) *
-						END /t5('classdecl','extern','alias','name','superclassacc','decls')
+						END /t6('classdecl','ann','extern','alias','name','superclassacc','decls')
 						;
 
 		ExternClassItemDecl=
@@ -506,11 +513,13 @@ local function getModuleMatch()
 				+	v.ExternFuncDecl
 				+	v.ConstDecl
 				+	v.EnumDecl
-				+ 	v.CommonDirective
+				+ v.CommonDirective
 
 				;
 				
-		ExternMethodDecl=METHOD *__* v.ExternFuncBody/function(f) f.tag='methoddecl' return f end;
+		ExternMethodDecl=
+			v.Annotations *
+			METHOD *__* v.ExternFuncBody/function(ann, f) f.ann=ann f.tag='methoddecl' return f end;
 					
 		
 	-- #--------------------Flow Control-------------------
@@ -660,7 +669,9 @@ local function getModuleMatch()
 				)
 				;
 			
-		ClassDecl=	CLASS * __ * 
+		ClassDecl=	
+					v.Annotations *
+					CLASS * __ * 
 					cassert(
 						Ident *
 						(ct(LT*__*
@@ -671,10 +682,9 @@ local function getModuleMatch()
 					*
 					(EXTENDS * cassert( __ * v.NamedType,'super class name expected')+cnil) 
 					*
-					v.MetaData *
-						ct( ( __ * v.ClassInnerDecls) ^0 )*
+					ct( ( __ * v.ClassInnerDecls) ^0 )*
 					cassert( __ * END , "unclosed class block")
-					/t5('classdecl','name','tvars','superclassacc','meta','decls')
+					/t5('classdecl','ann','name','tvars','superclassacc','decls')
 					;
 		
 		TVar	=	Ident/t1('tvar','name');
@@ -693,12 +703,12 @@ local function getModuleMatch()
 					/t2('signaldecl','name','args')
 					;
 
-		EnumDecl=	ENUM * cassert( __ * Ident,"enumeration name expected") *
+		EnumDecl=v.Annotations * ENUM * cassert( __ * Ident,"enumeration name expected") *
 					cassert(BOPEN *__* 
 						v.EnumItemList*
 						-- ct( v.EnumItem* ( COMMA *__* v.EnumItem )^0 ) *
 					BCLOSE *__ , "enum items expected")
-					/t2('enumdecl','name','items')
+					/t3('enumdecl','ann','name','items')
 					;
 					
 		EnumItem=	Ident *
@@ -724,8 +734,8 @@ local function getModuleMatch()
 						/ function(vd) vd.vtype='const' return vd end
 						;
 		
-		FieldDecl=	FIELD *__* cpos(v.VarDecl) * v.MetaData
-						/ function(vd,meta) vd.vtype='field' vd.meta=meta return vd end 
+		FieldDecl=	v.Annotations * FIELD *__* cpos(v.VarDecl)
+						/ function(ann, vd ) vd.vtype='field' vd.ann=ann return vd end 
 						;
 
 		VarDecl=	ct(
@@ -740,7 +750,15 @@ local function getModuleMatch()
 						;
 		
 		VarDeclBody= cpos((Ident* (v.TypeTag + cnil) )/t2('var','name','type'));
-						
+
+		AnnotationItem  = cpos(
+								p'@'*__* cassert(Ident, 'annotation class name expected') * __ *
+								(v.SeqBody+v.TableBody+cnil)
+								/t2('annotation', 'name', 'body')
+								)
+								;
+		Annotations = ct(v.AnnotationItem^0);
+
 		MethodDecl	= v.AbstractMethodDecl + v.NormalMethodDecl ;
 
 		AbstractMethodDecl =
@@ -762,8 +780,8 @@ local function getModuleMatch()
 
 		MethodDeclHeader=(METHOD*cnil+OVERRIDE*cc(true)*(__*METHOD)^-1) * __ * 
 						cassert(Ident,"method name/operator expected") *
-						v.FuncType * __ * v.MetaData
-						/t4('methoddecl','override','name','type', 'meta')
+						v.FuncType 
+						/t3('methoddecl','override','name','type')
 						;
 		
 		Operators	=s('+-*/%^<>')+ p'>='+p'<='+p'=='+p'~='+p'as'+p'[]'+p'[]=';

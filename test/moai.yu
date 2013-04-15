@@ -2,7 +2,6 @@ import 'lua/std.lx'
 import 'moai/api.yu'
 
 const FontCharsAlphaNumberic=" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.?!"
-
 class CatHead
 	field prop:MOAIProp2D
 	field thread:MOAIThread
@@ -20,13 +19,12 @@ class CatHead
 
 		layer.insertProp(prop)
 
-		local function mainthread()
+		local function mainthread(a=2, b=3)
 			while true do
 				MOAIThread.blockOnAction ( self.prop.moveRot ( 360, 1.5))
 				MOAIThread.blockOnAction ( self.prop.moveRot ( -360, 1.5 ))
 			end
 		end
-
 		thread = MOAIThread.new ()
 		thread.run (mainthread)
 	end
@@ -67,6 +65,7 @@ class Main
 			<c:0F0>Meow.<c>
 			]] 
 		textbox.spool (false)
+		
 
 		local cathead=CatHead()
 		cathead.init(layer)

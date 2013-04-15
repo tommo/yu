@@ -10,14 +10,22 @@ function getClassAttribute(class, id)
 end
 ]]
 
+#if not debug then
 
 
+@UnitTest
 class Test 
 	field x,y,z#
+	method __new(x=1,y=1)
+	end
 end
+
 
 local a=Test()
 print(a is Test)
+
+
+
 -- local x=Test()
 -- print(getClassAttribute(Test,'good'))
 
@@ -51,3 +59,4 @@ print(a is Test)
 -- end
 
 
+#end
