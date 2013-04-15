@@ -13,8 +13,9 @@ totalResolveTime=0
 totalGenerateTime=0
 
 local _fileBuildTime={}
-
+local allowDepBuild=true
 local function getFileBuildTime(path)
+	if not allowDepBuild then return 0 end
 	if not rawget(_G,'lfs') then
 		return 0
 	end
@@ -302,3 +303,7 @@ function builder:loadCompiledModule(path)
 	return m
 end
 
+
+function build(...) --just a shortcut
+	return newBuilder():build(...)
+end

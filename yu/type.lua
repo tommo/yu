@@ -940,8 +940,12 @@ function resolveCast(t,node,resolver)
 		node.nocast=true
 		return true
 	end
+	if not (t.name)	 or dst.name then
+		table.foreach(t,print)
+		table.foreach(dst,print)
+	end
 
-	resolver:err(format('cannot cast type "%s" into "%s".',t.name,dst.name),node)
+	resolver:err(format('cannot cast type "%s" into "%s".',t.name or '???', dst.name or '???'),node)
 end
 
 function convertToBool(node,resolver)

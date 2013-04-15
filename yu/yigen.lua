@@ -198,7 +198,7 @@ function yigenType(gen, t, typekey)
 							if arg.value then
 								gen:cr()
 								local c=getConstNode(arg.value)
-								gen:appendf('value = %s;', constToString(c))
+								gen:appendf('value = {%s};', constToString(c))
 							end
 						gen:di()
 						gen:cr()
@@ -392,16 +392,18 @@ function yiloadType(m, t)
 				arg.tag='arg'
 				arg.type=yiloadType(m, arg.type)
 				if arg.value then
-					--turn into constNode
-					local tt= type(arg.value)
+					local v=arg.value[1]
+					local tt= type(v)
 					if tt=='nil' then
 						arg.value=nilConst
 					elseif tt=='number' then
-						arg.value=makeNumberConst(arg.value)
+						arg.value=makeNumberConst(v)
 					elseif tt=='string' then
-						arg.value=makeStringConst(arg.value)
+						arg.value=makeStringConst(v)
 					elseif tt=='boolean' then
-						arg.value=arg.value and trueConst or falseConst
+						arg.value=v and trueConst or falseConst
+					else
+						error("FATAL:unsupported arg value type:"..tt)
 					end
 				end
 			end
@@ -411,7 +413,7 @@ function yiloadType(m, t)
 			for i, rt in ipairs(ret) do
 				converted[i]=yiloadType(m,rt.type)
 			end
-			if #converted>0 then
+			if #converted>1 then
 				t.rettype={
 					tag='mulrettype',
 					types=converted
