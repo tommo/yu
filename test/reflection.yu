@@ -17,8 +17,7 @@ class Test
 end
 
 local a=Test()
-print( a.type +1)
-
+print(a is Test)
 -- local x=Test()
 -- print(getClassAttribute(Test,'good'))
 
