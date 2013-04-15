@@ -516,11 +516,14 @@ function codeWriter:append(str,s1,...)
  end
  
  local stringrep = string.rep
- function codeWriter:cr()
+ function codeWriter:cr(noindent)
  	-- if not self.dirty then return end
- 	self:append(
- 		-- '--'..self.__line..
- 		'\n'..stringrep('\t',self.__indent))
+ 	if not noindent then
+	 	self:append(
+	 		'\n'..stringrep('\t',self.__indent))
+	else
+		self:append('\n')
+ 	end
  	self.__line=self.__line+1
  	self.dirty=false
  end

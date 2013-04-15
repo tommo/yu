@@ -23,7 +23,8 @@ end
 
 local a=Test()
 print(a is Test)
-
+a=nil
+print(a.x)
 
 
 -- local x=Test()

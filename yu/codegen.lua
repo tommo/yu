@@ -357,7 +357,10 @@ function generators.rawlua(gen,r)
 	local i=gen.__indent
 	gen.__indent=0
 	gen:cr()
-		gen(r.src)
+	for l in string.gmatch(r.src,'(.-)\r?\n') do
+		gen(l)
+		gen:cr(true) --no indent
+	end
 	gen.__indent=i
 	gen:cr()
 	
