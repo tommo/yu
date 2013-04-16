@@ -27,6 +27,7 @@ extern
 	class TypeInfo
 		method getTag()->string
 		method getName()->string
+		method getAnnotationList()->any[]
 		method isExtern?()
 		method isPrivate?()
 		func '__yu_gettypeinfoN' as getByName(name:string) -> TypeInfo
@@ -79,16 +80,22 @@ local properties={
 
 -- function Property__() = Property(1)
 
-@UnitTest{name = UnitTestName}
+@UnitTest{name = 'Critical Test'}
+@UnitTest{name = 'Another Test'}
+@Property.String
 class Test
 
+	@Property.String
 	field name='joe'
 
 	@Property.String
 	field x,y,z#
 
-	private:
 	method innerMethod1()
+	end
+
+	@Property.String
+	method method2()
 	end
 
 end
@@ -101,6 +108,17 @@ for i, minfo in members do
 end
 assert m.getField('x').getType() is NumberType
 assert m.getField('name').getType() is StringType
+
+for i, a in m.getAnnotationList() do
+	if a is UnitTest then
+		local a1 = a as UnitTest
+		if a1 then
+			print(a1.name)
+		end
+	else
+		print(TypeInfo.getByValue(a).getName())
+	end
+end
 
 local o=Test()
 m.getField('x').setValue(o, 10)

@@ -269,8 +269,8 @@ function TypeInfo:isPrivate()
 	return self.private or false
 end
 
-function TypeInfo:getAnnotations()
-	return self.anns
+function TypeInfo:getAnnotationList()
+	return self.annotaions or nil
 end
 
 
@@ -360,7 +360,8 @@ function MemberInfo:getMemberType()
 	return self.mtype
 end
 
-function MemberInfo:getAnnotations()
+function MemberInfo:getAnnotationList()
+	return self.annotaions or nil
 end
 
 local FieldInfo={}
@@ -482,16 +483,23 @@ function addReflection(rtype, decl, name, info, memberInfo)
 	reflectionRegistryN[name]=r
 end
 
-function addAnnotation(decl, value)
-	--get rtti of decl, add annoation
-	local rtti=getRtti(decl)
-	local anns=rtti.__annotations 
-	if not anns then
-		anns = {value}
-		rtti.__annotations = anns
-	else
-		insert(anns,value)
+function addAnnotation(name, ann)
+	local r=reflectionRegistryN[name]
+	assert(r)
+	
+	--member
+	if r:getTag()=='class' then
+		local members=r.members
+		for k,a in pairs(ann) do
+			if k==1 then
+				r.annotaions=a
+			else
+				local m=r:getMember(k)
+				m.annotaions=a 
+			end
+		end
 	end
+
 end
 
 

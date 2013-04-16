@@ -769,15 +769,16 @@ local function getModuleMatch()
 		MethodDecl	= v.AbstractMethodDecl + v.NormalMethodDecl ;
 
 		AbstractMethodDecl =
-								ABSTRACT * __ *
+								v.Annotations *  ABSTRACT * __ *
 								cpos(v.MethodDeclHeader)
-							 /function(m) m.abstract=true return m end
+							 /function(ann, m) m.ann=ann m.abstract=true return m end
 								;
 
-		NormalMethodDecl = (FINAL*cc(true)+cnil) * __ *
+		NormalMethodDecl = v.Annotations * (FINAL*cc(true)+cnil) * __ *
 							cpos(v.MethodDeclHeader) *
 							v.FuncBlock / 
-							function(final, m, block)
+							function(ann, final, m, block)
+								m.ann=ann
 								m.final=final
 								m.block=block
 								return m

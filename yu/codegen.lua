@@ -79,7 +79,7 @@ end
 
 local function doCodegen( node, parentGen )
 	local gen=newCodeWriter()
-
+	gen.__annotationNodes={}
 	if parentGen then
 		gen.parent=parentGen
 		gen.__indent=parentGen.__indent
@@ -174,6 +174,7 @@ end
 
 local function genClassReflection(gen, c)
 	--TODO: generate reflection for static member
+	local hasAnnotation=c.ann and #c.ann>0
 	gen:appendf("__yu_addreflection('class', %s, %q, ", c.refname, c.name)
 		gen:ii() gen:ii() gen:cr()
 		--class typeinfo
@@ -199,6 +200,7 @@ local function genClassReflection(gen, c)
 		gen"{" gen:ii()
 			for k, d in pairs(c.scope) do
 				if not d.private then
+					hasAnnotation=hasAnnotation or (d.ann and #d.ann>0)
 					local tag=d.tag
 					if tag=='var' then
 						if d.vtype=='field' then
@@ -217,10 +219,14 @@ local function genClassReflection(gen, c)
 		gen")"
 	gen:di() 
 	gen:cr()
-
+	
+	if hasAnnotation then
+		gen.__annotationNodes[c]=true
+	end
 end
 
 local function genEnumReflection(gen,e)
+
 	gen:appendf("__yu_addreflection('enum', %s, %q, ", e.refname, e.name)
 		gen:ii() gen:ii() gen:cr()
 		--enum typeinfo
@@ -249,6 +255,10 @@ local function genEnumReflection(gen,e)
 		gen")"
 	gen:di() 
 	gen:cr()
+
+	if e.ann and #e.ann>0 then
+		gen.__annotationNodes[e]=true
+	end
 end
 
 local function genNodeReflection(gen, node)
@@ -268,6 +278,43 @@ local function genReflection(gen, m)
 		end
 	end
 end
+
+local function genAnnotation(gen, ann, key)
+	if not ann or #ann==0 then return end
+	if key then
+		gen:appendf("%s =",key)
+	end
+
+	gen"{" gen:ii()
+	for i,a in ipairs(ann) do
+		gen:cr()
+		codegen(gen, a.value)
+		gen","
+	end
+	gen:di() gen:cr()
+	gen"};"
+	gen:cr()
+end
+
+local function genAnnotationLoader(gen,m)
+	for d in pairs(gen.__annotationNodes) do
+		local tag=d.tag
+		gen:cr()
+		gen:appendf('__yu_addannotation(%q, {', d.name)
+		gen:ii() gen:cr()
+			--self annotations
+			genAnnotation(gen, d.ann)
+			if tag=='classdecl' then
+				for k, m in pairs(d.scope) do
+					genAnnotation(gen, m.ann, k)
+				end
+			-- elseif tag=='enumdecl' then
+			end
+		gen:di() gen:cr()
+		gen'})'
+	end
+end
+----------------------------------
 
 function generators.module(gen,m)
 	currentModule=m
@@ -363,6 +410,18 @@ function generators.module(gen,m)
 	gen'end'
 	gen:cr()
 
+	---------------reflection pass
+	gen:cr()
+	gen"-------reflection data------"
+	gen:cr()
+	gen('function __yu_module_reflection()')
+		gen:ii()
+		gen:cr()
+			genReflection(gen,m)
+		gen:di()
+		gen:cr()
+	gen'end'
+	gen:cr()
 
 	gen:cr()
 	gen"-------module entry------"
@@ -392,35 +451,23 @@ function generators.module(gen,m)
 			codegen(gen,g)
 			gen:cr()
 		end
-		-- gen"----init annotations----"
-		-- gen:cr()
-		-- for i, n in ipairs(gen.__annotations) do
-		-- 	local node, anns=n[1],n[2]
-		-- 	for i,a in ipairs(anns) do
-		-- 		gen:appendf('__yu_annotation')
-		-- 		codegen(gen, a.value)
-		-- 	end
-		-- end
 
+
+		gen:cr()
+		gen"----init annotations----"
+		gen:cr()
+		
+		genAnnotationLoader(gen, m)
+
+		gen:cr()
+		gen'---start module---'
+		gen:cr()
 		gen'return __yu_main(...)'
 		gen:di()
 		gen:cr()
 	gen'end'
 	gen:cr() 
 	--end of moudle_entry---
-
-	gen:cr()
-	gen"-------reflection data------"
-	gen:cr()
-	gen('function __yu_module_reflection()')
-		gen:ii()
-		gen:cr()
-			genReflection(gen,m)
-		gen:di()
-		gen:cr()
-	gen'end'
-	gen:cr()
-
 
 	gen:cr()
 	gen:appendf("--------forward class creation------")
