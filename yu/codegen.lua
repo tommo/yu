@@ -220,8 +220,35 @@ local function genClassReflection(gen, c)
 
 end
 
-local function genEnumReflection(gen,f)
+local function genEnumReflection(gen,e)
+	gen:appendf("__yu_addreflection('enum', %s, %q, ", e.refname, e.name)
+		gen:ii() gen:ii() gen:cr()
+		--enum typeinfo
+		gen"{" gen:ii()
+			if e.private then
+				gen:cr()
+				gen:appendf('private = true,')
+			end
+			if e.extern then
+				gen:cr()
+				gen:appendf('extern = true,')
+			end
+			--TODO:annotation goes here?
+		gen:di() gen:cr()	gen"},"
+		gen:cr()
 
+		--items typeinfo
+		gen"{" gen:ii()
+			for i, item in ipairs(e.items) do
+				gen:cr()
+				gen:appendf('{%q , %d},', item.name, item.value.v)				
+			end
+		gen:di() gen:cr()	gen"}"
+		gen:di()
+		gen:cr()
+		gen")"
+	gen:di() 
+	gen:cr()
 end
 
 local function genNodeReflection(gen, node)

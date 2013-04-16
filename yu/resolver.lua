@@ -973,13 +973,18 @@ local	function findHintType(vi,node,parentLevel,keep)
 		e.valuetype=true
 	end
 	
+
+	local function checkInteger(v)
+		return math.floor(v)==v
+	end
+
 	function post:enumitem(i,e)
 		
 		if i.value then
 			local v=getConstNode(i.value)
 			i.value=v
-			if not v or getType(v).tag~='numbertype' then 
-				self:err('enum item must be numeric constant') 
+			if not v or getType(v).tag~='numbertype' or checkInteger(v.v) then
+				self:err('enum item must be integer constant', i)				
 			end
 			e.currentValue=v
 		else

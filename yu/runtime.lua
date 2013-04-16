@@ -8,16 +8,8 @@ local newproxy=newproxy
 local type=type
 
 module("yu.runtime",package.seeall)
-------------BultinType helpers
--- local function makeClass(super)
--- 	local proto,mt={},{}
--- 	mt.__index=proto
--- 	mt.__super=super or false
--- 	if super then setmetatable(proto, {__index=super}) end
--- 	return proto, mt
--- end
-local builtinSymbols,runtimeIndex
-builtinSymbols={}
+
+-------------------------@CLASS
 
 local classMT={}
 
@@ -55,6 +47,57 @@ local function newClass( name, classDecl ,superClass, body) --needed by builtin 
 	return classDecl
 end
 
+local proxygc=function(p)
+	local t=getmetatable(p).__index
+	local c=getmetatable(t)
+	while c do
+		local f=c.__finalize
+		if f then f(t) end
+		c=c.__super
+	end
+end
+
+local function makefinalizer(t)
+	local p=newproxy(true)
+	local mt=getmetatable(p)
+	mt.__index=t
+	mt.__newindex=t
+	mt.__gc=proxygc
+	return p
+end
+
+local function callInit(clas,obj)
+	local super=clas.__super
+	if super then callInit(super,obj) end
+	local init=clas.__index.__init
+	if init then
+		init(obj)
+	end
+end
+
+function newObject(clas,obj, constructor, ...)
+	setmetatable(obj,clas)
+	callInit(clas,obj)
+
+	if constructor then		
+		constructor(obj,...)	
+	else
+		setmetatable(obj,clas)
+	end
+
+	return obj
+	-- if finalizer then
+	-- 	return makefinalizer(obj)
+	-- else
+	-- 	return obj
+	-- end
+end
+
+
+------------@BultinType helpers
+local builtinSymbols,runtimeIndex
+builtinSymbols={}
+--------------
 
 function registerBuiltinClass(name,superclass, body )
 	if superclass then
@@ -83,7 +126,7 @@ function registerBultinFunction(name, func)
 	return func
 end
 
------------TYPE
+-----------@TYPE
 
 function getType(v)
 	local t= type(v)
@@ -140,7 +183,7 @@ function cast(obj,t)
 	return isType(obj,t) and obj or nil
 end
 
------------SIGNAL
+-----------@SIGNAL
 local signalConnectionTable={}
 local next=next
 
@@ -200,56 +243,7 @@ function signalConnect(signal,sender,slot,receiver )
 end
 
 
-
--------------------------@CLASS
-local proxygc=function(p)
-	local t=getmetatable(p).__index
-	local c=getmetatable(t)
-	while c do
-		local f=c.__finalize
-		if f then f(t) end
-		c=c.__super
-	end
-end
-
-local function makefinalizer(t)
-	local p=newproxy(true)
-	local mt=getmetatable(p)
-	mt.__index=t
-	mt.__newindex=t
-	mt.__gc=proxygc
-	return p
-end
-
-local function callInit(clas,obj)
-	local super=clas.__super
-	if super then callInit(super,obj) end
-	local init=clas.__index.__init
-	if init then
-		init(obj)
-	end
-end
-
-function newObject(clas,obj, constructor, ...)
-	setmetatable(obj,clas)
-	callInit(clas,obj)
-
-	if constructor then		
-		constructor(obj,...)	
-	else
-		setmetatable(obj,clas)
-	end
-
-	return obj
-	-- if finalizer then
-	-- 	return makefinalizer(obj)
-	-- else
-	-- 	return obj
-	-- end
-end
-
-
--------------------------REFLECTION
+-------------------------@REFLECTION
 --[[
 	
 ]]
@@ -262,6 +256,11 @@ function TypeInfo:getName()
 	return self.name
 end
 
+function TypeInfo:getTag()
+	return 'type'
+end
+
+
 function TypeInfo:isExtern()
 	return self.extern or false
 end
@@ -270,25 +269,16 @@ function TypeInfo:isPrivate()
 	return self.private or false
 end
 
-
-
 function TypeInfo:getAnnotations()
 	return self.anns
 end
 
-function TypeInfo:getMemberList()
-	return self.members
-end
-
-function TypeInfo:getMember(name)
-	for i,v in ipairs(self.members) do
-		if v.name==name then return v end
-	end
-	return nil
-end
-
 
 local ClassInfo={}
+function ClassInfo:getTag()
+	return 'class'
+end
+
 function ClassInfo:getSuperClass()
 	if not self.decl then return nil end
 	local s=self.decl.__super
@@ -311,6 +301,18 @@ function ClassInfo:getSubClassList()
 	end
 end
 
+
+function ClassInfo:getMemberList()
+	return self.members
+end
+
+function ClassInfo:getMember(name)
+	for i,v in ipairs(self.members) do
+		if v.name==name then return v end
+	end
+	return nil
+end
+
 function ClassInfo:getField(name)	
 	local m=self:getMember(name)
 	if m.mtype=='field' then return m end
@@ -323,6 +325,26 @@ function ClassInfo:getMethod(name)
 	return nil
 end
 
+----Enum
+local EnumInfo={}
+function EnumInfo:getTag()
+	return 'enum'
+end
+
+function EnumInfo:getItem(name)
+	for i, n in ipairs(self.items) do
+		if n[1]==name then return n[2] end
+	end
+	return nil
+end
+
+function EnumInfo:getItemTable()
+	local t={}
+	for i, n in ipairs(self.items) do
+		t[n[1]]=n[2]
+	end
+	return t
+end
 
 -----MemberInfo
 local MemberInfo={}
@@ -343,16 +365,31 @@ end
 
 local FieldInfo={}
 function FieldInfo:getType()
+	local t=self.type
+	local info=reflectionRegistryN[t]
+	if info then
+		return info
+	elseif t:find('func(')==1 then
+		--todo
+		error('todo:func typeinfo')
+	end
+	error('todo:other typeinfo:'..t)
 end
 
 function FieldInfo:getValue(obj)
+	--todo: typecheck?
+	return obj[self.name]
 end
 
-function FieldInfo:setValue(obj)
+function FieldInfo:setValue(obj,v)
+	--todo: typecheck?
+	obj[self.name]=v
 end
 
 local MethodInfo={}
-function MethodInfo:invoke(obj, arg)
+function MethodInfo:invoke(obj, ...)
+	local m=obj[self.name]
+	if m then return m(obj, ...) end
 end
 
 function MethodInfo:getRetType()
@@ -366,13 +403,30 @@ function ArgInfo:getType()
 end
 
 local TypeInfoClass = registerBuiltinClass("TypeInfo", nil, TypeInfo)
-local ClassInfoClass = registerBuiltinClass("ClassInfo", TypeInfoClass, ClassInfo)
--- local EnumInfoClass = registerBuiltinClass("EnumInfo", nil, EnumInfo)
+local ClassInfoClass = registerBuiltinClass("ClassType", TypeInfoClass, ClassInfo)
+local EnumInfoClass = registerBuiltinClass("EnumType", TypeInfoClass, EnumInfo)
 
 local MemberInfoClass =registerBuiltinClass("MemberInfo",nil,MemberInfo)
 local FieldInfoClass =registerBuiltinClass("FieldInfo",MemberInfoClass,FieldInfo)
 local MethodInfoClass =registerBuiltinClass("MethodInfo",MemberInfoClass,MethodInfo)
 local ArgInfoClass =registerBuiltinClass("ArgInfo",nil,ArgInfo)
+
+local function registerValueTypeInfo(name,clasname)
+	local body={}
+	function body:getTag()
+		return name
+	end
+	local clas=registerBuiltinClass(clasname, TypeInfoClass, body)
+	reflectionRegistryN[name]=setmetatable({},clas)
+end
+
+registerValueTypeInfo("number","NumberType")
+registerValueTypeInfo("string","StringType")
+registerValueTypeInfo("boolean","BooleanType")
+registerValueTypeInfo("nil","NilType")
+
+--basic types
+
 
 -------static helpers
 
@@ -419,10 +473,8 @@ function addReflection(rtype, decl, name, info, memberInfo)
 		r.members=memberInfo
 		setmetatable(r, ClassInfoClass)
 	elseif rtype=='enum' then
-		r.extern=info.extern
-		r.private=info.private
-		r.members=memberInfo
-		setmetatable(r, TypeInfoClass)
+		r.items=memberInfo
+		setmetatable(r, EnumInfoClass)
 	end
 	if decl then
 		reflectionRegistryV[decl]=r
@@ -444,7 +496,7 @@ end
 
 
 
--------------------------COROUTINE
+-------------------@COROUTINE
 
 local generatorPool={}
 -- local generatorFuncs={}
@@ -530,7 +582,7 @@ function signalWait(sig,sender)
 	return waitInner(yield())
 end
 	
--------------------------TRY-CATCH
+--------------------@TRY-CATCH
 local coroCreate=coroutine.create
 local coroStatus=coroutine.status
 local coroResume=coroutine.resume
@@ -613,7 +665,7 @@ function doTry(func)
 end
 
 
--------------MODULE
+-------------@MODULE
 local moduleTable={}
 
 function requireModule(path)
@@ -712,7 +764,7 @@ function module(path)
 end
 
 
----------------Lua Debug Injections---
+---------------@Lua Debug Injections---
 local function findLine(lineOffset,pos)
 	local off0=0
 	local l0=0
@@ -825,7 +877,7 @@ function errorHandler(msg,b)
 end
 
 
-------------------------------
+----------------------@Entry Interfaces
 local _dofile=dofile
 function run(file,...) --yu module launcher
 	return xpcall(function(...)

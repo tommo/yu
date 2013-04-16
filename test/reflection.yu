@@ -3,14 +3,16 @@ extern
 	func print(...*)
 	
 	class MemberInfo
-		method getName$()
-		method getMemberType$()
+		method getName()->string
+		method getMemberType()->string
 		method getAnnotationList()->any[]
 		method isPrivate?()
 	end
 
 	class FieldInfo extends MemberInfo
 		method getType()->TypeInfo
+		method getValue(obj:any) -> any
+		method setValue(obj:any, value:any)
 	end
 
 	class MethodInfo extends MemberInfo
@@ -23,25 +25,38 @@ extern
 	end
 
 	class TypeInfo
-		method getName$()
+		method getTag()->string
+		method getName()->string
 		method isExtern?()
 		method isPrivate?()
+		func '__yu_gettypeinfoN' as getByName(name:string) -> TypeInfo
+		func '__yu_gettypeinfoV' as getByValue(value:any) -> TypeInfo
+	end
+
+	class ClassType extends TypeInfo
+		method getSuperClass()->ClassType
+		method getSubClassList()->ClassType[]
 
 		method getMemberList()->MemberInfo[]
-		method getMember(name$)->MemberInfo
-		
-		func '__yu_gettypeinfoN' as getByName(name$) -> TypeInfo
-		func '__yu_gettypeinfoV' as getByValue(value*) -> TypeInfo
+		method getMember(name:string)->MemberInfo
+
+		method getMethod(name:string)->MethodInfo
+		method getField(name:string)->FieldInfo
 	end
 
-	class ClassInfo extends TypeInfo
-		method getMethod(name$)->MemberInfo
-		method getField(name$)->MemberInfo
-		method getSuperClass()->ClassInfo
-		method getSubClassList()->ClassInfo[]
+	class EnumType extends TypeInfo
+		method getItem(name:string)-> number
+		method getItemTable() -> number[string]
 	end
+
+	class NumberType extends TypeInfo	end
+	class StringType extends TypeInfo	end
+	class BooleanType extends TypeInfo end
+	class NilType extends TypeInfo end
 
 end
+
+enum State{OK=-3, DONE=-1,XXX,ZZZ}
 
 const UnitTestName='shit'
 
@@ -67,11 +82,10 @@ local properties={
 @UnitTest{name = UnitTestName}
 class Test
 
+	field name='joe'
+
 	@Property.String
 	field x,y,z#
-
-	method __new(x#,y=1)
-	end
 
 	private:
 	method innerMethod1()
@@ -80,9 +94,25 @@ class Test
 end
 
 
-local m=TypeInfo.getByName('Test')
-print(m.getName(), m.isExtern())
+local m = TypeInfo.getByName('Test') as ClassType
 local members=m.getMemberList()
 for i, minfo in members do
 	print('member:', minfo.getMemberType(), minfo.getName(), minfo.isPrivate())
 end
+assert m.getField('x').getType() is NumberType
+assert m.getField('name').getType() is StringType
+
+local o=Test()
+m.getField('x').setValue(o, 10)
+print(o.x)
+
+local e=TypeInfo.getByName('State') as EnumType
+for k,v in e.getItemTable() do
+	print(k,v)
+end
+
+assert e.getItem('OK')==-3
+
+assert e.getTag()=='enum'
+assert m.getTag()=='class'
+

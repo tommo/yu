@@ -712,9 +712,10 @@ local function getModuleMatch()
 					/t3('enumdecl','ann','name','items')
 					;
 					
-		EnumItem=	Ident *
+		EnumItem=	cpos(Ident *
 					(ASSIGN * cassert( __ * v.Expr,"expression expected") + cnil)
 					/t2('enumitem','name','value')
+					)
 					;
 		
 		EnumItemList=ct(
