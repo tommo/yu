@@ -306,6 +306,7 @@ paths={
 	
 	vardecl=function(vi,vd)
 		visitEachNode(vi,vd.vars)
+		if vd.ann then visitEachNode(vi,vd.ann) end
 		-- if vd.values then return visitEachNode(vi,vd.values) end
 	end,
 
@@ -316,7 +317,8 @@ paths={
 	end,
 	
 	var=function(vi,v)
-		if v.type then visitNode(vi,v.type) end
+		if v.type then visitNode(vi,v.type) end		
+		if v.ann then visitEachNode(vi,v.ann) end
 		if v.value then return visitNode(vi,v.value) end
 	end,
 	
@@ -326,7 +328,8 @@ paths={
 	end,
 	
 	enumdecl=function(vi,e)
-		return visitEachNode(vi,e.items)
+		visitEachNode(vi,e.items)
+		return visitEachNode(vi,e.ann)
 	end,
 	
 	enumitem=function(vi,v)
@@ -337,13 +340,13 @@ paths={
 		if c.superclassacc then
 			visitNode(vi,c.superclassacc)
 		end
-
 		if c.tvars then
 			visitEachNode(vi,c.tvars)
 		end
 		if c.decls then
-			return visitEachNode(vi,c.decls)
+			visitEachNode(vi,c.decls)
 		end
+		return visitEachNode(vi,c.ann)
 	end,
 	
 	methoddecl=function(vi,m)
@@ -352,6 +355,7 @@ paths={
 		
 		visitNode(vi,m.type)
 		if m.block then visitNode(vi,m.block) end
+		if m.ann then visitEachNode(vi,m.ann) end
 		
 		vi.currentFunc=pf
 	end,
@@ -467,6 +471,10 @@ paths={
 	
 	extern=function(vi,ex)
 		return visitEachNode(vi,ex.decls)
+	end,
+
+	annotation=function(vi, a)
+		visitNode(vi, a.value)
 	end,
 	
 	-- externfunc=function(vi,f)

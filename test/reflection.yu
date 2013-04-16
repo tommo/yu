@@ -1,30 +1,54 @@
 private:
 extern
 	func print(...*)
-end
-
-__Lua[[
-function getClassAttribute(class, id)
-	local attr=class.__classAttr
-	return attr and attr[id]
-end
-]]
-
-#if not debug then
-
-
-@UnitTest
-class Test 
-	field x,y,z#
-	method __new(x=1,y=1)
+	class File
 	end
 end
 
+__Lua[[
+		function getClassAttribute(class, id)
+			local attr=class.__classAttr
+			return attr and attr[id]
+		end
+]]
 
-local a=Test()
+const UnitTestName='shit'
+
+class UnitTest
+	field name$
+end
+
+class Property
+	global Number=Property{type='number'}
+	global Object=Property{type='object'}
+	global String=Property{type='string'}
+
+	field type$
+end
+
+local properties={
+	['Number']=Property{type='number'},
+	['Object']=Property{type='object'},
+}
+
+
+
+-- function Property__() = Property(1)
+
+@UnitTest{name = UnitTestName}
+class Test
+
+	@Property.String
+	field x,y,z#
+
+	method __new(x#,y=1)
+	end
+
+end
+
+
+local a=Test(1)
 print(a is Test)
-a=nil
-print(a.x)
 
 
 -- local x=Test()
@@ -60,4 +84,3 @@ print(a.x)
 -- end
 
 
-#end

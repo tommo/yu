@@ -27,19 +27,13 @@ local codegen,codegenList
 local insert=table.insert
 
 local function isExposable(n)
-	-- if n.extern then return false end
 	local tag=n.tag
-	-- if tag=='var' or tag=='vardecl' then
-	-- 	local vtype=n.vtype
-	-- 	return vtype=='global'
-	-- else
-		return 
-			(tag=='funcdecl' and not n.localfunc)
-			or (tag=='methoddecl' and not n.extern and not n.abstract)
-			or tag=='classdecl'
-			or tag=='enumdecl'
-			or tag=='signaldecl'
-	-- end
+	return 
+		(tag=='funcdecl' and not n.localfunc)
+		or (tag=='methoddecl' and not n.extern and not n.abstract)
+		or tag=='classdecl'
+		or tag=='enumdecl'
+		or tag=='signaldecl'
 end
 
 local function printMetadata(m)
@@ -76,11 +70,13 @@ end
 
 local function doCodegen( node, parentGen )
 	local gen=newCodeWriter()
+
 	if parentGen then
 		gen.parent=parentGen
 		gen.__indent=parentGen.__indent
 		gen.__level=parentGen.__level+1
 	end
+
 	codegen(gen,node)
 	return gen
 end
@@ -124,9 +120,6 @@ local function makeReferLink(gen,d,from)
 	end
 end
 
-local function genInterfaceDescription(gen,m)
-end
-
 local function genDebugInfo(gen,m)
 	gen'__yu__debuginfo={'
 	gen:ii()
@@ -164,6 +157,23 @@ local function genDebugInfo(gen,m)
 	gen:cr()
 	gen'}'
 	gen:cr()
+end
+
+local function genClassReflection(gen, c)
+end
+
+local function genFuncReflection(gen,f)
+end
+
+local function genEnumReflection(gen,f)
+end
+
+local function genDeclReflection(gen, m)
+end
+
+local function genReflection(gen, m)
+	-- reg: reflection registry
+	
 end
 
 function generators.module(gen,m)
@@ -282,25 +292,47 @@ function generators.module(gen,m)
 			codegen(gen,g)
 			gen:cr()
 		end
+		-- gen"----init annotations----"
+		-- gen:cr()
+		-- for i, n in ipairs(gen.__annotations) do
+		-- 	local node, anns=n[1],n[2]
+		-- 	for i,a in ipairs(anns) do
+		-- 		gen:appendf('__yu_annotation')
+		-- 		codegen(gen, a.value)
+		-- 	end
+		-- end
+
 		gen'return __yu_main(...)'
 		gen:di()
 		gen:cr()
-		gen'end'
-		gen:cr()
-		
+	gen'end'
+	gen:cr() 
+	--end of moudle_entry---
 
+	gen:cr()
+	gen"-------reflection data------"
+	gen:cr()
+	gen('function __yu_module_reflection(reg)')
+		gen:ii()
 		gen:cr()
-		gen:appendf("--------forward class creation------")
+			genReflection(gen,m)
+		gen:di()
 		gen:cr()
-		for i,s in ipairs(classDecls) do
-			if not s.extern then
-				gen:appendf('%s = {}',getDeclName(s))
-				gen:cr()
-			end
+	gen'end'
+	gen:cr()
+
+
+	gen:cr()
+	gen:appendf("--------forward class creation------")
+	gen:cr()
+	for i,s in ipairs(classDecls) do
+		if not s.extern then
+			gen:appendf('%s = {}',getDeclName(s))
+			gen:cr()
 		end
-		gen:cr()
+	end
+	gen:cr()
 
-	
 	gen:appendf("--------debug info------")
 	gen:cr()	
 	genDebugInfo(gen,m)		
@@ -692,16 +724,6 @@ end
 
 function generators.var(gen,v)
 	gen(getDeclName(v))
-	-- gen(v.name)
-	-- local vtype=v.vtype
-	-- if vtype=='local' then
-		-- return v.name
-	-- elseif vtype=='global' then --TODO:get full spaced name
-		-- return v.fullname
-	-- elseif vtype=='field' then
-		-- return v.name
-	-- end
-	
 end
 
 function generators.arg(gen,a)
@@ -709,21 +731,18 @@ function generators.arg(gen,a)
 		gen'...' 
 	else
 		gen(getDeclName(a))
-		-- gen(a.name)
 	end
 end
 
 function generators.enumdecl(gen,e)
 	-- --todo:assign default const value
 	gen:appendf('%s={}',getDeclName(e))
-	--TODO:Meta info
 end
 
 function generators.enumitem(gen,e)
 	-- if e.value then resolve(e.value) end
 	-- --todo:typecheck
 end
-
 
 
 local function defaultFieldBody(gen,c)
@@ -777,8 +796,7 @@ end
 
 
 
-function generators.classdecl(gen,c)
-	--TODO:Metadata
+function generators.classdecl(gen,c)	
 	if c.extern then
 		gen:appendf('%s = __yu_extern%q',getDeclName(c),c.alias or c.externname)
 		for i,s in ipairs(c.decls) do
@@ -790,22 +808,17 @@ function generators.classdecl(gen,c)
 	end
 	local cons=false
 	
-	local attributes={}
-
+	
 	for i,s in ipairs(c.decls) do
 		if isExposable(s) then
 			if s.name=='__new' then 
 				cons=s
 			end
 			codegen(gen,s)
-
 		elseif s.vtype=='global' then 
 			insert(gen.classGlobalVars,s)
 		end
-
-		if s.meta then
-			attributes[s]=s.meta
-		end
+		
 	end
 
 	gen:cr()
@@ -827,41 +840,8 @@ function generators.classdecl(gen,c)
 		end
 	end
 	gen:di()
-	gen'},'
-	--attribute goes here
+	gen'}'
 	
-	if c.meta then
-		genConstTable(gen,c.meta)
-	else
-		gen'false'
-	end
-	
-	gen','
-	if next(attributes) then
-		gen'{'
-		for decl,attr in pairs(attributes) do
-			
-			if decl.tag=='vardecl' then --spread?
-				local vars=decl.vars
-				local var1=vars[1]
-				gen:appendf('%s=',var1.name)
-				genConstTable(gen,attr)
-				gen','
-				for i=2, #vars do
-					local var=vars[i]
-					gen:appendf('%s=%q,',var.name,var1.name)
-				end
-			else
-				gen:appendf('%s=',decl.name)
-				genConstTable(gen,attr)
-				gen','
-			end
-
-		end
-		gen'}'
-	else
-		gen'false'
-	end
 	gen')'
 	gen:cr()	
 end
@@ -911,79 +891,6 @@ function generators.funcdecl(gen,f)
 	codegen(gen,f.block)
 	gen'end'
 	
-	-- end
-
-	-- local gen1 = doCodegen(f.block, gen)
-	-- if false and next(gen1.exposeDecls) or next(gen1.referedDecls) then --need loader
-	-- 	gen:cr()
-	-- 	gen:appendf('function __YU_LOADER.%s()',f.refname)
-	-- 	gen:cr()
-		-- for d in pairs(gen1.exposeDecls) do
-		-- 	codegen(gen,d)
-		-- end
-	-- 	local reflist
-	-- 	for d in pairs(gen1.referedDecls) do
-			
-	-- 		local name=getDeclName(d)
-
-	-- 		if reflist then
-	-- 			reflist=reflist..','..name
-	-- 		else
-	-- 			reflist=name
-	-- 		end
-	-- 	end
-		
-	-- 	if reflist then 
-	-- 		gen:cr()
-	-- 		gen('local '..reflist) 
-	-- 	end
-
-	-- 	gen:cr()
-	-- 	gen'local func=function'
-	-- 	gen'('
-	-- 		if f.tag=='methoddecl' then 
-	-- 			gen 'self'
-	-- 			if #f.type.args>0 then gen',' end
-	-- 		end
-	-- 		codegenList(gen,f.type.args)
-	-- 	gen')'
-
-	-- 	gen(gen1:tostring())
-
-	-- 	gen'end ;'	
-	-- 	gen:cr()
-	-- 	gen:appendf('__YU_LOADED.%s = func',f.refname)
-	-- 	--load refered symbol
-	-- 	--todo: extern symbols
-
-		-- local expose1=makeDeclList(gen1.exposeDecls)
-		-- local refer=gen1.referedDecls
-
-		-- local refer1=makeDeclList(gen1.referedDecls)
-		-- for _,d in ipairs(refer1) do
-		-- 	makeReferLink(gen,d,f)
-		-- end
-
-	-- 	gen:cr()
-	-- 	gen'return func'
-	-- 	gen:cr()
-	-- 	gen'end'
-	-- else --no loader needed
-		-- gen:cr()
-		-- gen:appendf('%s =',f.refname)
-		-- gen'function'
-		-- gen'('
-		-- 	if f.tag=='methoddecl' then 
-		-- 		gen 'self'
-		-- 		if #f.type.args>0 then gen',' end
-		-- 	end
-		-- 	codegenList(gen,f.type.args)
-		-- gen')'
-
-		-- gen(gen1:tostring())
-
-		-- gen'end ;'	
-	-- end
 end
 
 
@@ -1354,29 +1261,11 @@ end
 --------------------EXTERN
 function generators.extern(gen,e)
 	--TODO:!!!!
-	
 	for i,s in ipairs(e.decls) do
 		if isExposable(s) then 	gen:expose(s) end
 	end
-	
 end
 
--- function generators.externfunc(gen,f)
--- 	--TODO:!!!!
--- 	gen:cr()
--- 	gen:appendf('__YU_LOADED.%s =',f.refname)
--- 	gen:appendf('__YU_EXTERN(%q)',f.fullname)
--- end
-
--- function generators.externclass(gen,c)
--- 	--TODO:!!!!
--- 	return generators.classdecl(gen,c)
--- end
-
--- function generators.externmethod(gen,m)
--- 	--TODO:!!!!
--- 	return generators.externfunc(gen,m)
--- end
 local function generateModule(m)
 	local gen=doCodegen(m)
 	local output=gen:tostring()
@@ -1395,22 +1284,14 @@ local function generateAllModule(m ,generated)
 	return output
 end
 
+
 local function generateFullCode(entry)
 	local header='require"yu.runtime"\n'
 	local code=generateAllModule(entry)
-	code=header..code
-	-- local header=string.format(
-	-- 	"require('yu.runtime').module('%s')\n"
-	-- 	,entry.name
-	-- )
-	-- code=header..code
--- 	local entrycode=string.format([[
-
--- return __YU_MODULE_LOADED[%q].__main()
--- 	]],entry.fullname)
-
--- 	code=code..entrycode
+	code=header..code	
 	return code
 end
+
+
 _M.generateFullCode=generateFullCode
 _M.generateModule=generateModule

@@ -1,6 +1,7 @@
 local rawget,rawset=rawget,rawset
 local setmetatable=setmetatable
 local getmetatable=getmetatable
+local insert,remove=table.insert,table.remove
 local newproxy=newproxy
 local type=type
 
@@ -170,6 +171,17 @@ end
 --[[
 	
 ]]
+function addAnnotation(decl, value)
+	--get rtti of decl, add annoation
+	local rtti=getRtti(decl)
+	local anns=rtti.__annotations 
+	if not anns then
+		anns = {value}
+		rtti.__annotations = anns
+	else
+		insert(anns,value)
+	end
+end
 -------------------------COROUTINE
 
 
@@ -345,14 +357,12 @@ end
 local moduleTable={}
 local classMT={}
 
-function newClass( name, classDecl ,superClass, body,	classAttr, memberAttr)
+function newClass( name, classDecl ,superClass, body)
 	if superClass then setmetatable(body,superClass) end
 	--todo: cache method for class?
 	classDecl.__index=body
 	classDecl.__name=name
 	classDecl.__super=superClass
-	classDecl.__classAttr=classAttr or false
-	classDecl.__memberAttr=memberAttr or false
 	classDecl.__type='class'
 	
 	local methodPointers=setmetatable({},{__mode='kv'})
@@ -445,6 +455,8 @@ local tostring=tostring
 local runtimeIndex=setmetatable({
 		__yu_newclass=newClass,
 		__yu_newobject=newObject,
+
+		__yu_annotation=addAnnotation,
 
 		__yu_try=doTry,
 		__yu_throw=doThrow,

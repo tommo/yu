@@ -1249,6 +1249,30 @@ local	function findHintType(vi,node,parentLevel,keep)
 		sig.type=signalMetaType
 	end
 
+
+	function post:annotation(ann, parent)
+		local v=ann.value
+		local vt= getType(v)
+
+		if vt.tag=='classdecl' then
+
+			return true
+		elseif vt.tag=='classmeta' then
+			local v1={
+				tag='call',
+				l=v,
+				args={},
+				p0=v.p0,
+				p1=v.p1
+			}
+			ann.value=v1
+			self:visitNode(v1)
+			return true
+		end
+
+		self:err('annotation expression must be object/class, give:'..vt.name, ann)
+	end
+
 ----------------------EXPRESSION
 	function post:varacc(v)
 
@@ -1333,7 +1357,9 @@ local	function findHintType(vi,node,parentLevel,keep)
 		local lt=getType(c.l)
 		if lt.tag=='classmeta' then --raw new object
 			local clas = c.l.decl
-
+			if clas.extern then
+				self:err('cannot create instance of extern class:'..clas.name, c.l)
+			end
 			referExternModuleDecl(c.module,clas)
 
 			if c.arg.type~=emptyTableType then --empty object always allowed
@@ -1562,14 +1588,14 @@ local	function findHintType(vi,node,parentLevel,keep)
 		local kts={}
 		for i,item in ipairs(t.items) do
 			local tt=getType(item.key)
-			if tt.tag=='niltype' then self:err('cannot use nil for table item key') end
+			if tt.tag=='niltype' then self:err('cannot use nil for table item key', item) end
 			kts[#kts+1]=tt
 		end
 		
 		local vts={}
 		for i,item in ipairs(t.items) do
 			local tt=getType(item.value)
-			if tt.tag=='niltype' then self:err('table item value is nil') end
+			-- if tt.tag=='niltype' then self:err('table item value is nil') end
 			vts[#vts+1]=tt
 		end
 		local kt=getSharedSuperType(unpack(kts))

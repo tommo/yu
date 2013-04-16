@@ -23,6 +23,7 @@ local c,carg,cb,cc,cp,cs,ct,cg,cmt,cf= L.C,L.Carg,L.Cb,L.Cc,L.Cp,L.Cs,L.Ct,L.Cg,
 local v=setmetatable({},{__index=function(t,k) return lpegv(k) end})
 
 ---CONTEXT
+local currentParsedSource=false
 local currentLine=1
 local currentLineOffset=0
 local currentOffsetTable={0}
@@ -124,7 +125,7 @@ local function getModuleMatch()
 		return (cp()*patt*cp()/function(p0,t,p1)
 			if type(t)~="table" then return nil end
 			t.p0=t.p0 or p0
-			t.p1=t.p1 or p1 
+			t.p1=t.p1 or p1
 			return t
 		end)
 	end
@@ -326,7 +327,7 @@ local function getModuleMatch()
 	local Integer= c( IntegerCore ) * _
 	local Rational=c( RationalCore) * _
 	local Exponetional=c( (RationalCore+IntegerCore) * 'e' * cassert(IntegerCore, "malformed exponetional") ) * _
-	local HexElem= DIGIT+r'af'+r'AF'
+	local HexElem= DIGIT+r('af','AF')
 	local Hexdigit = c(p'0x'*cassert(HexElem^1,'malformed hexadecimal'))
 
 	local Number = Hexdigit+Exponetional+Rational+Integer
@@ -751,11 +752,16 @@ local function getModuleMatch()
 		
 		VarDeclBody= cpos((Ident* (v.TypeTag + cnil) )/t2('var','name','type'));
 
+		-- AnnotationItem  = cpos(
+		-- 						p'@'*__* cassert(Ident, 'annotation class name expected') * __ *
+		-- 						(v.SeqBody+v.TableBody+cnil)
+		-- 						/t2('annotation', 'name', 'body')
+		-- 						)
+		-- 						;
 		AnnotationItem  = cpos(
-								p'@'*__* cassert(Ident, 'annotation class name expected') * __ *
-								(v.SeqBody+v.TableBody+cnil)
-								/t2('annotation', 'name', 'body')
-								)
+								p'@'*__* cassert(v.VarAcc, 'annotation value expected') 
+								/t1('annotation', 'value')
+								) * __ 
 								;
 		Annotations = ct(v.AnnotationItem^0);
 
@@ -1079,8 +1085,10 @@ function parseSource(source,allowError,prepEnv)
 	if not ModuleMatch then ModuleMatch=getModuleMatch() end
 	resetContext()
 	lineOffset={[1]=0}
+	currentParsedSource=source
 	source=doPreprocessor(source,prepEnv)
 	local m= L.match(ModuleMatch,source)
+	currentParsedSource=nil
 	
 	if #errors>0 and not allowError then
 		local function printerr(msg)

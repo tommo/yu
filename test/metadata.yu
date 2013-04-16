@@ -51,33 +51,33 @@ end
 @Serializable
 class Tank extends GObject
 	
-	@Property{reference=true , label='Pilot'}
+	@Property{reference = true , label = 'Pilot'}
 	field pilot:Person
 
-	@Property{reference=true , label='Ammo Type'}
+	@Property{reference = true , label = 'Ammo Type'}
 	field ammoType:AmmoType
 
-	@Property{reference=true , label='Ammo Count'}
+	@Property{reference = true , label = 'Ammo Count'}
 	@Test
 	field ammoCount#
 
-	@Property{ min=0, max=1 }
+	@Property{ min = 0, max = 1 }
 	field reloadTime#
 
 end
 
-local t=Tank()
-local typeinfo = reflect(t) --> return Tank
+local t = Tank()
+local typeinfo = reflect(t) --> return Tank's classinfo
 
-local e1=DataEntry{
-	id=1,
+local e1 = DataEntry{
+	id = 1,
 	name='John'
 }
 
-print(e1.tostring())
+print( e1.tostring() )
 local func test()
-	global x=1
+	global x = 1
 end
-local m=1
+local m = 1
 test()
 
