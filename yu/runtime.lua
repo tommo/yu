@@ -26,9 +26,15 @@ local function newClass( name, classDecl ,superClass, body) --needed by builtin 
 	--todo: cache method for class?
 	classDecl.__index=body
 	classDecl.__name=name
-	classDecl.__super=superClass
+	classDecl.__super=superClass or false
 	classDecl.__type='class'
 	
+	if superClass then
+		local subclass=superClass and superClass.__subclass
+		if not subclass then subclass={} superClass.__subclass=subclass end
+		subclass[classDecl]=true
+	end
+
 	local methodPointers=setmetatable({},{__mode='kv'})
 
 	function body:__build_methodpointer(id)
@@ -101,8 +107,10 @@ function getType(v)
 end
 
 local function __isSubclass(sub,super)
+
 	repeat
 		local s=sub.__super
+		-- print(sub.__name, s)
 		if s and s==super then return true end
 		sub=s
 	until not sub
@@ -120,6 +128,7 @@ function checkType(sub,super) --t == v or t is subclass of v
 end
 
 function isType(data,t)
+
 	return checkType(getType(data),t)
 end
 
@@ -245,8 +254,8 @@ end
 	
 ]]
 
-local reflectionRegistry={} --todo: should we support multiple contexts?
-
+local reflectionRegistryN={} --todo: should we support multiple contexts?
+local reflectionRegistryV={}
 local TypeInfo={}
 
 function TypeInfo:getName()
@@ -256,6 +265,11 @@ end
 function TypeInfo:isExtern()
 	return self.extern or false
 end
+
+function TypeInfo:isPrivate()
+	return self.private or false
+end
+
 
 
 function TypeInfo:getAnnotations()
@@ -273,23 +287,40 @@ function TypeInfo:getMember(name)
 	return nil
 end
 
-function TypeInfo:getField(name) --for class	
+
+local ClassInfo={}
+function ClassInfo:getSuperClass()
+	if not self.decl then return nil end
+	local s=self.decl.__super
+	if s then
+		return reflectionRegistryV[s]
+	else
+		return nil
+	end
+end
+
+function ClassInfo:getSubClassList()
+	if not self.decl then return nil end
+	local subclass=self.decl.__subclass
+	if not subclass then return {} end
+	local res={}
+	local i=0
+	for c in pairs(subclass) do
+		i=i+1
+		res[i]=reflectionRegistryV[c]
+	end
+end
+
+function ClassInfo:getField(name)	
 	local m=self:getMember(name)
 	if m.mtype=='field' then return m end
 	return nil
 end
 
-function TypeInfo:getMethod(name) --for class
+function ClassInfo:getMethod(name)
 	local m=self:getMember(name)
 	if m.mtype=='method' then return m end
 	return nil
-end
-
-function TypeInfo:getSuperClass(name) --for class
-	--todo
-end
-
-function TypeInfo:getItem(name) --for enum
 end
 
 
@@ -297,6 +328,10 @@ end
 local MemberInfo={}
 function MemberInfo:getName()
 	return self.name
+end
+
+function MemberInfo:isPrivate()
+	return self.private or false
 end
 
 function MemberInfo:getMemberType()
@@ -331,6 +366,9 @@ function ArgInfo:getType()
 end
 
 local TypeInfoClass = registerBuiltinClass("TypeInfo", nil, TypeInfo)
+local ClassInfoClass = registerBuiltinClass("ClassInfo", TypeInfoClass, ClassInfo)
+-- local EnumInfoClass = registerBuiltinClass("EnumInfo", nil, EnumInfo)
+
 local MemberInfoClass =registerBuiltinClass("MemberInfo",nil,MemberInfo)
 local FieldInfoClass =registerBuiltinClass("FieldInfo",MemberInfoClass,FieldInfo)
 local MethodInfoClass =registerBuiltinClass("MethodInfo",MemberInfoClass,MethodInfo)
@@ -339,11 +377,22 @@ local ArgInfoClass =registerBuiltinClass("ArgInfo",nil,ArgInfo)
 -------static helpers
 
 function getTypeInfoByName(name)
-	local t=reflectionRegistry[name]
-	return t
+	if name then
+		local t=reflectionRegistryN[name]
+		return t
+	else
+		return nil
+	end
 end
 
 function getTypeInfoByValue(v)
+	local vt=getType(v)
+	if vt then
+		local t=reflectionRegistryV[vt]
+		return t
+	else
+		return nil
+	end
 end
 
 
@@ -368,14 +417,17 @@ function addReflection(rtype, decl, name, info, memberInfo)
 			end
 		end
 		r.members=memberInfo
+		setmetatable(r, ClassInfoClass)
 	elseif rtype=='enum' then
-		r.extern=info.extern or false
+		r.extern=info.extern
 		r.private=info.private
 		r.members=memberInfo
+		setmetatable(r, TypeInfoClass)
 	end
-	setmetatable(r, TypeInfoClass)
-
-	reflectionRegistry[name]=r
+	if decl then
+		reflectionRegistryV[decl]=r
+	end
+	reflectionRegistryN[name]=r
 end
 
 function addAnnotation(decl, value)

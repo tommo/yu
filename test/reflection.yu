@@ -1,4 +1,4 @@
-private:
+-- private:
 extern
 	func print(...*)
 	
@@ -6,6 +6,7 @@ extern
 		method getName$()
 		method getMemberType$()
 		method getAnnotationList()->any[]
+		method isPrivate?()
 	end
 
 	class FieldInfo extends MemberInfo
@@ -24,26 +25,23 @@ extern
 	class TypeInfo
 		method getName$()
 		method isExtern?()
+		method isPrivate?()
 
 		method getMemberList()->MemberInfo[]
-		
 		method getMember(name$)->MemberInfo
-		method getMethod(name$)->MemberInfo
-		method getField(name$)->MemberInfo
-
+		
 		func '__yu_gettypeinfoN' as getByName(name$) -> TypeInfo
 		func '__yu_gettypeinfoV' as getByValue(value*) -> TypeInfo
 	end
 
-	
-end
+	class ClassInfo extends TypeInfo
+		method getMethod(name$)->MemberInfo
+		method getField(name$)->MemberInfo
+		method getSuperClass()->ClassInfo
+		method getSubClassList()->ClassInfo[]
+	end
 
-__Lua[[
-		function getClassAttribute(class, id)
-			local attr=class.__classAttr
-			return attr and attr[id]
-		end
-]]
+end
 
 const UnitTestName='shit'
 
@@ -64,8 +62,6 @@ local properties={
 	['Object']=Property{type='object'},
 }
 
-
-
 -- function Property__() = Property(1)
 
 @UnitTest{name = UnitTestName}
@@ -77,6 +73,10 @@ class Test
 	method __new(x#,y=1)
 	end
 
+	private:
+	method innerMethod1()
+	end
+
 end
 
 
@@ -84,5 +84,5 @@ local m=TypeInfo.getByName('Test')
 print(m.getName(), m.isExtern())
 local members=m.getMemberList()
 for i, minfo in members do
-	print('member:', minfo.getMemberType(), minfo.getName())
+	print('member:', minfo.getMemberType(), minfo.getName(), minfo.isPrivate())
 end

@@ -198,15 +198,17 @@ local function genClassReflection(gen, c)
 		--member typeinfo
 		gen"{" gen:ii()
 			for k, d in pairs(c.scope) do
-				local tag=d.tag
-				if tag=='var' then
-					if d.vtype=='field' then
-					 	gen:cr()
-						gen:appendf('{ mtype="field", name=%q, type=%q },' , k, d.type.name)
+				if not d.private then
+					local tag=d.tag
+					if tag=='var' then
+						if d.vtype=='field' then
+						 	gen:cr()
+							gen:appendf('{ mtype="field", name=%q, type=%q},' , k, d.type.name)
+						end
+					elseif tag=='methoddecl' then
+						gen:cr()
+						gen:appendf('{ mtype="method", name=%q, type=%q},' , k, d.type.name)
 					end
-				elseif tag=='methoddecl' then
-					gen:cr()
-					gen:appendf('{ mtype="method", name=%q, type=%q },' , k, d.type.name)
 				end
 			end
 		gen:di() gen:cr()	gen"}"
@@ -234,7 +236,9 @@ end
 local function genReflection(gen, m)
 	-- reg: reflection registry
 	for k, d in pairs(m.scope) do
-		genNodeReflection(gen, d)
+		if not d.private then
+			genNodeReflection(gen, d)
+		end
 	end
 end
 
