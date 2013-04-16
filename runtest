@@ -1,0 +1,2 @@
+cd /Users/tommo/prj/yu
+lua testd.lua test/reflection.yu

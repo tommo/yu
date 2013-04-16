@@ -2,11 +2,80 @@ local rawget,rawset=rawget,rawset
 local setmetatable=setmetatable
 local getmetatable=getmetatable
 local insert,remove=table.insert,table.remove
+local gmatch=string.gmatch
+local format=string.format
 local newproxy=newproxy
 local type=type
 
 module("yu.runtime",package.seeall)
+------------BultinType helpers
+-- local function makeClass(super)
+-- 	local proto,mt={},{}
+-- 	mt.__index=proto
+-- 	mt.__super=super or false
+-- 	if super then setmetatable(proto, {__index=super}) end
+-- 	return proto, mt
+-- end
+local builtinSymbols,runtimeIndex
+builtinSymbols={}
 
+local classMT={}
+
+local function newClass( name, classDecl ,superClass, body) --needed by builtin class
+	if superClass then setmetatable(body,superClass) end
+	--todo: cache method for class?
+	classDecl.__index=body
+	classDecl.__name=name
+	classDecl.__super=superClass
+	classDecl.__type='class'
+	
+	local methodPointers=setmetatable({},{__mode='kv'})
+
+	function body:__build_methodpointer(id)
+		local pointers=rawget(self,'@methodpointers')
+		if not poointers then
+			pointers={}
+			rawget(self,'@methodpointers',pointers)
+		end
+		local mp=pointers[id]
+		if not mp then
+			local f=self[id]
+			mp=function(...) return f(self,...) end
+			pointers[id]=mp
+		end
+		return mp
+	end
+	
+	return classDecl
+end
+
+
+function registerBuiltinClass(name,superclass, body )
+	if superclass then
+		local n={}
+		for k,v in pairs(body) do
+			n[k]=v
+		end
+		local s=superclass
+		while s do
+			for k,v in pairs(s.__index) do
+				if not n[k] then n[k]=v end
+			end
+			s=s.__super
+		end
+		body=n
+	end
+	local clas=newClass(name, {}, superclass, body)
+	builtinSymbols[name]=clas
+	return clas
+end
+
+function registerBultinFunction(name, func)
+	assert(not builtinSymbols[name])
+	-- assert(type(func)=='function')
+	builtinSymbols[name]=func
+	return func
+end
 
 -----------TYPE
 
@@ -34,7 +103,7 @@ end
 local function __isSubclass(sub,super)
 	repeat
 		local s=sub.__super
-		if s==super then return true end
+		if s and s==super then return true end
 		sub=s
 	until not sub
 	return false
@@ -42,7 +111,7 @@ end
 
 function checkType(sub,super) --t == v or t is subclass of v
 	if sub==super then return true end
-	
+	if super==nil then return false end
 	if type(sub)=="table" then --class
 		if super=='object' then return true end
 		if __isSubclass(sub,super) then return true end
@@ -121,7 +190,9 @@ function signalConnect(signal,sender,slot,receiver )
 	return l --retur channel for fast remove
 end
 
--------------------------CLASS
+
+
+-------------------------@CLASS
 local proxygc=function(p)
 	local t=getmetatable(p).__index
 	local c=getmetatable(t)
@@ -167,10 +238,146 @@ function newObject(clas,obj, constructor, ...)
 	-- 	return obj
 	-- end
 end
+
+
 -------------------------REFLECTION
 --[[
 	
 ]]
+
+local reflectionRegistry={} --todo: should we support multiple contexts?
+
+local TypeInfo={}
+
+function TypeInfo:getName()
+	return self.name
+end
+
+function TypeInfo:isExtern()
+	return self.extern or false
+end
+
+
+function TypeInfo:getAnnotations()
+	return self.anns
+end
+
+function TypeInfo:getMemberList()
+	return self.members
+end
+
+function TypeInfo:getMember(name)
+	for i,v in ipairs(self.members) do
+		if v.name==name then return v end
+	end
+	return nil
+end
+
+function TypeInfo:getField(name) --for class	
+	local m=self:getMember(name)
+	if m.mtype=='field' then return m end
+	return nil
+end
+
+function TypeInfo:getMethod(name) --for class
+	local m=self:getMember(name)
+	if m.mtype=='method' then return m end
+	return nil
+end
+
+function TypeInfo:getSuperClass(name) --for class
+	--todo
+end
+
+function TypeInfo:getItem(name) --for enum
+end
+
+
+-----MemberInfo
+local MemberInfo={}
+function MemberInfo:getName()
+	return self.name
+end
+
+function MemberInfo:getMemberType()
+	return self.mtype
+end
+
+function MemberInfo:getAnnotations()
+end
+
+local FieldInfo={}
+function FieldInfo:getType()
+end
+
+function FieldInfo:getValue(obj)
+end
+
+function FieldInfo:setValue(obj)
+end
+
+local MethodInfo={}
+function MethodInfo:invoke(obj, arg)
+end
+
+function MethodInfo:getRetType()
+end
+
+function MethodInfo:getArguments()
+end
+
+local ArgInfo={}
+function ArgInfo:getType()
+end
+
+local TypeInfoClass = registerBuiltinClass("TypeInfo", nil, TypeInfo)
+local MemberInfoClass =registerBuiltinClass("MemberInfo",nil,MemberInfo)
+local FieldInfoClass =registerBuiltinClass("FieldInfo",MemberInfoClass,FieldInfo)
+local MethodInfoClass =registerBuiltinClass("MethodInfo",MemberInfoClass,MethodInfo)
+local ArgInfoClass =registerBuiltinClass("ArgInfo",nil,ArgInfo)
+
+-------static helpers
+
+function getTypeInfoByName(name)
+	local t=reflectionRegistry[name]
+	return t
+end
+
+function getTypeInfoByValue(v)
+end
+
+
+------------
+function addReflection(rtype, decl, name, info, memberInfo)
+	-- print('+', rtype, name, decl ,info , memberInfo)
+	local r=info
+	r.type=rtype
+	r.name=name
+	r.decl=decl or false
+	-- r.extern=info.extern or false
+	-- r.private=info.private
+		
+	if rtype=='class' then		
+		r.superclass=info.superclass or false
+		for i, m in ipairs(memberInfo) do
+			local mtype=m.mtype
+			if mtype=='field' then
+				setmetatable(m, FieldInfoClass)
+			elseif mtype=='method' then
+				setmetatable(m,  MethodInfoClass)
+			end
+		end
+		r.members=memberInfo
+	elseif rtype=='enum' then
+		r.extern=info.extern or false
+		r.private=info.private
+		r.members=memberInfo
+	end
+	setmetatable(r, TypeInfoClass)
+
+	reflectionRegistry[name]=r
+end
+
 function addAnnotation(decl, value)
 	--get rtti of decl, add annoation
 	local rtti=getRtti(decl)
@@ -182,10 +389,11 @@ function addAnnotation(decl, value)
 		insert(anns,value)
 	end
 end
+
+
+
 -------------------------COROUTINE
 
-
-------------------------CORO
 local generatorPool={}
 -- local generatorFuncs={}
 local __THREAD_WAITING={}
@@ -355,75 +563,6 @@ end
 
 -------------MODULE
 local moduleTable={}
-local classMT={}
-
-function newClass( name, classDecl ,superClass, body)
-	if superClass then setmetatable(body,superClass) end
-	--todo: cache method for class?
-	classDecl.__index=body
-	classDecl.__name=name
-	classDecl.__super=superClass
-	classDecl.__type='class'
-	
-	local methodPointers=setmetatable({},{__mode='kv'})
-
-	function body:__build_methodpointer(id)
-		local pointers=rawget(self,'@methodpointers')
-		if not poointers then
-			pointers={}
-			rawget(self,'@methodpointers',pointers)
-		end
-		local mp=pointers[id]
-		if not mp then
-			local f=self[id]
-			mp=function(...) return f(self,...) end
-			pointers[id]=mp
-		end
-		return mp
-	end
-	
-	return classDecl
-end
-
-local loaded={}
-local loader={}
-
-function loadSymbol( name )
-	local d=loaded[name]
-	if not d then 
-		d=loader[name]()
-	end
-	return d
-end
-
-function makeSymbolTable(loaders)
-	loaders=loaders or {}
-	local loaded=setmetatable({},{
-		__index=function( t,k )
-			local l=loaders[k]
-			if not l then 
-				error('Symbol not found:'..k) 
-			end
-			local s=l()
-			t[k]=s
-			return s
-		end})
-	return loaded, loaders
-end
-
-local gmatch=string.gmatch
-function loadExternSymbol( name )
-	local t=_G
-	for w in gmatch(name, "(%w+)[.]?") do
-       t=t[w]
-       if not t then
-       	-- print('warning:extern symbol not found :',name)
-       	return nil
-       end
-    end
-    return t
-end
-
 
 function requireModule(path)
 	--todo:load module if not loaded
@@ -432,7 +571,7 @@ function requireModule(path)
 	if not m then	
 		--load module
 		-- print('loading module:',path)
-		local f,err=loadfile(path..'.yo')
+		local f,err=loadfile(path..'.yo') --todo: basepath support
 		if not f then
 			print(err)
 			return error('Module not load:'..path)
@@ -446,17 +585,37 @@ end
 
 function launchModule(path,...)
 	local m=requireModule(path)
-	m.__yu_module_init()
-	m.__yu_module_refer()
-	return m.__yu_module_entry()
+	m.__yu_module_init()  --setup local symbol loaders
+	m.__yu_module_refer() --link extern symbols
+	return m.__yu_module_entry(...) --actually init local symbols, run module.main()
+end
+
+local loadExternSymbol
+
+function loadExternSymbol( name )
+	local s= runtimeIndex[name]
+	if s then return s end
+	local s= builtinSymbols[name]
+	-- print(s,name)
+	if s then return s end
+	local t=_G
+	for w in gmatch(name, "(%w+)[.]?") do
+       t=t[w]
+       if not t then
+       	-- print('warning:extern symbol not found :',name)
+       	return nil
+       end
+    end
+    return t
 end
 
 local tostring=tostring
-local runtimeIndex=setmetatable({
+runtimeIndex=setmetatable({
 		__yu_newclass=newClass,
 		__yu_newobject=newObject,
 
-		__yu_annotation=addAnnotation,
+		__yu_addannotation=addAnnotation,
+		__yu_addreflection=addReflection,
 
 		__yu_try=doTry,
 		__yu_throw=doThrow,
@@ -478,7 +637,10 @@ local runtimeIndex=setmetatable({
 		__yu_yield=generatorYield,
 
 		__yu_require=requireModule,
-		__yu_extern=loadExternSymbol
+		__yu_extern=loadExternSymbol,
+
+		__yu_gettypeinfoN=getTypeInfoByName,
+		__yu_gettypeinfoV=getTypeInfoByValue
 
 	},{__index=_G})
 
@@ -529,7 +691,7 @@ local function makeYuTraceString(info,modEnv)
 		if line>=l and line<=l+range then
 			local l1,off1=findLine(lineOffset,data[3])
 			local l2,off2=findLine(lineOffset,data[4])
-			return string.format('%s: %d <%d:%d-%d:%d>',dinfo.path,l1,
+			return format('%s: %d <%d:%d-%d:%d>',dinfo.path,l1,
 				l1,off1,l2,off2)		
 		end
 	end
@@ -559,9 +721,9 @@ local function makeLuaTraceString(info)
 	end
 
 	return 
-	string.format(
-		'%s:%d: %s',info.short_src,info.currentline,whatInfo
-	)
+		string.format(
+			'%s:%d: %s',info.short_src,info.currentline,whatInfo
+		)
 end
 
 function getStackPos(level)
@@ -610,22 +772,15 @@ function errorHandler(msg,b)
 	io.stderr:write(traceInfo,'\n')
 end
 
+
+------------------------------
 local _dofile=dofile
 function run(file,...) --yu module launcher
 	return xpcall(function(...)
 			return launchModule(file,...)
 		end
 		,errorHandler
-		,...)
-	
+		,...)	
 end
 
 
-
--- function _G.getClassAttribute(class, id)
--- 	local attr=class.__classAttr
--- 	return attr and attr[id]
--- end
-
--- function _G.getClassMember(member)
--- end

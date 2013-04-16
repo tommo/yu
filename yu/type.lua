@@ -532,7 +532,7 @@ function typeres.member.enummeta(t,m)
 		return true
 	end
 	
-	compileErr('enum item not found:'..m.id,m)
+	compileErr(format('item not found in enum %s : %s', e.name, m.id),m)
 end
 
 function typeres.member.modulemeta(t,m)
@@ -546,7 +546,7 @@ function typeres.member.modulemeta(t,m)
 		return true
 	end
 	
-	compileErr('symbol not found:'..m.id,m)
+	compileErr(format('symbol not found in module %s : %s',mod.name,m.id),m)
 end
 
 function typeres.member.classmeta(t,m)
@@ -560,7 +560,7 @@ function typeres.member.classmeta(t,m)
 		return true
 	end
 	
-	compileErr('static member not found:'..m.id,m)
+	compileErr(format('static member not found in class %s: %s',c.name,m.id) ,m)
 end
 
 
@@ -580,7 +580,7 @@ function typeres.member.classdecl(t,m,resolver)
 		return true
 	end
 	
-	resolver:err('member not found:'..m.id,m)
+	resolver:err(format('member not found in class %s : %s',t.name,m.id),m)
 end
 
 typeres.member.externclass=typeres.member.classdecl

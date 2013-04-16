@@ -68,6 +68,15 @@ local function getDeclName(d)
 	return _getDeclName(d,currentModule)
 end
 
+local function getSuperClassDeclName(c,s)
+	if c.module~=s.module then
+		return format('__yu_require%q.%s',s.module.modpath,s.refname)
+	else
+		return getDeclName(s)
+	end
+end
+
+
 local function doCodegen( node, parentGen )
 	local gen=newCodeWriter()
 
@@ -82,7 +91,6 @@ local function doCodegen( node, parentGen )
 end
 
 codegen= function(gen,m)
-	-- print('generators...'..m.tag)
 	assert(gen.__list) --NEED REMOVAL, at last
 	local t=m.tag
 	local g=generators[t]
@@ -159,21 +167,75 @@ local function genDebugInfo(gen,m)
 	gen:cr()
 end
 
-local function genClassReflection(gen, c)
-end
+local genNodeReflection
 
 local function genFuncReflection(gen,f)
 end
 
-local function genEnumReflection(gen,f)
+local function genClassReflection(gen, c)
+	--TODO: generate reflection for static member
+	gen:appendf("__yu_addreflection('class', %s, %q, ", c.refname, c.name)
+		gen:ii() gen:ii() gen:cr()
+		--class typeinfo
+		gen"{" gen:ii()
+			if c.superclass then
+				gen:cr()
+				gen:appendf('superclass = %s,' , 
+					getSuperClassDeclName(c,c.superclass))
+			end
+			if c.private then
+				gen:cr()
+				gen:appendf('private = true,')
+			end
+			if c.extern then
+				gen:cr()
+				gen:appendf('extern = true,')
+			end
+			--TODO:annotation goes here?
+		gen:di() gen:cr()	gen"},"
+		gen:cr()
+
+		--member typeinfo
+		gen"{" gen:ii()
+			for k, d in pairs(c.scope) do
+				local tag=d.tag
+				if tag=='var' then
+					if d.vtype=='field' then
+					 	gen:cr()
+						gen:appendf('{ mtype="field", name=%q, type=%q },' , k, d.type.name)
+					end
+				elseif tag=='methoddecl' then
+					gen:cr()
+					gen:appendf('{ mtype="method", name=%q, type=%q },' , k, d.type.name)
+				end
+			end
+		gen:di() gen:cr()	gen"}"
+		gen:di()
+		gen:cr()
+		gen")"
+	gen:di() 
+	gen:cr()
+
 end
 
-local function genDeclReflection(gen, m)
+local function genEnumReflection(gen,f)
+
+end
+
+local function genNodeReflection(gen, node)
+	local tag=node.tag
+	if tag=='classdecl'  then
+		genClassReflection(gen, node)
+	elseif tag=='enumdecl' then
+		genEnumReflection(gen, node)
+	end
 end
 
 local function genReflection(gen, m)
 	-- reg: reflection registry
-	
+	for k, d in pairs(m.scope) do
+		genNodeReflection(gen, d)
+	end
 end
 
 function generators.module(gen,m)
@@ -286,6 +348,13 @@ function generators.module(gen,m)
 			gen:cr()
 		end
 
+		gen:cr()
+		gen"----load reflection here----"
+		gen:cr()
+		gen('__yu_module_reflection()')
+		gen:cr()
+
+		gen:cr()
 		gen"----init globals----"
 		gen:cr()
 		for i, g in ipairs(gen.classGlobalVars) do
@@ -312,7 +381,7 @@ function generators.module(gen,m)
 	gen:cr()
 	gen"-------reflection data------"
 	gen:cr()
-	gen('function __yu_module_reflection(reg)')
+	gen('function __yu_module_reflection()')
 		gen:ii()
 		gen:cr()
 			genReflection(gen,m)
@@ -759,13 +828,6 @@ local function defaultFieldBody(gen,c)
 	end
 end
 
-local function getSuperClassDeclName(c,s)
-	if c.module~=s.module then
-		return format('__yu_require%q.%s',s.module.modpath,s.refname)
-	else
-		return getDeclName(s)
-	end
-end
 
 
 local function genConstTable(gen,t)
@@ -1154,7 +1216,7 @@ function generators.member(gen,m)
 		end
 	elseif mtype=='static' then
 		local ldecl=m.l.decl
-		if ldecl and ldecl.extern then --extern class static member
+		if ldecl and ldecl.extern and ldecl.tag=='var' then --extern class static member
 			codegen(gen,m.l)
 			gen:mark(m)
 			gen('.'..m.id)

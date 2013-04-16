@@ -178,7 +178,7 @@ paths={
 	
 	type=function(vi,t)
 		--TODO:...
-		if t.acc then visitNode(vi,t.acc) end
+		if t.acc and t.acc~='nil' then visitNode(vi,t.acc) end
 	end,
 	
 	tabletype=function(vi,t)

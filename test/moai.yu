@@ -19,7 +19,7 @@ class CatHead
 
 		layer.insertProp(prop)
 
-		local function mainthread(a=2, b=3)
+		local function mainthread()
 			while true do
 				MOAIThread.blockOnAction ( self.prop.moveRot ( 360, 1.5))
 				MOAIThread.blockOnAction ( self.prop.moveRot ( -360, 1.5 ))

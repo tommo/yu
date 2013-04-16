@@ -1,8 +1,41 @@
 private:
 extern
 	func print(...*)
-	class File
+	
+	class MemberInfo
+		method getName$()
+		method getMemberType$()
+		method getAnnotationList()->any[]
 	end
+
+	class FieldInfo extends MemberInfo
+		method getType()->TypeInfo
+	end
+
+	class MethodInfo extends MemberInfo
+		method getRetType()->TypeInfo
+		method getArguments()->ArgInfo[]
+	end
+
+	class ArgInfo
+		method getName$()
+	end
+
+	class TypeInfo
+		method getName$()
+		method isExtern?()
+
+		method getMemberList()->MemberInfo[]
+		
+		method getMember(name$)->MemberInfo
+		method getMethod(name$)->MemberInfo
+		method getField(name$)->MemberInfo
+
+		func '__yu_gettypeinfoN' as getByName(name$) -> TypeInfo
+		func '__yu_gettypeinfoV' as getByValue(value*) -> TypeInfo
+	end
+
+	
 end
 
 __Lua[[
@@ -47,40 +80,9 @@ class Test
 end
 
 
-local a=Test(1)
-print(a is Test)
-
-
--- local x=Test()
--- print(getClassAttribute(Test,'good'))
-
--- class TypeInfo
--- 	method getName$() abstract
--- end
-
--- class Class extends TypeInfo
--- 	method findMember(id$)->Member
-
--- 	end
-
--- 	method getAttribute(id$)->*
--- 	end
--- end
-
--- class Member
--- 	method getAttribute(id$)->*
--- 	end
--- end
-
--- class Method extends Member
--- end
-
--- class Field extends Member
--- 	method get()->*
--- 	end
-
--- 	method set(v*)
--- 	end
--- end
-
-
+local m=TypeInfo.getByName('Test')
+print(m.getName(), m.isExtern())
+local members=m.getMemberList()
+for i, minfo in members do
+	print('member:', minfo.getMemberType(), minfo.getName())
+end

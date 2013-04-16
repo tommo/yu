@@ -1767,9 +1767,14 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 	end
 
-	function post:type(t,parent)  --symbol type		
-		t.decl=t.acc.decl
-		t.name=t.decl.name
+	function post:type(t,parent)  --symbol type	
+		if t.acc=='nil' then
+			t.decl=nilType
+			t.name=nilType.name
+		else
+			t.decl=t.acc.decl
+			t.name=t.decl.name
+		end
 	end
 
 	local function makeTableTypeName( ft )

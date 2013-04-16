@@ -1,0 +1,11 @@
+import 'enumdef.yu'
+import 'classdef.yu'
+
+class FooFoo extends Foo
+	override abstractMethod(a,b,c#)
+	end
+end
+
+local x=FooFoo()
+
+-- x.privateMethod()
