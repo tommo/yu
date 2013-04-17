@@ -593,6 +593,7 @@ function typeres.member.ttype(t,m)
 	if not ismember then return false end
 end
 
+
 -----------INDEX
 function typeres.index.tabletype(t,idx,resolver)
 	local kt=getType(idx.key)

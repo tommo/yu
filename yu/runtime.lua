@@ -412,6 +412,11 @@ local FieldInfoClass =registerBuiltinClass("FieldInfo",MemberInfoClass,FieldInfo
 local MethodInfoClass =registerBuiltinClass("MethodInfo",MemberInfoClass,MethodInfo)
 local ArgInfoClass =registerBuiltinClass("ArgInfo",nil,ArgInfo)
 
+local FunctionType={}
+function FunctionType:getArguments()
+end
+local FunctionTypeClass=registerBuiltinClass("FunctionType", TypeInfoClass, FunctionType)
+
 local function registerValueTypeInfo(name,clasname)
 	local body={}
 	function body:getTag()
@@ -421,10 +426,13 @@ local function registerValueTypeInfo(name,clasname)
 	reflectionRegistryN[name]=setmetatable({},clas)
 end
 
+registerValueTypeInfo("object","ObjectType")
+-- registerValueTypeInfo("userdata","UserdataType")
 registerValueTypeInfo("number","NumberType")
 registerValueTypeInfo("string","StringType")
 registerValueTypeInfo("boolean","BooleanType")
 registerValueTypeInfo("nil","NilType")
+
 
 --basic types
 

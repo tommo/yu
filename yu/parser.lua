@@ -298,7 +298,8 @@ local function getModuleMatch()
 			+	WHILE+FOR+IN+REPEAT+UNTIL
 			+	SELECT+CASE+DEFAULT
 			+	TRY+CATCH+THROW+FINALLY
-			+	YIELD+SPAWN+SIGNAL+WAIT+RESUME
+			+ SIGNAL
+			-- +	YIELD+SPAWN+SIGNAL+WAIT+RESUME
 			+	ABSTRACT+FINAL
 			+	RAWLUA
 			+	PRIVATE+PUBLIC+EXTERN
@@ -532,7 +533,8 @@ local function getModuleMatch()
 				+	v.RepeatStmt
 				+	v.DoStmt
 				+	v.TryStmt
-				+	v.YieldStmt) * __
+				-- +	v.YieldStmt
+				) * __
 				;
 		YieldStmt= YIELD *__ * (v.ExprList+cnil) / t1('yieldstmt','values');
 		
@@ -996,7 +998,7 @@ local function getModuleMatch()
 			+ v.SeqBody
 			+ v.TableBody
 			+ v.Spawn
-			+ v.Resume
+			-- + v.Resume
 			+ v.Wait
 			;
 		

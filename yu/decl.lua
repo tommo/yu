@@ -357,7 +357,7 @@ function pre:vardecl(vd)
 	local varcount,valcount=#vars,values and #values or 0
 	local mulval=false
 
-	if values and vd.extern then
+	if values and vd.extern and vd.vtype~='const' then
 		return self:err('cannot assign initial value for extern variable',vd)
 	end
 

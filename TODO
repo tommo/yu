@@ -1,0 +1,27 @@
+Design:
+  ☐ coroutine
+  ☐ generic
+  ☐ refine signal support
+  ☐ refine module system
+Parser:
+Resolver:
+  ☐ error-tolerence?
+CodeGenerator:
+  ☐ Function Type Reflection
+InterfaceGenerator:
+  ☐ Size optimization
+Runtime:
+  builtin type interfaces:
+    ☐ generic support
+    ☐ string
+    ☐ table
+  reflection:
+    ☐ Function Type
+    ☐ Method Invocation
+    ☐ Static Member TypeInfo
+  Lua commnuication:
+    ☐ reflection access
+    
+
+
+--- ✄ -----------------------

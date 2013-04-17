@@ -10,7 +10,7 @@
     [
         {
             "name": "Lua",
-            "cmd":["/usr/local/bin/luajit","test.lua","test/reflection.yu"],
+            "cmd":["/usr/local/bin/luajit","test.lua","$file"],
             "working_dir": "${project_path}",
             "target":"exec_in_window"
         },

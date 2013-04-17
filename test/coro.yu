@@ -1,12 +1,33 @@
-extern
-	class _thread
+import 'lua.yu'
+
+class Timer
+	field thread:Coroutine
+
+	method tickLoop()
+		for i=1, 10 do
+			print('ticking:', i)
+			Coroutine.yield()
+		end
 	end
 
-	func print(...*)
-	func 'coroutine.yield' as cyield(f*)->*
-	func 'coroutine.create' as ccreate(f*)->_thread
-	func 'coroutine.resume' as cresume(t:_thread,...*)->?,*
+	method spawnLoop()
+		thread=Coroutine.create(tickLoop)
+	end
+
+	method run()
+		if not thread then spawnLoop() end
+		Coroutine.resume(thread)
+	end
+
 end
+
+local t=Timer()
+t.run()
+t.run()
+t.run()
+t.run()
+t.run()
+t.run()
 
 
 -- -- func buildGenerator(from,to#)

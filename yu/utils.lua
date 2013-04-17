@@ -1,5 +1,5 @@
 pcall(function()
-	-- require'lfs'
+	require'lfs'
 end
 )
 
@@ -390,7 +390,7 @@ end
 
 function makeDeclRefName(decl,id)
 	if decl.name=='...' then return '...' end
-	local strip=false
+	local strip=true
 	local dtag=(declPrefix[decl.tag] or 'v')
 	local mangle=makeMangle(id)--format('%x',id)
 	if strip then
@@ -478,12 +478,14 @@ _M.getDeclName=getDeclName
 	end
 	}
 
- local function newCodeWriter(str)
+ local function newCodeWriter(option)
+ 	option=option or {}
 	return setmetatable({
 			__line=1,
 			__count=0,
 			__indent=0,
-			__list={str and tostring(str) or ''}, --string buffer part
+			__noindent=option.noindent or false,
+			__list={''}, --string buffer part
 			__marked_line={},
 			__level=0,
 
@@ -518,7 +520,7 @@ function codeWriter:append(str,s1,...)
  local stringrep = string.rep
  function codeWriter:cr(noindent)
  	-- if not self.dirty then return end
- 	if not noindent then
+ 	if not (noindent or self.__noindent) then
 	 	self:append(
 	 		'\n'..stringrep('\t',self.__indent))
 	else

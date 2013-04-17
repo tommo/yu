@@ -1,7 +1,6 @@
+import 'lua.yu'
 -- private:
 extern
-	func print(...*)
-	
 	class MemberInfo
 		method getName()->string
 		method getMemberType()->string
@@ -22,6 +21,7 @@ extern
 
 	class ArgInfo
 		method getName$()
+		method getType()->TypeInfo
 	end
 
 	class TypeInfo
@@ -50,10 +50,16 @@ extern
 		method getItemTable() -> number[string]
 	end
 
+	class ObjectType extends TypeInfo	end
+	-- class UserdataType extends TypeInfo	end
 	class NumberType extends TypeInfo	end
 	class StringType extends TypeInfo	end
 	class BooleanType extends TypeInfo end
 	class NilType extends TypeInfo end
+
+	class FunctionType extends TypeInfo
+		method getObjectType() -> ObjectType
+	end
 
 end
 

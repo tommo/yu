@@ -43,6 +43,7 @@ function yigenNode(gen, node)
 			yigenEnum(gen,node)
 		elseif tag=='import' then
 			yigenImport(gen, node)
+		elseif tag=='signaldecl' then
 		else
 			error('unsupported yi generation:'..tag)
 		end
@@ -278,7 +279,7 @@ function yigenType(gen, t, typekey)
 end
 
 function generateInterface(m)
-	local gen=newCodeWriter()
+	local gen=newCodeWriter({noindent=true})	
 	yigenModule(gen, m)
 	return gen:tostring()
 end
