@@ -14,3 +14,8 @@ func openFile(filename$, mode = FileMode.Read, streamBlocked = false)
 	print('blocked     :', streamBlocked)
 end
 
+
+func loadSomeThing(x,y,z#, time=1, test:boolean=true)
+end
+
+loadSomeThing(5,1,2, 4, true)

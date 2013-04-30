@@ -352,6 +352,8 @@ local function spreadVarTypes(vars,forceType,visitor)
 end
 
 
+
+
 function pre:vardecl(vd)
 	local vars,values=vd.vars,vd.values
 	local varcount,valcount=#vars,values and #values or 0
@@ -463,20 +465,32 @@ function post.methoddecl(vi,f)
 end
 
 ------------
+
+
+
+
 function pre.functype(vi,ft)
 	local args=ft.args
 	if args then
-		spreadVarTypes(args,false,vi) --todo: decide to keep or remove this!!!
-
-		local prevHasDefault=false
-		for i,arg in ipairs(args) do
-			if not arg.type then
+		--spread arg types:
+		local lastType=nil
+		for i=#args,1,-1 do
+			local arg=args[i]
+			if not arg.type then --check default value firstt
 				if arg.value then
 					arg.type=newTypeRef(arg.value)
+				elseif lastType then
+					arg.type=lastType
 				else
-					vi:err('argument type expected',arg)
+					vi:err('argument type expected '..i,arg)
 				end
 			end
+			lastType=arg.type
+		end
+
+		local prevHasDefault=false
+		for i,arg in ipairs(args) do			
+
 			if arg.value then
 				prevHasDefault=true
 			elseif prevHasDefault and arg.name~='...' then

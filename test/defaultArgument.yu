@@ -8,5 +8,6 @@ end
 func setLoc(x,y,z#, world=false)
 	if world then
 		return setWorldLoc(x,y,z)
+	end
 end
 
