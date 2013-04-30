@@ -4,6 +4,58 @@
 		"selected_items":
 		[
 			[
+				"functyp",
+				"funcMetaType"
+			],
+			[
+				"genAnno",
+				"genAnnotationLoader"
+			],
+			[
+				"__anno",
+				"__annotationNodes"
+			],
+			[
+				"Number",
+				"NumberType"
+			],
+			[
+				"item",
+				"items"
+			],
+			[
+				"regist",
+				"reflectionRegistryN"
+			],
+			[
+				"refle",
+				"reflection"
+			],
+			[
+				"reflec",
+				"reflectionRegistryV"
+			],
+			[
+				"reflectionRegi",
+				"reflectionRegistryByDecl"
+			],
+			[
+				"buil",
+				"builtinSymbols"
+			],
+			[
+				"getby",
+				"getByName"
+			],
+			[
+				"Minfo",
+				"MemberInfoProto"
+			],
+			[
+				"Min",
+				"MemberInfoProto"
+			],
+			[
 				"ipa",
 				"ipairs"
 			],
@@ -462,76 +514,64 @@
 			[
 				"MOAIPr",
 				"MOAIProp2D"
-			],
-			[
-				"def",
-				"defaultValues"
-			],
-			[
-				"defaul",
-				"defaultValues"
-			],
-			[
-				"assign",
-				"assignstmt"
-			],
-			[
-				"has",
-				"hasDefaultConstructor"
-			],
-			[
-				"sp",
-				"ImageSprite"
-			],
-			[
-				"va",
-				"valuetype"
-			],
-			[
-				"any",
-				"anyType"
-			],
-			[
-				"__YU",
-				"__YU_LOADED"
-			],
-			[
-				"__YU_MO",
-				"__YU_MODULE_LOADED"
-			],
-			[
-				"__yur",
-				"__YU_RUNTIME"
-			],
-			[
-				"__YU_LOA",
-				"__YU_LOADER"
-			],
-			[
-				"sym",
-				"symbolLoaderTail"
-			],
-			[
-				"genra",
-				"generateAllModule"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "yu/decl.lua",
+			"file": "yu/runtime.lua",
 			"settings":
 			{
-				"buffer_size": 12639,
+				"buffer_size": 17976,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "yu/runtime.lua",
+			"file": "yu/codegen.lua",
 			"settings":
 			{
-				"buffer_size": 12292,
+				"buffer_size": 25815,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "yu/resolver.lua",
+			"settings":
+			{
+				"buffer_size": 40506,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "yu/parser.lua",
+			"settings":
+			{
+				"buffer_size": 29302,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "yu/type.lua",
+			"settings":
+			{
+				"buffer_size": 20430,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "yu/yigen.lua",
+			"settings":
+			{
+				"buffer_size": 8979,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "yu/utils.lua",
+			"settings":
+			{
+				"buffer_size": 12287,
 				"line_ending": "Windows"
 			}
 		},
@@ -539,45 +579,101 @@
 			"file": "test/reflection.yu",
 			"settings":
 			{
-				"buffer_size": 1108,
+				"buffer_size": 2848,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "test/reflection.yo",
+			"file": "test/lua.yu",
 			"settings":
 			{
-				"buffer_size": 2496,
+				"buffer_size": 1400,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "yu/resolver.lua",
+			"file": "test/lua/math.lx",
 			"settings":
 			{
-				"buffer_size": 40337,
+				"buffer_size": 716,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"contents": "---------------build time elapsed-----------\n	loading:   	10.90\n	parse:     	6.63\n	decl:      	1.12\n	resolve:   	1.63\n	totalbuild:	10.46\n	codegen:   	0.97\n-------------------------------------------\ntrue\n\n[Finished in 0.1s]\n",
-			"file": "BUILD_RESULT",
-			"file_size": 226,
-			"file_write_time": 1365430318000000,
+			"file": "test/signal.yu",
 			"settings":
 			{
-				"buffer_size": 224,
+				"buffer_size": 1194,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "test/coro.yu",
+			"settings":
+			{
+				"buffer_size": 1471,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "test/coroutine.yu",
+			"settings":
+			{
+				"buffer_size": 311,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "---------------build time elapsed-----------\n	loading:   	13.45\n	parse:     	0.00\n	decl:      	0.00\n	resolve:   	0.00\n	totalbuild:	2.42\n	codegen:   	0.00\n-------------------------------------------\nmember:	method	innerMethod1	false\nmember:	field	x	false\nmember:	field	z	false\nmember:	field	y	false\nmember:	method	method2	false\nmember:	field	name	false\nmember:	method	__init	false\nCritical Test\nAnother Test\nProperty\n10\nZZZ	1\nXXX	0\nOK	-3\nDONE	-1\n\n[Finished in 0.2s]\n",
+			"file": "BUILD_RESULT",
+			"file_size": 486,
+			"file_write_time": 1366104773000000,
+			"settings":
+			{
+				"buffer_size": 465,
 				"line_ending": "Unix",
 				"scratch": true
+			}
+		},
+		{
+			"file": "yu.sublime-project",
+			"settings":
+			{
+				"buffer_size": 925,
+				"line_ending": "Unix"
 			}
 		}
 	],
 	"build_system": "Lua",
 	"command_palette":
 	{
-		"height": 307.0,
+		"height": 130.0,
 		"selected_items":
 		[
+			[
+				"git dif c",
+				"Git: Diff Current File"
+			],
+			[
+				"git diff",
+				"Git: Diff Current File"
+			],
+			[
+				"brow",
+				"Preferences: Browse Packages"
+			],
+			[
+				"keyb",
+				"Preferences: Key Bindings - User"
+			],
+			[
+				"pcd",
+				"Package Control: Disable Package"
+			],
+			[
+				"mini",
+				"View: Toggle Minimap"
+			],
 			[
 				"lua",
 				"Set Syntax: Lua"
@@ -707,7 +803,7 @@
 				"Package Control: List Packages"
 			]
 		],
-		"width": 552.0
+		"width": 554.0
 	},
 	"console":
 	{
@@ -724,34 +820,54 @@
 	},
 	"file_history":
 	[
+		"/Users/tommo/prj/yu/test/reflection.yo",
+		"/Users/tommo/prj/yu/test/reflection.yi",
+		"/Users/tommo/prj/yu/TODO",
+		"/Users/tommo/prj/yu/test/moai/api.yo",
+		"/Users/tommo/prj/yu/test/moai.yu",
+		"/Users/tommo/prj/yu/test/moai/api.yi",
+		"/Users/tommo/prj/yu/test/yitest.yi",
+		"/Users/tommo/prj/yu/design/concept.yu",
+		"/Users/tommo/prj/yu/yu/decl.lua",
+		"/Users/tommo/prj/yu/yu/yigen.lua",
+		"/Users/tommo/prj/yu/test/assign.yu",
+		"/Users/tommo/prj/yu/test/assign.yo",
+		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/PlainTasks/PlainTasks.tmLanguage",
+		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/SublimeTODO/Default (OSX).sublime-keymap",
+		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/User/Default (OSX).sublime-keymap",
+		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/Users/tommo/prj/yu/test/lua.yo",
+		"/Users/tommo/prj/yu/test/lua/os.lx",
+		"/Users/tommo/prj/yu/test/lua.yi",
+		"/Users/tommo/prj/yu/test/lua/io.lx",
+		"/Users/tommo/prj/yu/test/lua.yu",
+		"/Users/tommo/prj/yu/xxx.txt",
+		"/Users/tommo/prj/yu/yu/type.lua",
+		"/Users/tommo/prj/yu/yu/parser.lua",
+		"/Users/tommo/prj/yu/yu/utils.lua",
+		"/Users/tommo/prj/yu/test/reflection.yu",
+		"/Users/tommo/prj/yu/yu.sublime-project",
+		"/Users/tommo/prj/yu/test/moai/api.yu",
+		"/Users/tommo/prj/yu/test/moai.yo",
+		"/Users/tommo/prj/yu/runtest",
 		"/Users/tommo/prj/yu/yu/visitor.lua",
+		"/Users/tommo/prj/yu/yu/resolver.lua",
+		"/Users/tommo/prj/yu/test/g1.yu",
 		"/Users/tommo/prj/yu/yu/codegen.lua",
 		"/Users/tommo/prj/yu/test/test3.yu",
-		"/Users/tommo/prj/yu/yu/resolver.lua",
-		"/Users/tommo/prj/yu/yu/parser.lua",
-		"/Users/tommo/prj/yu/yu/type.lua",
-		"/Users/tommo/prj/yu/yu/yigen.lua",
 		"/Users/tommo/prj/yu/test/moai.yi",
 		"/Users/tommo/prj/yu/test/metadata.yu",
 		"/Users/tommo/prj/yu/test.lua",
-		"/Users/tommo/prj/yu/test/moai.yu",
 		"/Users/tommo/prj/yu/test/class.yu",
-		"/Users/tommo/prj/yu/test/reflection.yo",
-		"/Users/tommo/prj/yu/yu/decl.lua",
-		"/Users/tommo/prj/yu/yu/utils.lua",
-		"/Users/tommo/prj/yu/test/reflection.yu",
 		"/Users/tommo/prj/yu/BUILD_RESULT",
 		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/yua/Yua.JSON-tmLanguage",
 		"/Users/tommo/prj/yu/test/yitest.yo",
-		"/Users/tommo/prj/yu/yu.sublime-project",
 		"/Users/tommo/prj/yu/test/basic.yu",
 		"/Users/tommo/dev/shared/plist2json.py",
 		"/Users/tommo/prj/yu/test/anytype.yu",
 		"/Users/tommo/prj/yu/test/classdef.yu",
 		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/yua/Yua.tmLanguage",
-		"/Users/tommo/prj/yu/design/concept.yu",
 		"/Users/tommo/prj/yu/test/assert.yu",
-		"/Users/tommo/prj/yu/test/assign.yu",
 		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/CSS/CSS.tmLanguage",
 		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/yua/Yua.baktmLanguage",
 		"/Users/tommo/dev/shared/json2plist.py",
@@ -763,7 +879,6 @@
 		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/PHP/PHP.tmLanguage",
 		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/JavaScript/JSON.tmLanguage",
 		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/Lisp/Lisp.tmLanguage",
-		"/Users/tommo/prj/yu/test/moai.yo",
 		"/Users/tommo/Library/Application Support/Sublime Text 2/Packages/yua/Indent.tmPreferences",
 		"/Users/tommo/prj/yu/test/optarg.yu",
 		"/Users/tommo/prj/ging/common/transform.bmx",
@@ -783,20 +898,16 @@
 		"/Users/tommo/prj/ging/gMax2d/minib3dEntity.bmx",
 		"/Users/tommo/prj/yu/test/externclass.yu",
 		"/Users/tommo/dev/loom/loom-1_0_782-2f87c1524d-native/sdk/examples/Poly/src/main.ls",
-		"/Users/tommo/prj/yu/test/moai/api.yu",
 		"/Users/tommo/prj/yu/test/moai/moaiEnum.yu",
 		"/Users/tommo/prj/yu/test/enumdef.yi",
 		"/Users/tommo/prj/yu/test/optarg2.yi",
 		"/Users/tommo/prj/yu/test/optarg2.yu",
 		"/Users/tommo/prj/yu/test/optarg2.yo",
-		"/Users/tommo/prj/yu/runtest",
 		"/Users/tommo/prj/yu/test/moai/genMoaiEnum.lua",
-		"/Users/tommo/prj/yu/test/moai/api.yi",
 		"/Users/tommo/dev/loom/loom-1_0_782-2f87c1524d-native/sdk/examples/Poly/src/PolyGame.ls",
 		"/Users/tommo/prj/yu/test/optarg.yi",
 		"/Users/tommo/dev/moai-dev/src/moaicore/MOAIGfxDevice.cpp",
 		"/Users/tommo/dev/moai-dev/src/moaicore/MOAIProp.cpp",
-		"/Users/tommo/prj/yu/test/moai/api.yo",
 		"/Users/tommo/dev/moai-dev/src/moaicore/MOAIBox2DBody.cpp",
 		"/Users/tommo/dev/moai-dev/src/moaicore/MOAIBox2DFixture.cpp",
 		"/Users/tommo/prj/yu/test/optarg.yo",
@@ -805,14 +916,11 @@
 		"/Users/tommo/prj/yu/test/classdef.yi",
 		"/Users/tommo/prj/yu/yu/yu.lua",
 		"/Users/tommo/prj/yu/test/assign.yi",
-		"/Users/tommo/prj/yu/test/yitest.yi",
 		"/Users/tommo/prj/yu/yu/runtime.lua",
 		"/Users/tommo/prj/yu/testwithdebugger.lua",
-		"/Users/tommo/prj/yu/test/lua/os.lx",
 		"/Users/tommo/prj/yu/tools/clidebugger.lua",
 		"/Users/tommo/prj/yu/moaitest",
 		"/Users/tommo/prj/yu/.gitignore",
-		"/Users/tommo/prj/yu/test/assign.yo",
 		"/Users/tommo/prj/yu/test/enumdef.yu",
 		"/Users/tommo/prj/yu/test/enumtest.yu",
 		"/Users/tommo/prj/yu/test/class.yo",
@@ -820,7 +928,6 @@
 		"/Users/tommo/dev/moai-dev/3rdparty/box2d-2.2.1/Box2D/Dynamics/b2Body.h",
 		"/Users/tommo/dev/moai-dev/3rdparty/box2d-2.2.1/Box2D/Dynamics/b2Fixture.cpp",
 		"/Users/tommo/prj/yu/test/lua/io.yo",
-		"/Users/tommo/prj/yu/test/lua/io.lx",
 		"/Users/tommo/prj/yu/test/lua/math.lx",
 		"/Users/tommo/prj/yu/test/vararg.yo",
 		"/Users/tommo/prj/yu/test/fib.yo",
@@ -840,18 +947,7 @@
 		"/Users/tommo/dev/loom/loom-1_0_782-2f87c1524d-native/sdk/examples/WhackAMole/src/WhackAMole.ls",
 		"/Users/tommo/prj/yu/test/methodpointer.yo",
 		"/Users/tommo/prj/yu/test/methodpointer.yu",
-		"/Users/tommo/prj/yu/test/defaultArgument.yu",
-		"/Users/tommo/dev/loom/loom-1_0_782-2f87c1524d-native/sdk/src/loom/LML/ILMLParent.ls",
-		"/Users/tommo/dev/loom/loom-1_0_782-2f87c1524d-native/sdk/src/ldb/LDB.ls",
-		"/Users/tommo/dev/loom/loom-1_0_782-2f87c1524d-native/sdk/examples/TextFieldExample/src/TextFieldExample.ls",
-		"/Users/tommo/dev/loom/loom-1_0_782-2f87c1524d-native/sdk/bin/LDB.loom",
-		"/Users/tommo/prj/yu/test/signal.yo",
-		"/Users/tommo/prj/yu/test/signal.yu",
-		"/Users/tommo/prj/yu/test/classbug1.yu",
-		"/Users/tommo/dev/loom/latest_examples/PersistenceExample/src/PersistenceExample.ls",
-		"/Users/tommo/dev/loom/latest_examples/LifeDemo/src/LifeDemo.ls",
-		"/Users/tommo/dev/moai-dev/ant/host-source/source/project/src/moai/Moai.java",
-		"/Users/tommo/prj/yu/test/metadata.yo"
+		"/Users/tommo/prj/yu/test/defaultArgument.yu"
 	],
 	"find":
 	{
@@ -870,134 +966,134 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"meta",
-			"attribute",
-			"memberAttr",
-			"classAttr",
-			"genconstt",
-			"genConstTable",
-			"defaultFieldBody",
-			"annota",
-			"genInterfaceDescription",
-			"currentParsedSource",
-			"tablebo",
-			"varacc",
-			"resolver",
-			"extern class",
-			"tcall",
-			"isexpose",
-			"isExposable",
-			"expose",
-			"decls",
-			"genClosureId",
-			"reg",
-			"registry",
-			"pendAnnotation",
-			"addAnnotation",
-			"reflection",
-			"anno",
-			"rtti",
-			"typei",
-			"addAnnotation",
-			"newAnnotation",
-			"targetDecl",
-			"target",
-			"newAnnotation",
-			"genno",
-			"anno",
-			"addAnnotation",
-			"anns",
-			"globals",
-			"String",
-			"Object",
-			"number",
-			"Number",
-			"local",
-			"global",
-			"Number",
-			"number",
-			"Number",
-			"return",
-			"call",
-			"tcal",
-			"item",
-			"table",
-			"self",
-			"value",
-			"ann",
-			"var",
-			"field",
-			"(???)",
-			"classMetaType",
-			"UnitTest",
-			"closure",
-			"end",
-			"body",
-			"name",
-			"Expr",
-			"name",
-			"class",
-			"Ident",
-			"annota",
-			"b'",
-			"return",
-			".ann",
-			"findsymbol",
-			"class",
-			"annotation",
-			"annota",
-			"visi",
-			"var",
-			"return",
-			"mitem",
-			"Metadata",
-			"meta",
-			"noindent",
-			"rep",
-			"appends",
-			"__call",
+			"false",
+			"or",
 			"gen",
-			"raw",
-			"GOOD",
-			"varacc",
-			"name",
-			"class",
-			"Ident",
-			"annota",
-			"ann",
-			"metada",
-			"meta",
-			"classdecl",
-			"t5",
-			"externclassde",
+			"true",
+			"noindent",
+			"option",
+			"noindent",
+			"str",
+			"newCodeWri",
+			"false",
+			"__noindent",
+			"noindent",
+			"yigenModu",
+			"yigenModue",
+			"yigenModuee",
+			"gen",
+			"codeWriter",
+			"gettype",
+			"YIELD",
+			"RESUME",
+			"yield",
+			"_thread",
+			"connect",
+			"todo",
+			"assign initial",
+			"initi",
+			"File",
+			"end",
+			"nil",
+			"funcMetaType",
+			"MemberInfo",
+			"nil",
+			"MemberInfo",
+			"function",
+			"format",
+			"member",
+			"UnitTestName",
+			"foreach",
+			"asscast",
+			"autocast",
+			"getTypeInfoByValue",
+			"getAnnotationList",
+			"anns",
+			"getAnnotationList",
+			"getAnnotations",
+			"false",
+			"__",
 			"Annotations",
-			"annotation",
-			"v.Annotation^0",
-			"classde",
+			"vd",
+			"Annotations",
+			"anno",
+			"UnitTest",
+			"genAnnotation",
+			"value",
+			"typename",
+			"decl",
+			"reflectionRegistryN",
+			"reflectionRegistryV",
+			"name",
+			"codege",
+			"codegen",
+			"genAnn",
+			"genAnnotation",
+			"self",
+			"genreflec",
+			"nodes",
+			"reflection",
+			"docode",
+			"__annotationNodes",
+			"hasAnnotation",
 			"class",
-			"meta",
-			"Annotation",
-			"attribute",
-			"Annotation",
-			"fielddecl",
+			"__annotationNodes",
+			"hasAnnotation",
+			"false",
+			".ann",
+			"false",
+			"hasAnnotation",
+			"genAnnotation",
+			"100",
+			"not",
+			"return",
+			"*",
+			"func",
+			"boolean",
+			"number",
+			"ClassInfo",
+			"Info",
+			"registerValueTypeInfo",
+			" \n",
+			"enum",
+			"type",
+			"TypeInfo",
+			"ClassInfo",
+			"getItemList",
+			"getItemTable",
+			"enumType",
+			"name",
+			"arg",
+			"nil",
+			"TypeInfoClass",
+			"memberInfo",
+			"members",
+			"ZZZ",
+			"enumIte",
+			"numeric",
+			"enum",
+			"fie",
+			"c.",
+			"scope",
 			"class",
-			"Annotation",
-			"cerr",
-			"MethodDeclHeader",
-			"metadata",
-			"Persis",
-			"Property",
-			"fieldInfo",
-			"Property",
-			"PropertyAttribute",
-			"then",
-			"#",
-			"'!'",
-			"'#'",
-			"#",
-			"debug",
-			"Property",
-			"property"
+			"$()",
+			"$",
+			"name",
+			"TypeInfo",
+			"@Re",
+			"@buil",
+			"@ref",
+			"todo",
+			"return",
+			"privatestr",
+			"reflec",
+			"false",
+			"privatestr",
+			"private",
+			"privatestr",
+			"false",
+			"private",
+			"setmeta"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1088,18 +1184,186 @@
 			[
 				{
 					"buffer": 0,
-					"file": "yu/decl.lua",
+					"file": "yu/runtime.lua",
 					"settings":
 					{
-						"buffer_size": 12639,
+						"buffer_size": 17976,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								317,
-								317
+								843,
+								843
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 29.0,
+						"translation.y": 212.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "yu/codegen.lua",
+					"settings":
+					{
+						"buffer_size": 25815,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5662,
+								5662
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4604.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "yu/resolver.lua",
+					"settings":
+					{
+						"buffer_size": 40506,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								24394,
+								24394
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 17969.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "yu/parser.lua",
+					"settings":
+					{
+						"buffer_size": 29302,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4649,
+								4649
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 3568.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "yu/type.lua",
+					"settings":
+					{
+						"buffer_size": 20430,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								759,
+								759
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 239.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "yu/yigen.lua",
+					"settings":
+					{
+						"buffer_size": 8979,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5085,
+								5085
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4624.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "yu/utils.lua",
+					"settings":
+					{
+						"buffer_size": 12287,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								208,
+								208
 							]
 						],
 						"settings":
@@ -1110,34 +1374,6 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "yu/runtime.lua",
-					"settings":
-					{
-						"buffer_size": 12292,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								6968,
-								6968
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
-							"syntax": "Packages/Lua/Lua.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 6367.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1149,24 +1385,24 @@
 			"sheets":
 			[
 				{
-					"buffer": 2,
+					"buffer": 7,
 					"file": "test/reflection.yu",
 					"settings":
 					{
-						"buffer_size": 1108,
+						"buffer_size": 2848,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								199,
-								199
+								275,
+								275
 							]
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
 							"syntax": "Packages/yua/Yua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
@@ -1177,73 +1413,123 @@
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "test/reflection.yo",
+					"buffer": 8,
+					"file": "test/lua.yu",
 					"settings":
 					{
-						"buffer_size": 2496,
+						"buffer_size": 1400,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1585,
-								1585
+								1392,
+								1392
 							]
 						],
 						"settings":
 						{
 							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
-							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"syntax": "Packages/yua/Yua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1053.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
-			]
-		},
-		{
-			"selected": 1,
-			"sheets":
-			[
-				{
-					"buffer": 4,
-					"file": "yu/resolver.lua",
-					"settings":
-					{
-						"buffer_size": 40337,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								30589,
-								30589
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
-							"syntax": "Packages/Lua/Lua.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 22954.0,
+						"translation.y": 665.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "yu/runtime.lua",
+					"buffer": 9,
+					"file": "test/lua/math.lx",
 					"settings":
 					{
-						"buffer_size": 12292,
+						"buffer_size": 716,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								646,
+								716
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 240.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "test/signal.yu",
+					"settings":
+					{
+						"buffer_size": 1194,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1103,
+								1103
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/yua/Yua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 869.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "test/coro.yu",
+					"settings":
+					{
+						"buffer_size": 1471,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								388,
+								388
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/yua/Yua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 298.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "test/coroutine.yu",
+					"settings":
+					{
+						"buffer_size": 311,
 						"regions":
 						{
 						},
@@ -1257,11 +1543,73 @@
 						"settings":
 						{
 							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/yua/Yua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 2.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 2,
+					"file": "yu/resolver.lua",
+					"settings":
+					{
+						"buffer_size": 40506,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								30680,
+								30680
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
 							"syntax": "Packages/Lua/Lua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 0,
+					"file": "yu/runtime.lua",
+					"settings":
+					{
+						"buffer_size": 17976,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								275,
+								275
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 15044.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1273,19 +1621,19 @@
 			"sheets":
 			[
 				{
-					"buffer": 5,
+					"buffer": 13,
 					"file": "BUILD_RESULT",
 					"settings":
 					{
-						"buffer_size": 224,
+						"buffer_size": 465,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								224,
-								224
+								465,
+								465
 							]
 						],
 						"settings":
@@ -1294,10 +1642,40 @@
 							"result_base_dir": "/Users/tommo/prj/yu",
 							"result_file_regex": "",
 							"result_line_regex": "",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 51.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "yu.sublime-project",
+					"settings":
+					{
+						"buffer_size": 925,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								916,
+								916
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 357.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1379,32 +1757,120 @@
 		"selected_items":
 		[
 			[
-				"meta",
-				"test/metadata.yu"
+				"runtim",
+				"yu/runtime.lua"
 			],
 			[
-				"pars",
+				"par",
 				"yu/parser.lua"
 			],
 			[
-				"type",
-				"yu/type.lua"
+				"reo",
+				"yu/resolver.lua"
+			],
+			[
+				"util",
+				"yu/utils.lua"
+			],
+			[
+				"moai.yu",
+				"test/moai.yu"
+			],
+			[
+				"uti",
+				"yu/utils.lua"
+			],
+			[
+				"code",
+				"yu/codegen.lua"
+			],
+			[
+				"design",
+				"design/concept.yu"
+			],
+			[
+				"yigen",
+				"yu/yigen.lua"
+			],
+			[
+				"sign",
+				"test/signal.yu"
+			],
+			[
+				"todo",
+				"TODO"
+			],
+			[
+				"math",
+				"test/lua/math.lx"
 			],
 			[
 				"reso",
 				"yu/resolver.lua"
 			],
 			[
-				"runtim",
-				"yu/runtime.lua"
+				"math.",
+				"test/lua/math.lx"
+			],
+			[
+				"lua.yu",
+				"test/lua.yu"
+			],
+			[
+				"sub",
+				"yu.sublime-project"
+			],
+			[
+				"io.",
+				"test/lua/io.lx"
+			],
+			[
+				"type",
+				"yu/type.lua"
+			],
+			[
+				"pars",
+				"yu/parser.lua"
+			],
+			[
+				"ut",
+				"yu/utils.lua"
+			],
+			[
+				"subl",
+				"yu.sublime-project"
+			],
+			[
+				"moai",
+				"test/moai.yu"
 			],
 			[
 				"run",
-				"yu/runtime.lua"
+				"runtest"
+			],
+			[
+				"visi",
+				"yu/visitor.lua"
+			],
+			[
+				"yige",
+				"yu/yigen.lua"
 			],
 			[
 				"cod",
 				"yu/codegen.lua"
+			],
+			[
+				"re",
+				"yu/resolver.lua"
+			],
+			[
+				"codeg",
+				"yu/codegen.lua"
+			],
+			[
+				"meta",
+				"test/metadata.yu"
 			],
 			[
 				"refl",
@@ -1413,14 +1879,6 @@
 			[
 				"decl",
 				"yu/decl.lua"
-			],
-			[
-				"par",
-				"yu/parser.lua"
-			],
-			[
-				"visi",
-				"yu/visitor.lua"
 			],
 			[
 				"refleyu",
@@ -1435,24 +1893,8 @@
 				"yu/visitor.lua"
 			],
 			[
-				"code",
-				"yu/codegen.lua"
-			],
-			[
-				"ut",
-				"yu/utils.lua"
-			],
-			[
-				"uti",
-				"yu/utils.lua"
-			],
-			[
 				"codge",
 				"yu/codegen.lua"
-			],
-			[
-				"sub",
-				"yu.sublime-project"
 			],
 			[
 				"test/moai",
@@ -1461,10 +1903,6 @@
 			[
 				"yu",
 				"design/concept.yu"
-			],
-			[
-				"moai.yu",
-				"test/moai.yu"
 			],
 			[
 				"ref",
@@ -1495,16 +1933,8 @@
 				"yu.sublime-project"
 			],
 			[
-				"moai",
-				"test/moai.yu"
-			],
-			[
 				"api.yi",
 				"test/moai/api.yi"
-			],
-			[
-				"re",
-				"yu/resolver.lua"
 			],
 			[
 				"optarg2",
@@ -1515,20 +1945,8 @@
 				"runtest"
 			],
 			[
-				"yigen",
-				"yu/yigen.lua"
-			],
-			[
-				"subl",
-				"yu.sublime-project"
-			],
-			[
 				"optarg",
 				"test/optarg.yo"
-			],
-			[
-				"yige",
-				"yu/yigen.lua"
 			],
 			[
 				"opr",
@@ -1647,10 +2065,6 @@
 				"test/assign.yu"
 			],
 			[
-				"util",
-				"yu/utils.lua"
-			],
-			[
 				"assign",
 				"test/assign.yo"
 			],
@@ -1703,20 +2117,12 @@
 				"yu/yu.lua"
 			],
 			[
-				"codeg",
-				"yu/codegen.lua"
-			],
-			[
 				"io.yo",
 				"test/lua/io.yo"
 			],
 			[
 				"io",
 				"test/lua/io.lx"
-			],
-			[
-				"math.",
-				"test/lua/math.lx"
 			],
 			[
 				"parser",
@@ -1861,34 +2267,6 @@
 			[
 				"moai.",
 				"test/moai2.yu"
-			],
-			[
-				"debu",
-				"test/debugtest.yu"
-			],
-			[
-				"classh",
-				"test/classhint.yu"
-			],
-			[
-				"debug",
-				"test/debugtest.yu"
-			],
-			[
-				"debugt",
-				"test/debugtest.yu"
-			],
-			[
-				"bas",
-				"test/basic.yu"
-			],
-			[
-				"deu",
-				"test/debugtest.yu"
-			],
-			[
-				"classb",
-				"test/classbug1.yu"
 			]
 		],
 		"width": 0.0
@@ -1901,6 +2279,14 @@
 			[
 				"mock",
 				"/Users/tommo/prj/moai/mock/mock.sublime-project"
+			],
+			[
+				"moc",
+				"/Users/tommo/prj/moai/mock/mock.sublime-project"
+			],
+			[
+				"pyt",
+				"/Users/tommo/prj/moai/pythonhost/pymoai.sublime-project"
 			],
 			[
 				"pymo",

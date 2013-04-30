@@ -846,6 +846,15 @@ local function makeLuaTraceString(info)
 		)
 end
 
+local function isStackInYU(level)
+	local info=debug.getinfo(level)
+	if not info then return false end
+	local func=info.func	
+	local env=getfenv(func)
+	local mt=env and getmetatable(env)
+	return mt and mt.__is_yu_module
+end
+
 function getStackPos(level)
 	local info=debug.getinfo(level)
 	if not info then return false end
@@ -873,8 +882,46 @@ function traceBack(level)
 	return output
 end
 
-function convertLuaErrorMsg(msg)
-	return msg
+local function _matchErr(etype, msg, pattern)
+	local data
+	data={msg:match(pattern)}
+	if data[1] then return {etype,data} end
+	return false
+end
+
+local function extractErrorInfo(msg)
+	--just some partial checking
+	return 
+		_matchErr('arith', msg, 
+			'attempt to perform arithmetic on ([%w_]+) \'([%w_]+)\' %(a ([%w_]+) value%)')
+		or
+		_matchErr('index', msg, 
+			'attempt to index ([%w_]+) \'([%w_]+)\' %(a ([%w_]+) value%)')
+		or
+		_matchErr('nilindex', msg, 
+			'table index is nil')
+
+end
+
+function convertLuaErrorMsg(msg,level)
+	local res
+	res=extractErrorInfo(msg)
+	if res then 
+		local etype,data=unpack(res)
+
+		if etype=='arith' then		
+			msg=string.format('attempt to perform arithmetic on non number value (a %s value)',data[3])
+		elseif etype=='index' then
+			msg=string.format('attempt to index a %s value',data[3])
+		elseif etype=='nilindex' then
+			msg=string.format('table index is nil')
+		end
+	else
+		msg=msg:match('.*:%d+: (.*)')	or msg
+	end
+
+	local info=getStackPos(level+1)
+	return info..' '..msg
 end
 
 function errorHandler(msg,b)
@@ -883,8 +930,8 @@ function errorHandler(msg,b)
 	if info.func==error then startLevel=startLevel+1 end
 
 	local traceInfo=traceBack(startLevel+1)
-	if errorInYu then
-		msg=convertLuaErrorMsg(msg)
+	if isStackInYU(startLevel+1) then
+		msg=convertLuaErrorMsg(msg, startLevel+1)
 	end
 	if msg then
 		io.stderr:write(msg,'\n')

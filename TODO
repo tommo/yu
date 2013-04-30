@@ -21,7 +21,14 @@ Runtime:
     ☐ Static Member TypeInfo
   Lua commnuication:
     ☐ reflection access
-    
+
+ Debugging:
+   ☐ lua error -> Yu error conversion
+   ☐ Modify Lua debugger to accept yu debug info (clidebugger)
+
+ Bootstrap:
+   ☐ write a resolver & codegen in Yu
+
 
 
 --- ✄ -----------------------
