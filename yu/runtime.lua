@@ -811,7 +811,7 @@ local function makeYuTraceString(info,modEnv)
 		if line>=l and line<=l+range then
 			local l1,off1=findLine(lineOffset,data[3])
 			local l2,off2=findLine(lineOffset,data[4])
-			return format('%s: %d <%d:%d-%d:%d>',dinfo.path,l1,
+			return format('%s:%d: <%d:%d-%d:%d>',dinfo.path,l1,
 				l1,off1,l2,off2)		
 		end
 	end
