@@ -584,22 +584,6 @@
 			}
 		},
 		{
-			"file": "design/errortest.yu",
-			"settings":
-			{
-				"buffer_size": 21,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "test/errtest.yo",
-			"settings":
-			{
-				"buffer_size": 1171,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "test/defaultArgument.yu",
 			"settings":
 			{
@@ -619,15 +603,7 @@
 			"file": "test/optarg.yi",
 			"settings":
 			{
-				"buffer_size": 1441,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "test/signal.yu",
-			"settings":
-			{
-				"buffer_size": 1217,
+				"buffer_size": 1486,
 				"line_ending": "Unix"
 			}
 		},
@@ -836,6 +812,11 @@
 	},
 	"file_history":
 	[
+		"/Users/tommo/prj/yu/README.md",
+		"/Users/tommo/prj/yu/README",
+		"/Users/tommo/prj/yu/test/errtest.yo",
+		"/Users/tommo/prj/yu/design/errortest.yu",
+		"/Users/tommo/prj/yu/test/signal.yu",
 		"/Users/tommo/prj/yu/yu/decl.lua",
 		"/Users/tommo/prj/yu/test/defaultvalues.yu",
 		"/Users/tommo/prj/yu/test/coroutine.yu",
@@ -843,7 +824,6 @@
 		"/Users/tommo/prj/yu/test/errtest.yu",
 		"/Users/tommo/prj/yu/yu/runtime.lua",
 		"/Users/tommo/prj/yu/design/errortest.lua",
-		"/Users/tommo/prj/yu/test/signal.yu",
 		"/Users/tommo/prj/yu/test/lua/math.lx",
 		"/Users/tommo/prj/yu/test/lua.yu",
 		"/Users/tommo/prj/yu/test/reflection.yu",
@@ -959,11 +939,7 @@
 		"/Users/tommo/prj/moai/MDD/host/osx/GlutHost.cpp",
 		"/Users/tommo/prj/yu/test/queue.yu",
 		"/Users/tommo/prj/yu/test/cast.yo",
-		"/Users/tommo/prj/yu/test/tmpobj.yu",
-		"/Users/tommo/prj/yu/yu/runtime1.lua",
-		"/Users/tommo/prj/yu/test/cast.yu",
-		"/Users/tommo/prj/yu/test/test1.yu",
-		"/Users/tommo/prj/yu/test/type.yu"
+		"/Users/tommo/prj/yu/test/tmpobj.yu"
 	],
 	"find":
 	{
@@ -971,7 +947,7 @@
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 97.0,
 		"where_history":
 		[
 			""
@@ -1356,7 +1332,7 @@
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
 							"syntax": "Packages/Lua/Lua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
@@ -1406,18 +1382,18 @@
 						"selection":
 						[
 							[
-								10040,
-								10042
+								16896,
+								16896
 							]
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
 							"syntax": "Packages/Lua/Lua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 7795.0,
+						"translation.y": 11450.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1425,23 +1401,23 @@
 			]
 		},
 		{
-			"selected": 5,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 8,
-					"file": "design/errortest.yu",
+					"file": "test/defaultArgument.yu",
 					"settings":
 					{
-						"buffer_size": 21,
+						"buffer_size": 142,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								21
+								142,
+								142
 							]
 						],
 						"settings":
@@ -1457,61 +1433,6 @@
 				},
 				{
 					"buffer": 9,
-					"file": "test/errtest.yo",
-					"settings":
-					{
-						"buffer_size": 1171,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 580.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 10,
-					"file": "test/defaultArgument.yu",
-					"settings":
-					{
-						"buffer_size": 142,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								141,
-								141
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
-							"syntax": "Packages/yua/Yua.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 11,
 					"file": "test/optarg.yu",
 					"settings":
 					{
@@ -1538,19 +1459,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 12,
+					"buffer": 10,
 					"file": "test/optarg.yi",
 					"settings":
 					{
-						"buffer_size": 1441,
+						"buffer_size": 1486,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1302,
-								1302
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1565,35 +1486,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 13,
-					"file": "test/signal.yu",
-					"settings":
-					{
-						"buffer_size": 1217,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								542,
-								542
-							]
-						],
-						"settings":
-						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
-							"syntax": "Packages/yua/Yua.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 431.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 14,
+					"buffer": 11,
 					"file": "test/signal.yi",
 					"settings":
 					{
@@ -1660,7 +1553,7 @@
 			"sheets":
 			[
 				{
-					"buffer": 15,
+					"buffer": 12,
 					"file": "BUILD_RESULT",
 					"settings":
 					{
@@ -1691,7 +1584,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 16,
+					"buffer": 13,
 					"file": "yu.sublime-project",
 					"settings":
 					{
@@ -1795,6 +1688,14 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"ream",
+				"README.md"
+			],
+			[
+				"rea",
+				"README"
+			],
 			[
 				"pars",
 				"yu/parser.lua"
@@ -2298,14 +2199,6 @@
 			[
 				"lua",
 				"test.lua"
-			],
-			[
-				"erro",
-				"design/errortest.lua"
-			],
-			[
-				"enumtes",
-				"test/enumtest.yo"
 			]
 		],
 		"width": 0.0
