@@ -6,7 +6,7 @@ module('yu', package.seeall)
 
 local getDeclName=getDeclName
 local getType,getTypeDecl=getType,getTypeDecl
-local yigenModule, yigenClass, yigenFunc,  yigenEnum, yigenNode, yigenVar
+local yigenModule, yigenClass, yigenFunc,  yigenEnum, yigenNode, yigenVar, yigenSignal
 local isBuiltinType,getBuiltinType=isBuiltinType,getBuiltinType
 
 local getConstNode,constToString =getConstNode, constToString
@@ -44,6 +44,7 @@ function yigenNode(gen, node)
 		elseif tag=='import' then
 			yigenImport(gen, node)
 		elseif tag=='signaldecl' then
+			yigenSignal(gen, node)
 		else
 			error('unsupported yi generation:'..tag)
 		end

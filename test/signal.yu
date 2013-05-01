@@ -34,6 +34,7 @@ end
 class Driver	
 	method waitLight(l:Light)
 		l.stateChanged >> onLightChanged		
+		-- l.stateChanged 
 	end
 
 	method onLightChanged(state$)
@@ -61,6 +62,7 @@ driver.waitLight(l2)
 b1.pressed >> l1.switchState
 b1.pressed >> l2.switchState
 b2.pressed >> l2.switchState
+
 
 -- b1.pressed>>func() print('hello,pressed') end
 
