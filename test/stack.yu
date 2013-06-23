@@ -37,31 +37,31 @@ class Stack
 		end
 	end
 
-	method __iter() => StackIter{node=top}
+	method __iter() = StackIter{node=top}
 end
 
 class Foo
-	method shit() abstract
+	abstract method shit()
 end
 
 class Bar extends Foo
 end
 
+--push
 local s=Stack()
-for i=1,10 do
+for i = 1, 10 do
 	s.push('No.'..i)
 end
 
--- for v in s do
--- 	if not v is string then continue end
--- 	print(v)
--- end
+--iteration
+for v in s do
+	if not v is string then continue end
+	print(v)
+end
 
+--pop
 while true do
 	local x=s.pop()
-	if x~=nil then 
-		print(x)
-	else
-		break
-	end
+	if not x then break end
+	print( 'poped', x )
 end

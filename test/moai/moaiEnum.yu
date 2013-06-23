@@ -1,0 +1,26 @@
+enum MOAIEaseType {
+	 EASE_IN = 0,
+	 EASE_OUT = 1,
+	 FLAT = 2,
+	 LINEAR = 3,
+	 SHARP_EASE_IN = 4,
+	 SHARP_EASE_OUT = 5,
+	 SHARP_SMOOTH = 6,
+	 SMOOTH = 7,
+	 SOFT_EASE_IN = 8,
+	 SOFT_EASE_OUT = 9,
+	 SOFT_SMOOTH = 10,
+}
+enum MOAIFileStreamMode {
+	 READ = 1,
+	 READ_WRITE = 2,
+	 READ_WRITE_AFFIRM = 3,
+	 READ_WRITE_NEW = 4,
+	 WRITE = 5,
+}
+enum MOAIAnimCurveMode {
+	 CLAMP = 0,
+	 WRAP = 1,
+	 MIRROR = 2,
+	 APPEND = 3,
+}

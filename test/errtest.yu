@@ -1,0 +1,11 @@
+-- class MMM
+-- 	method xxx()
+-- 	end
+-- end
+
+-- local m=MMM()
+-- m=nil
+-- m.xxx()
+
+local a,b#
+local c=a>b

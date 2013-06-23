@@ -2,9 +2,8 @@
 class Manager
 	global _mgr:Manager
 	method __new()
-		assert not _mgr , 'manager already created'
-		-- if _mgr then throw  end
-		_mgr=self
+		assert not _mgr, 'manager already created'
+		_mgr = self
 	end
 end
 
@@ -13,9 +12,9 @@ local m1=Manager()
 class Worker
 	field id#
 	method __new(id#)
-		self.id=id
+		self.id = id
 	end
 end
 
-local w1=Worker(1)
-local m2=Manager()
+local w1 = Worker(1)
+local m2 = Manager()

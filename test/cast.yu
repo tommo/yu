@@ -25,4 +25,8 @@ local c=Apple()
 b=c as Fruit
 print(b is Fruit, b is Apple)
 
-local x=nil as Apple
+local x:Apple
+x = nil
+print( x is Apple )
+print( x == nil )
+

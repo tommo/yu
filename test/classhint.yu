@@ -23,8 +23,8 @@ class Vec
 		x,y=nx,ny
 	end
 
-	method add(v1:Vec)=>Vec{x=x+v1.x,y=y+v1.y}
-	method tostring()=>'('..x..','..y..')'
+	method add(v1:Vec) = Vec{x=x+v1.x,y=y+v1.y}
+	method tostring()  = '('..x..','..y..')'
 end
 
 print(Vec(1,1).add(Vec(2,5)).tostring())

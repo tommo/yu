@@ -18,24 +18,24 @@ local function makeMetaType(tag,name,valuetype)
 end
 
 
-nilType=makeValueType('niltype','nil')
-booleanType=makeValueType('booleantype','boolean')
-numberType=makeValueType('numbertype','number')
-stringType=makeValueType('stringtype','string')
-objectType=makeValueType('objecttype','object')
-userdataType=makeValueType('userdatatype','userdata')
-voidType=makeValueType('voidtype','void')
-anyType=makeValueType('anytype','any')
+nilType        = makeValueType ( 'niltype'      , 'nil'      )
+booleanType    = makeValueType ( 'booleantype'  , 'boolean'  )
+numberType     = makeValueType ( 'numbertype'   , 'number'   )
+stringType     = makeValueType ( 'stringtype'   , 'string'   )
+objectType     = makeValueType ( 'objecttype'   , 'object'   )
+userdataType   = makeValueType ( 'userdatatype' , 'userdata' )
+voidType       = makeValueType ( 'voidtype'     , 'void'     )
+anyType        = makeValueType ( 'anytype'      , 'any'      )
 
-signalMetaType=makeMetaType('signalmeta','signal')
-classMetaType=makeMetaType('classmeta','class')
-moduleMetaType=makeMetaType('modulemeta','module')
-enumMetaType=makeMetaType('enummeta','enum')
+signalMetaType = makeMetaType  ( 'signalmeta'   , 'signal'   )
+classMetaType  = makeMetaType  ( 'classmeta'    , 'class'    )
+moduleMetaType = makeMetaType  ( 'modulemeta'   , 'module'   )
+enumMetaType   = makeMetaType  ( 'enummeta'     , 'enum'     )
 
-funcMetaType=makeMetaType('funcmeta','func')
-tableMetaType=makeMetaType('tablemeta','table')
-threadMetaType=makeMetaType('threadmeta','thread')
-anyFuncType=makeValueType('anyfunc','anyfunc')
+funcMetaType   = makeMetaType  ( 'funcmeta'     , 'func'     )
+tableMetaType  = makeMetaType  ( 'tablemeta'    , 'table'    )
+threadMetaType = makeMetaType  ( 'threadmeta'   , 'thread'   )
+anyFuncType    = makeValueType ( 'anyfunc'      , 'anyfunc'  )
 
 
 
@@ -47,9 +47,9 @@ emptyTableType={tag='tabletype',name='[]',
 stringTable={}
 numberTable={}
 
-trueConst={tag='boolean', v='true', type=booleanType}
-falseConst={tag='boolean', v='false',type=booleanType}
-nilConst={tag='nil',type=nilType}
+trueConst  = { tag = 'boolean', v = 'true',  type = booleanType }
+falseConst = { tag = 'boolean', v = 'false', type = booleanType }
+nilConst   = { tag = 'nil', type = nilType}
 
 local function makeBuiltinMethod(name,id,rettypes,argtypes)
 
@@ -87,10 +87,10 @@ end
 
 
 -----------Default initial value for each type
-booleanType.defaultValue=nilConst
-stringType.defaultValue=nilConst
-objectType.defaultValue=nilConst
-numberType.defaultValue=nilConst
+booleanType.defaultValue = nilConst
+stringType.defaultValue  = nilConst
+objectType.defaultValue  = nilConst
+numberType.defaultValue  = nilConst
 
 
 -----------TYPE comparison
@@ -786,21 +786,21 @@ end
 
 
 -------CAST
-function typeres.cast.numbertype(t,n,target)
+function typeres.cast.numbertype(t,n,target, resolver )
 	local td=getTypeDecl(target)
 	if td==booleanType then
-		return 'replace',convertToBool(n.l)
+		return 'replace',convertToBool( n.l, resolver )
 	elseif td==stringType then
 		return n --let codegen handle this
 	end
 end
 
-function typeres.cast.stringtype(t,n,target)
+function typeres.cast.stringtype(t,n,target, resolver )
 	local td=getTypeDecl(target)
 	if td==numberType then
 		return n --let codegen handle this
 	elseif td==booleanType then
-		return 'replace',convertToBool(n.l)
+		return 'replace',convertToBool( n.l, resolver )
 	end
 	return false
 end
@@ -857,7 +857,7 @@ function resolveOP(t,node,resolver)
 		return true
 	elseif cls=='logic' then
 		if op=='not' then
-			node.l=convertToBool(node.l)
+			node.l=convertToBool( node.l, resolver )
 			node.type=booleanType
 			return true
 		elseif op=='and' then
@@ -967,7 +967,10 @@ function convertToBool(node,resolver)
 	elseif tag=='classdecl' then
 		return {tag='binop',op='~=',l=node,r=nilConst,type=booleanType, resolveState='done'}
 	else
-		resolver:err('cannot convert into boolean type:'..t.name,node)
+		--check against nil?
+		--or just fail?
+		return {tag='binop',op='~=',l=node,r=nilConst,type=booleanType, resolveState='done'}
+		-- resolver:err('cannot convert into boolean type:'..t.name,node)
 	end
 	
 end
@@ -975,9 +978,9 @@ end
 ---------------------------
 
 
-_M.getTypeDecl=getTypeDecl
-_M.getType=getType
-_M.builtinTypeDecls=builtinTypeDecls
-_M.getSharedSuperType=getSharedSuperType
-_M.getClassMemberDecl=getClassMemberDecl
-_M.checkFuncArgs=checkFuncArgs
+_M.getTypeDecl         = getTypeDecl
+_M.getType             = getType
+_M.builtinTypeDecls    = builtinTypeDecls
+_M.getSharedSuperType  = getSharedSuperType
+_M.getClassMemberDecl  = getClassMemberDecl
+_M.checkFuncArgs       = checkFuncArgs

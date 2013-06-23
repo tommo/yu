@@ -2,10 +2,8 @@ extern
 	func print(...*)
 end
 
-local x=1
-local f1=func() =>	func()
-		print('x=',@x)
-	end
+local x  = 1
+local fx = func() = func() print( 'x =', &x ) end
+local f = fx()
+f()
 
-local fx=f1()
-fx()
