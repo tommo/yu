@@ -1,7 +1,11 @@
-import 'queue.yu'
+import 'lua/std.lx'
 
-local q=Queue()
-q.push(1)
-extern
-	func print(...*)
-end
+local x = math.sin( 10 )
+print(x)
+-- import 'queue.yu' as queue
+
+-- local q = queue.Queue()
+-- q.push(1)
+-- extern
+-- 	func print(...*)
+-- end

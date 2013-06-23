@@ -16,7 +16,7 @@ end
 	end
 #end
 
-local s,i=State.OK,1
+local s,i = State.OK,1
 printState(s)
 s=WAIT
 printState(s)

@@ -13,14 +13,14 @@ class Vec
 		self.(x,y,z)=x,y,z
 	end
 	
-	method __add (b:Vec) => Vec(x+b.x,y+b.y,z+b.z)
-	method __sub (b:Vec) => Vec(x-b.x,y-b.y,z-b.z)
-	method __mul (b#) => Vec(x*b,y*b,z*b)
+	method __add (b:Vec)  =  Vec(x+b.x,y+b.y,z+b.z)
+	method __sub (b:Vec)  =  Vec(x-b.x,y-b.y,z-b.z)
+	method __mul (b#)  =  Vec(x*b,y*b,z*b)
 	
-	method mult(b:Vec)=> Vec(x*b.x,y*b.y,z*b.z)
-	method dot(b:Vec)=> x*b.x + y*b.y + z*b.z
-	method norm() => self*(1/math.sqrt(x*x+y*y+z*z))
-	method cross(b:Vec)=> Vec(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x)
+	method mult(b:Vec) =  Vec(x*b.x,y*b.y,z*b.z)
+	method dot(b:Vec) =  x*b.x+y*b.y+z*b.z
+	method norm()  =  self*(1/math.sqrt(x*x+y*y+z*z))
+	method cross(b:Vec) =  Vec(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x)
 end
 
 
@@ -95,9 +95,9 @@ global spheres =
 
 
 
-function clamp(x#)=> x < 0 ? 0 | x >1 ? 1 | x
+function clamp(x#) =  x < 0 and 0 or ( x >1 and 1 or x )
 
-func toInt(x#)=>math.floor(clamp(x)^(1/2.2)*255+0.5)
+func toInt(x#) = math.floor(clamp(x)^(1/2.2)*255+0.5)
 
 const t1=1000000000
 
@@ -128,19 +128,19 @@ func radiance(r:Ray, depth#) -> Vec
 	
 	if isMaxDepth or (isUseRR and not isRR) then return obj.e end
 	
-	local f=(isUseRR and isRR) ?  obj.cc | obj.c
+	local f=(isUseRR and isRR) and  obj.cc or obj.c
 	local x=r.o+r.d * t
 	local n=(x - obj.p).norm()
-	local nl=(n.dot(r.d) < 0) ? n | (n*-1)
+	local nl=(n.dot(r.d) < 0) and n or (n*-1)
 	
 	select obj.refl
-		case diff do
+		case diff then
 			local r1=2*math.pi*rand()
 			local r2=rand()
 			local r2s=math.sqrt(r2)
 			
 			local w=nl
-			local wo=(math.abs(w.x)>0.1) ? YAxis | XAxis
+			local wo=(math.abs(w.x)>0.1) and YAxis or XAxis
 			local u= wo.cross(w).norm()
 			local v= w.cross(u)
 			local d=(u*math.cos(r1)*r2s + 
@@ -148,24 +148,24 @@ func radiance(r:Ray, depth#) -> Vec
 					  w*math.sqrt(1-r2)).norm()
 			return obj.e + f.mult(radiance(Ray(x, d), newDepth))
 			
-		case spec do
+		case spec then
 			return obj.e + f.mult(radiance( Ray(x, r.d - n * 2 * n.dot(r.d)), newDepth))
 			
-		case refr do
+		case refr then
 			local reflRay = Ray(x, r.d - n*(2*n.dot(r.d)))
 			local into = n.dot(nl) > 0
 			local nc, nt = 1, 1.5
-			local nnt = into ? nc/nt | nt/nc
+			local nnt = into and nc/nt or nt/nc
 			local ddn = r.d.dot(nl)
 			local cos2t = 1 - nnt*nnt*(1-ddn*ddn)
 			
 			if cos2t <0 then return obj.e + f.mult(radiance(reflRay, newDepth)) end
 			
-			local tdir = (r.d*nnt - n*( (into ? 1 | -1) * (ddn*nnt + math.sqrt(cos2t)))).norm()
+			local tdir = (r.d*nnt - n*( (into and 1 or -1) * (ddn*nnt + math.sqrt(cos2t)))).norm()
 			local a=nt-nc
 			local b=nt+nc
 			local R0=(a*a)/(b*b)
-			local c=1-(into ? -ddn | tdir.dot(n))
+			local c=1-(into and -ddn or tdir.dot(n))
 			local Re=R0+(1-R0)*c*c*c*c*c
 			local Tr=1-Re
 			local P=.25 + .5 * Re
@@ -210,8 +210,8 @@ for y=0, h-1 do
 				local r=Zero
 				for s = 1, samps do
 					local r1,r2=2*rand(), 2*rand()
-					local dx= (r1<1) ? (math.sqrt(r1)-1) | (1-math.sqrt(2-r1))
-					local dy= (r2<1) ? (math.sqrt(r2)-1) | (1-math.sqrt(2-r2))
+					local dx= (r1<1) and (math.sqrt(r1)-1) or (1-math.sqrt(2-r1))
+					local dy= (r2<1) and (math.sqrt(r2)-1) or (1-math.sqrt(2-r2))
 					local d= cx*(((sx + .5 +dx)/2+x)/w - .5)+
 							  cy*(((sy + .5 +dy)/2+y)/h - .5)+ cam.d
 					local camRay=Ray(cam.o + d*140, d.norm())

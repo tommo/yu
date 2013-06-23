@@ -330,6 +330,7 @@ local function getType(node,noMulRet)
 	local t=node.type
 	if not t then
 		assert(node.resolveState=='done','no resolve:'..node.tag)
+		print( getTokenPosString( node ) )
 		table.foreach(node,print)
 		error('fatal: type not resolved:'..node.tag)
 	end
@@ -539,7 +540,7 @@ function typeres.member.modulemeta(t,m)
 	local im=m.l.decl
 	local mod=im.mod
 	local item=mod.scope[m.id]
-	
+	m.mtype = 'static'
 	if item and not item.private then
 		m.decl=item
 		m.type=getType(item)

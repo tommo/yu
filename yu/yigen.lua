@@ -288,7 +288,7 @@ end
 
 
 ------------YI Loader----
-local yiloadNode, yiloadClass, yiloadVar, yiloadFunc, yiloadType
+local yiloadNode, yiloadClass, yiloadVar, yiloadFunc, yiloadType, yiloadImport
 
 
 local function yifindExternSymbol(entryModule,name,searchSeq) --should be safe without check duplications
@@ -336,6 +336,8 @@ function yiloadNode(d)
 		yiloadClass(d)
 	elseif tag=='enumdecl' then
 		yiloadEnum(d)
+	elseif tag=='import' then
+		yiloadImport(d)
 	end
 end
 
@@ -371,6 +373,18 @@ function yiloadEnum(e)
 		}
 	end
 	e.items=newitems
+end
+
+function yiloadImport( i )
+	local name = i.name
+	for m in pairs( i.module.namedExternModule ) do
+		if m.path == i.path then 
+			i.mod = m
+			break
+		end
+	end
+	if not i.mod then error('FATAL: named module not found:'..name) end
+	i.type = moduleMetaType
 end
 
 function yiloadVar(v)

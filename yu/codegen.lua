@@ -1126,7 +1126,8 @@ function generators.call(gen,c)
 			gen')'
 			gen:refer(c.l.decl)
 		else
-			error('wtf?'..mtype)
+			table.foreach( c.l, print )
+			error('wtf?'..tostring(mtype))
 		end
 	else
 		gen(getDeclName(c.l.decl))

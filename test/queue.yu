@@ -25,7 +25,7 @@ class Queue
 		return nil
 	end
 
-	method __iter()=>QueueIterator{node=head}
+	method __iter() = QueueIterator{node=head}
 
 end
 
