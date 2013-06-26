@@ -9,8 +9,10 @@ end
 class Vec
 	field x,y,z#
 	
-	method __new(x,y,z#)
-		self.(x,y,z)=x,y,z
+	method __new( x, y, z# )
+		self.x = x
+		self.y = y
+		self.z = z
 	end
 	
 	method __add (b:Vec)  =  Vec(x+b.x,y+b.y,z+b.z)
@@ -19,7 +21,7 @@ class Vec
 	
 	method mult(b:Vec) =  Vec(x*b.x,y*b.y,z*b.z)
 	method dot(b:Vec) =  x*b.x+y*b.y+z*b.z
-	method norm()  =  self*(1/math.sqrt(x*x+y*y+z*z))
+	method norm()  =  self.__mul(1/math.sqrt(x*x+y*y+z*z))
 	method cross(b:Vec) =  Vec(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x)
 end
 
@@ -30,12 +32,15 @@ global XAxis=Vec(1,0,0)
 global YAxis=Vec(0,1,0)
 global ZAxis=Vec(0,0,1)
 
-enum Refl{diff,spec,refr}
+enum Refl{ diff, spec, refr }
 
 class Ray
 	field o:Vec
 	field d:Vec
-	method Ray(o, d:Vec) self.(o, d)= o, d end
+	method __new(o, d:Vec)
+		self.o = o
+		self.d = d
+	end
 end
 
 class Sphere
@@ -45,18 +50,21 @@ class Sphere
 	field sqRad#
 	field maxC#
 	
-	method Sphere(rad#,p,e,c:Vec,refl:Refl)
+	method __new(rad#,p,e,c:Vec,refl:Refl)
 		sqRad=rad*rad
 		self.rad=rad
 		self.maxC=math.max(math.max(c.x,c.y),c.z)
-		self.cc=c*(1/self.maxC)
-		self .(rad, p,e,c,refl) = rad, p ,e ,c ,refl
+		self.cc=c.__mul(1/self.maxC)
+		self.p = p
+		self.e = e
+		self.c = c
+		self.refl = refl
 	end
 	
 	method intersect#(r:Ray)
 		const eps = 1e-5
 		
-		local op = p - r.o
+		local op = p.__sub(r.o)
 		local b = op.dot(r.d)
 		local det = b * b - op.dot(op) + sqRad
 		
@@ -88,8 +96,8 @@ global spheres =
 	Sphere(1e5,  Vec(50,40.8,-1e5+170),  Zero, Zero,             Refl.diff), --Frnt
 	Sphere(1e5,  Vec(50, 1e5, 81.6),     Zero, Vec(.75,.75,.75), Refl.diff), --Botm
 	Sphere(1e5,  Vec(50,-1e5+81.6,81.6), Zero, Vec(.75,.75,.75), Refl.diff), --Top
-	Sphere(16.5, Vec(27,16.5,47),        Zero, 	Vec(1,1,1)*.999,  Refl.spec), --Mirr
-	Sphere(16.5, Vec(73,16.5,78),        Zero, 	Vec(1,1,1)*.999,  Refl.refr), --Glas
+	Sphere(16.5, Vec(27,16.5,47),        Zero, 	Vec(1,1,1).__mul(.999),  Refl.spec), --Mirr
+	Sphere(16.5, Vec(73,16.5,78),        Zero, 	Vec(1,1,1).__mul(.999),  Refl.refr), --Glas
 	Sphere(600,  Vec(50,681.6-.27,81.6), Vec(12,12,12), Zero,    Refl.diff)  --Lite
 }
 
@@ -129,9 +137,9 @@ func radiance(r:Ray, depth#) -> Vec
 	if isMaxDepth or (isUseRR and not isRR) then return obj.e end
 	
 	local f=(isUseRR and isRR) and  obj.cc or obj.c
-	local x=r.o+r.d * t
-	local n=(x - obj.p).norm()
-	local nl=(n.dot(r.d) < 0) and n or (n*-1)
+	local x=r.o.__add( r.d.__mul(t) )
+	local n=( x.__sub( obj.p ) ).norm()
+	local nl=(n.dot(r.d) < 0) and n or ( n.__mul(-1) )
 	
 	select obj.refl
 		case diff then
@@ -143,10 +151,11 @@ func radiance(r:Ray, depth#) -> Vec
 			local wo=(math.abs(w.x)>0.1) and YAxis or XAxis
 			local u= wo.cross(w).norm()
 			local v= w.cross(u)
-			local d=(u*math.cos(r1)*r2s + 
-					  v*math.sin(r1)*r2s +
-					  w*math.sqrt(1-r2)).norm()
-			return obj.e + f.mult(radiance(Ray(x, d), newDepth))
+			local d=
+						u.__mul( math.cos(r1)*r2s ).__add(
+					  v.__mul( math.sin(r1)*r2s ) ).__add(
+					  w.__mul( math.sqrt(1-r2) ) ).norm()
+			return obj.e.__add( f.mult(radiance(Ray(x, d), newDepth)) )
 			
 		case spec then
 			return obj.e + f.mult(radiance( Ray(x, r.d - n * 2 * n.dot(r.d)), newDepth))

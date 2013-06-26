@@ -32,3 +32,21 @@ func takeFlags(flags:State[])
 end
 
 takeFlags({OK,WAIT})
+
+class Foo
+	field state:State
+end
+
+local f = Foo()
+f.state = OK
+
+if f.state == OK then
+	print('ok')
+end
+
+select f.state
+	case OK then
+		print("ok")
+end
+
+

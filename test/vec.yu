@@ -1,32 +1,28 @@
 import 'lua/std.lx'
 class Vec
 	
-	field x,y#
+	field x, y#
 
-	method add(v1:Vec)=>Vec{x=x+v1.x,y=y+v1.y}
-	method sub(v1:Vec)=>Vec{x=x-v1.x,y=y-v1.y}
-	method mul(s#)=>Vec{x=x*s,y=y*s}
-	method div(s#)=>Vec{x=x/s,y=y/s}
+	method add(v1:Vec) = Vec{ x = x+v1.x,   y = y+v1.y }
+	method sub(v1:Vec) = Vec{ x = x-v1.x,   y = y-v1.y }
+	method mul(s#)     = Vec{ x = x*s,   y = y*s }
+	method div(s#)     = Vec{ x = x/s,   y = y/s }
 
-	method tostring()=>'('..x..','..y..')'
+	method tostring() = '(\t'..x..',\t'..y..'\t)'
 
 	method __new(x,y#)
 		self.x,self.y=x,y
 	end
 
-	-- method __new(x#)
-	-- 	self.x,self.y=x,0
-	-- end
 end
 
 
-local v=Vec{x=1,y=20}
+local v=Vec{ x=1, y=20 }
 
 local i=1
-forever
+while true do
 	if v.x>100 then break end
 	v=v.mul(2)
 	if v.x<20 then continue end
 	print(v.tostring())
-
 end

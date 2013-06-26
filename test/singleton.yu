@@ -1,6 +1,7 @@
 
 class Manager
 	global _mgr:Manager
+	func get() = _mgr
 	method __new()
 		assert not _mgr, 'manager already created'
 		_mgr = self
@@ -17,4 +18,4 @@ class Worker
 end
 
 local w1 = Worker(1)
-local m2 = Manager()
+local m2 = Manager.get()

@@ -624,7 +624,7 @@ local function getModuleMatch()
 					;
 		
 	---------------------------ASSIGN----------------------
-		AssignStmt	=	v.AssOpStmt + v.Assign + v.BatchAssign;
+		AssignStmt	=	v.AssOpStmt + v.Assign; -- + v.BatchAssign;
 		
 		AssOpStmt	=	v.Expr	* 
 						c(ASSADD + ASSSUB + ASSMUL + ASSDIV+ ASSMOD + ASSPOW + ASSAND + ASSOR + ASSCON) *
@@ -633,10 +633,10 @@ local function getModuleMatch()
 		Assign	=	v.ExprList	*__* v.AssignSymbol * cassert( __ * v.ExprList , "values expected")
 					/ t3('assignstmt','vars','autocast','values');
 		
-		BatchAssign=	v.Expr	* DOT *__*
-					POpen* ct( cassert ( Ident* (COMMA * __ * Ident)^0 ,"member names expected")) *PClose *
-					v.AssignSymbol * __ * v.ExprList / t4('batchassign','var','members','autocast','values') 
-					;
+		-- BatchAssign=	v.Expr	* DOT *__*
+		-- 			POpen* ct( cassert ( Ident* (COMMA * __ * Ident)^0 ,"member names expected")) *PClose *
+		-- 			v.AssignSymbol * __ * v.ExprList / t4('batchassign','var','members','autocast','values') 
+		-- 			;
 
 		-- AssignSymbol= w(ASSCAST*cc(true)+ASSIGN*cc(nil));
 		AssignSymbol= ASSIGN*cc(nil);

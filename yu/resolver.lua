@@ -273,6 +273,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 				local ftype=getType(farg)
 				hintType=ftype
 			end
+
 		elseif ptag=='tcall' then
 			local t=getType(pnode.l)
 			if t.tag=='classmeta' then hintType=pnode.l.decl end
@@ -283,6 +284,11 @@ local	function findHintType(vi,node,parentLevel,keep)
 
 			local ftype=getType(other)
 			hintType=ftype
+
+		elseif ptag=='case' then
+			local selectNode = vi.nodeStack:peek( parentLevel + 1 )
+			local cond = selectNode.cond
+			hintType = getType( cond )
 
 		elseif ptag=='var' then
 			local t=pnode.type
@@ -528,7 +534,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		
 		for i,c in ipairs(s.cases) do
 			for i,v in ipairs(c.conds) do 
-				if not checkType(condtype,'>=',getType(v)) then
+				if not checkType( condtype, '>=', getType(v) ) then
 					self:err('case expression type mismatch',v)
 				end
 			end

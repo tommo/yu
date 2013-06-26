@@ -4,9 +4,9 @@ extern
 
 	class io
 		func "io.write" as write(t$)
-		func "io.read" as read$()
-		func "io.open" as open(fn$,mode$='r')->IOFile
-		func "io.type" as type(f:IOFile)->IOFile
+		func "io.read"  as read$()
+		func "io.open"  as open( fn$, mode$ = 'r' )->IOFile
+		func "io.type"  as type( f:IOFile )->IOFile
 	end
 
 	class IOFile
@@ -18,47 +18,47 @@ extern
 	end
 
 	class os
-		func "os.clock" as clock#()
-		func "os.exit" as exit(code#)
-		func "os.getenv" as getenv$(name$)
-		func "os.execute" as execute(cmd$)
-		func "os.time" as time#()
+		func "os.clock"   as  clock#()
+		func "os.exit"    as  exit(code#)
+		func "os.getenv"  as  getenv$(name$)
+		func "os.execute" as  execute(cmd$)
+		func "os.time"    as  time#()
 	end
 
 	class math
-		func "math.abs" as abs#(a#)
+		func "math.abs"        as abs#(a#)
 		
-		func "math.atan2" as atan2#(dy,dx#)
-		func "math.cos" as cos#(d#)
-		func "math.sin" as sin#(d#)
-		func "math.tan" as tan#(d#)
-		func "math.deg" as deg#(arc#)
-		func "math.asin" as asin#(s#)
-		func "math.acos" as acos#(c#)
+		func "math.atan2"      as atan2#(dy,dx#)
+		func "math.cos"        as cos#(d#)
+		func "math.sin"        as sin#(d#)
+		func "math.tan"        as tan#(d#)
+		func "math.deg"        as deg#(arc#)
+		func "math.asin"       as asin#(s#)
+		func "math.acos"       as acos#(c#)
 		
-		func "math.random" as random#()
+		func "math.random"     as random#()
 		func "math.randomseed" as randomseed(seed#)
 		
-		func "math.floor" as floor#(n#)
-		func "math.ceil" as ceil#(v#)
+		func "math.floor"      as floor#(n#)
+		func "math.ceil"       as ceil#(v#)
 		
-		func "math.sqrt" as sqrt#(v#)
-		func "math.modf" as modf#(a#,b#)
+		func "math.sqrt"       as sqrt#(v#)
+		func "math.modf"       as modf#(a#,b#)
 		
-		func "math.max" as max#(a,b#)
-		func "math.min" as min#(a,b#)
+		func "math.max"        as max#(a,b#)
+		func "math.min"        as min#(a,b#)
 		
-		func "math.log"	as log#(v#)
-		func "math.log10" as log10#(v#)
+		func "math.log"	       as log#(v#)
+		func "math.log10"      as log10#(v#)
 
 		const pi=3.14159265358979323846
 	end
 
 	class Coroutine
-		func 'coroutine.yield' as yield(...*)->*
-		func 'coroutine.create' as create(f:anyfunc)->Coroutine
-		func 'coroutine.resume' as resume(t:Coroutine,...*)->?,*
-		func 'coroutine.status' as status(f:Coroutine)
+		func 'coroutine.yield'  as yield( ...* ) -> *
+		func 'coroutine.create' as create( f:anyfunc ) -> Coroutine
+		func 'coroutine.resume' as resume( t:Coroutine, ...* ) -> ?,*
+		func 'coroutine.status' as status( f:Coroutine )
 	end
 
 end
