@@ -6,7 +6,6 @@ class Sprite
 	method draw()
 		print('draw sprite')
 		local x#
-		local y=x+1
 	end
 
 	func load()->Sprite

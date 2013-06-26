@@ -5,7 +5,7 @@ end
 class DataBase
 end
 
-class DataEntry extends DataBas
+class DataEntry extends DataBase
 	
 	field name$
 	field id#
@@ -46,6 +46,20 @@ class Property
 	field min,max#
 	field widget='default'
 end
+
+class GObject
+end
+class Person
+end
+class AmmoType
+end
+
+class Test
+end
+class Serializable
+end
+
+
 
 
 @Serializable

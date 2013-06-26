@@ -1113,7 +1113,7 @@ function generators.call(gen,c)
 			gen(getDeclName(c.l.decl))
 			gen'( self' 
 				gen:mark(c)
-				if c.args then gen',' end
+				if c.args[1] then gen',' end
 				codegenList(gen,c.args)
 				gen')'
 			gen:refer(c.l.decl)
