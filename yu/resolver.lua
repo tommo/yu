@@ -952,7 +952,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		if a.value then
 			local c=getConstNode(a.value)
 			if not c then --todo: allow empty table
-				self:err('default argument must be constant', a.value)
+				self:err('default argument must be constant: %s', tostring( a.value ) )
 			end
 
 			local argt, vt=a.type, getType(a.value)
