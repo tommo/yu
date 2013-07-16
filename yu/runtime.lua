@@ -611,14 +611,19 @@ local yield = coroutine.yield
 local next  = next
 
 local ex
-function doThrow(e)
+function doThrow( e, level )
 	ex = e
-	return error(tostring(e))
+	error( tostring(e), level or 2 )
 end
 
 function doAssert( cond, ex )
 	if not cond then
-		return doThrow(ex)
+		if ex then
+			ex = 'assert failed: ' .. tostring( ex )
+		else
+			ex = 'assert failed.'
+		end
+		doThrow( ex, 3 )
 	end
 end
 
@@ -910,7 +915,7 @@ local function extractErrorInfo(msg)
 
 end
 
-function convertLuaErrorMsg(msg,level)
+function convertLuaErrorMsg( msg, level )
 	local res
 	res=extractErrorInfo(msg)
 	if res then 
@@ -931,10 +936,16 @@ function convertLuaErrorMsg(msg,level)
 	return info..' '..msg
 end
 
-function errorHandler(msg,b)
-	local startLevel=2
-	local info=debug.getinfo(startLevel)
-	if info.func == error then startLevel=startLevel+1 end
+function errorHandler( msg, b )
+	local startLevel = 2
+	local info 
+
+	info = debug.getinfo(startLevel)
+	if info.func == error then startLevel = startLevel + 1 end
+	info = debug.getinfo(startLevel)
+	if info.func == doThrow then startLevel = startLevel + 1 end
+	info = debug.getinfo(startLevel)
+	if info.func == doAssert then startLevel = startLevel + 1 end
 
 	local traceInfo=traceBack(startLevel+1)
 	if isStackInYU(startLevel+1) then
