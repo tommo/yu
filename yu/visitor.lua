@@ -36,44 +36,43 @@ local function visitNode(vi,n,list)
 	vi.currentNode=pushStack(stack,n)
 	
 	--spread token info
+
 	if not n.p0 and parentNode then
-		-- print(n.tag)
-		n.p0=parentNode.p0
-		n.p1=parentNode.p1
-		n.module=parentNode.module
+		n.p0     = parentNode.p0
+		n.p1     = parentNode.p1
+		n.module = parentNode.module
 	end
 
 	local callback	
 	local tag=n.tag
 	local pre,post=vi.pre,vi.post
 
-		callback=pre['any']
+		callback = pre['any']
 		if callback and _doVisitCallback(vi,n,list,parentNode,callback) then return true end	
 		
-		callback=pre[tag]
+		callback = pre[tag]
 		if callback and _doVisitCallback(vi,n,list,parentNode,callback) then return true end	
 	
-	local p=paths[tag]		
+	local p = paths[tag]		
 	if p then 
-		p(vi,n) 
+		p( vi, n ) 
 	elseif p==nil then
 		error("no visit path for "..tag) 
 	end 
 		
-		local callback=post[tag]
+		local callback = post[tag]
 		if callback and _doVisitCallback(vi,n,list,parentNode,callback) then return true end	
 		
-		callback=post['any']
+		callback = post['any']
 		if callback and _doVisitCallback(vi,n,list,parentNode,callback) then return true end	
 		
 	
-	vi.currentNode=popStack(stack)
+	vi.currentNode = popStack(stack)
 	
 	return true
 end
 
 local function visitOutterNode(vi,n,list) --keep stack state and visit outter node
-	
 	visitNode()
 end
 
@@ -86,7 +85,7 @@ local function visitEachNode(vi,l)
 	-- end
 	if not l then return end
 	for i=1,#l do
-		local d=l[i]		
+		local d = l[i]		
 		visitNode(vi,d,l)
 	end
 	-- for i,n in ipairs(l) do

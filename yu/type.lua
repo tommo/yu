@@ -84,6 +84,11 @@ function makeStringConst(s,longstring)
 	return c
 end
 
+function makeBooleanConst( b )
+	return b and trueConst or falseConst
+end
+
+
 
 
 -----------Default initial value for each type
@@ -319,15 +324,15 @@ end
 
 local function getType(node,noMulRet)
 
-	if node.resolveState~='done' then
-		theResolver:visitNode(node)
+	if node.resolveState ~= 'done' then
+		theResolver:visitNode( node )
 	end
 
-	if node.tag=='varacc' then
+	if node.tag == 'varacc' then
 		return getType(node.decl,noMulRet,theResolver)
 	end
 
-	local t=node.type
+	local t = node.type
 	if not t then
 		assert(node.resolveState=='done','no resolve:'..node.tag)
 		print( getTokenPosString( node ) )
@@ -664,9 +669,9 @@ local function checkFuncArgs(funcArgs,callerArgs,resolver)
 				return false,format('too many arguments, %d expected, given %d',#funcArgs,#callerArgTypes)
 			end
 		elseif funcArg.name=='...' then
-			funcArgType=varargType
+			funcArgType = varargType
 		else
-			funcArgType=getType(funcArg)
+			funcArgType = getType( funcArg )
 		end
 		if not checkType(funcArgType,'>=',callerType) then 
 			return false, 
@@ -678,27 +683,27 @@ local function checkFuncArgs(funcArgs,callerArgs,resolver)
 	return 1
 end
 
-function typeres.call.functype(t,c,resolver)
-	local ok,errMsg,errNode=checkFuncArgs(t.args,c.args,resolver)
+function typeres.call.functype( t, c, resolver )
+	local ok, errMsg, errNode = checkFuncArgs( t.args, c.args, resolver )
 
 	if not ok then 
-		resolver:err(errMsg,errNode or c) 
+		resolver:err( errMsg, errNode or c ) 
 	end
 
-	local rettype=t.rettype
+	local rettype = t.rettype
 	if not rettype then
-		c.type=voidType
+		c.type = voidType
 	else
-		c.type=rettype
+		c.type = rettype
 	end
 	return true
 end
 
-local function findCallProto(f,c,resolver)
+local function findCallProto( f, c, resolver )
 	-- local rates={}
-	local topRate=0
-	local topProto={}
-	local noMatch={}
+	local topRate  = 0
+	local topProto = {}
+	local noMatch  = {}
 	
 	while f do
 		resolver:visitNode(f)

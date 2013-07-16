@@ -950,8 +950,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 	function post:arg(a)
 		--check const type for default value
 		if a.value then
-			local c=getConstNode(a.value)
-			if not c then --todo: allow empty table
+			if not getConstNode(a.value) then --todo: allow empty table
 				self:err('default argument must be constant: %s', tostring( a.value ) )
 			end
 
@@ -987,8 +986,8 @@ local	function findHintType(vi,node,parentLevel,keep)
 	function post:enumitem(i,e)
 		
 		if i.value then
-			local v=getConstNode(i.value)
-			i.value=v
+			local v = getConstNode( i.value )
+			i.value = v
 			if not v or getType(v).tag~='numbertype' or checkInteger(v.v) then
 				self:err('enum item must be integer constant', i)				
 			end
@@ -1407,26 +1406,36 @@ local	function findHintType(vi,node,parentLevel,keep)
 	function pre:call(c)
 		if c.args then
 			for i,arg in ipairs(c.args) do
-				arg.argId=i
+				arg.argId = i
 			end
 		end
 	end
 
 	function post:call(c)
-		local f=c.l
-		local lt=self:getType(c.l)
+		local f  = c.l
+		local lt = self:getType( c.l )
 		
-		resolveCall(lt,c,self)
+		resolveCall( lt, c, self )
 		
-		if lt.tag=='signalmeta' then
-			local sender=nil
-			local signal=f
-			if f.tag=='member' then	sender=f.l end
-			return 'replace',{tag='emit',sender=sender,signal=signal.decl,args=c.args}
-		elseif lt.tag=='classmeta' then 
-			return 'replace',{tag='new',class=c.l,args=c.args, constructor=c.constructor}
-		elseif f.tag=='member' and f.mtype=='member' then
-			f.mtype='methodcall'
+		if lt.tag == 'signalmeta' then
+			local sender = nil
+			local signal = f
+			if f.tag == 'member' then	sender = f.l end
+			return 'replace',{
+				tag    = 'emit',
+				sender = sender,
+				signal = signal.decl,
+				args   = c.args
+			}
+		elseif lt.tag == 'classmeta' then 
+			return 'replace',{
+				tag         = 'new',
+				class       = c.l,
+				args        = c.args,
+				constructor = c.constructor
+			}
+		elseif f.tag == 'member' and f.mtype == 'member' then
+			f.mtype = 'methodcall'
 		end
 		
 		return true

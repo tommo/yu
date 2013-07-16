@@ -29,11 +29,11 @@ local insert=table.insert
 local function isExposable(n)
 	local tag=n.tag
 	return 
-		(tag=='funcdecl' and not n.localfunc)
-		or (tag=='methoddecl' and not n.extern and not n.abstract)
-		or tag=='classdecl'
-		or tag=='enumdecl'
-		or tag=='signaldecl'
+		(tag    == 'funcdecl' and not n.localfunc)
+		or (tag == 'methoddecl' and not n.extern and not n.abstract)
+		or tag  == 'classdecl'
+		or tag  == 'enumdecl'
+		or tag  == 'signaldecl'
 end
 
 local function printMetadata(m)
@@ -92,8 +92,8 @@ end
 
 codegen= function(gen,m)
 	assert(gen.__list) --NEED REMOVAL, at last
-	local t=m.tag
-	local g=generators[t]
+	local t = m.tag
+	local g = generators[t]
 	if g then
 		return g(gen,m) 
 	else
@@ -101,7 +101,7 @@ codegen= function(gen,m)
 	end
 end
 
-codegenList= function(gen,l,sep)
+codegenList = function(gen,l,sep)
 	assert(gen.__list) --NEED REMOVAL, at last
 	if not l then return end
 
@@ -887,8 +887,7 @@ function generators.enumdecl(gen,e)
 end
 
 function generators.enumitem(gen,e)
-	-- if e.value then resolve(e.value) end
-	-- --todo:typecheck
+	return codegen( gen, getConstNode( e ) )
 end
 
 

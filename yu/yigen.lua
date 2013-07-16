@@ -1,20 +1,23 @@
 --intermediate interface info generator
-local format,gsub,unescape = string.format,string.gsub,unescape
-local pairs,ipairs,next=pairs,ipairs,next
-
+local format, gsub, unescape = string.format, string.gsub, unescape
+local pairs, ipairs, next = pairs, ipairs, next
+--------------------------------------------------------------------
 module('yu', package.seeall)
 
-local getDeclName=getDeclName
-local getType,getTypeDecl=getType,getTypeDecl
-local yigenModule, yigenClass, yigenFunc,  yigenEnum, yigenNode, yigenVar, yigenSignal
-local isBuiltinType,getBuiltinType=isBuiltinType,getBuiltinType
+local getDeclName = getDeclName
+local getType, getTypeDecl = getType, getTypeDecl
+local isBuiltinType, getBuiltinType = isBuiltinType, getBuiltinType
+local getConstNode, constToString = getConstNode, constToString
 
-local getConstNode,constToString =getConstNode, constToString
+--------------------------------------------------------------------
+local yigenModule, yigenClass, yigenFunc, yigenEnum, yigenNode, yigenVar, yigenSignal
 
-
-function yigenNode(gen, node)
-	local tag=node.tag
-	local name=node.name
+--------------------------------------------------------------------
+----YI Generator----
+--------------------------------------------------------------------
+function yigenNode( gen, node )
+	local tag  = node.tag
+	local name = node.name
 	gen:cr()
 	gen:appendf('%s = {', name)
 	gen:ii()
@@ -23,7 +26,7 @@ function yigenNode(gen, node)
 		gen:cr()
 		gen:appendf('p0 = %d; p1 = %d;', node.p0, node.p1)
 
-		if tag=='funcdecl' or tag=='methoddecl' then
+		if tag == 'funcdecl' or tag == 'methoddecl' then
 			if node.abstract then
 				gen:cr()
 				gen'abstract = true ;'
@@ -35,15 +38,15 @@ function yigenNode(gen, node)
 			end
 
 			yigenFunc(gen,node)
-		elseif tag=='var' then
+		elseif tag == 'var' then
 			yigenVar(gen,node)
-		elseif tag=='classdecl' then
+		elseif tag == 'classdecl' then
 			yigenClass(gen,node)
-		elseif tag=='enumdecl' then
+		elseif tag == 'enumdecl' then
 			yigenEnum(gen,node)
-		elseif tag=='import' then
+		elseif tag == 'import' then
 			yigenImport(gen, node)
-		elseif tag=='signaldecl' then
+		elseif tag == 'signaldecl' then
 			yigenSignal(gen, node)
 		else
 			error('unsupported yi generation:'..tag)
@@ -129,7 +132,7 @@ function yigenModule(gen,m)
 		gen'import={'
 		gen:ii()
 		for i,node in ipairs(m.heads) do
-			if node.tag=='import' then
+			if node.tag == 'import' then
 				ex=node.mod
 				gen:cr()
 				gen'{'
@@ -174,7 +177,7 @@ function yigenModule(gen,m)
 end
 
 function yigenType(gen, t, typekey)
-	local td=getTypeDecl(t)
+	local td = getTypeDecl(t)
 	gen:cr()
 	gen:appendf('%s = ', typekey or 'type')
 	local tag=td.tag
@@ -199,8 +202,12 @@ function yigenType(gen, t, typekey)
 							yigenType(gen, arg.type, 'type')
 							if arg.value then
 								gen:cr()
-								local c=getConstNode(arg.value)
-								gen:appendf('value = {%s};', constToString(c))
+								local c, extra = getConstNode( arg.value )
+								gen:appendf( 'value = {%s};', constToString( c ) )
+								if extra and extra.tag == 'enumitem' then
+									gen:cr()
+									gen:appendf( 'item = %q;', extra.name )
+								end
 							end
 						gen:di()
 						gen:cr()
@@ -286,24 +293,25 @@ function generateInterface(m)
 end
 
 
-
-------------YI Loader----
+--------------------------------------------------------------------
+----YI Loader----
+--------------------------------------------------------------------
 local yiloadNode, yiloadClass, yiloadVar, yiloadFunc, yiloadType, yiloadImport
 
 
-local function yifindExternSymbol(entryModule,name,searchSeq) --should be safe without check duplications
-	local externModules=entryModule.externModules
+local function yifindExternSymbol( entryModule, name, searchSeq ) --should be safe without check duplications
+	local externModules = entryModule.externModules
 	if externModules then
-		entryModule._seq=searchSeq --a random table as sequence
+		entryModule._seq = searchSeq --a random table as sequence
 
 		for p,m in pairs(externModules) do			
-			if m.__seq~=searchSeq and not entryModule.namedExternModule[m] then
-				m.__seq=searchSeq
-				local decl=m.scope[name]
+			if m.__seq ~= searchSeq and not entryModule.namedExternModule[m] then
+				m.__seq = searchSeq
+				local decl = m.scope[name]
 				if decl and not decl.private then 
 					return decl
 				end
-				decl=yifindExternSymbol(m,name,searchSeq)
+				decl = yifindExternSymbol(m,name,searchSeq)
 				if decl then return decl end
 			end
 		end
@@ -312,64 +320,61 @@ local function yifindExternSymbol(entryModule,name,searchSeq) --should be safe w
 	return nil
 end
 
-local function yifindSymbol(m, name)
-	local s=getBuiltinType(name)
+local function yifindSymbol( m, name )
+	local s = getBuiltinType( name )
 	if s then return s end
-	s=m.scope[name]
+	s = m.scope[name]
 	if s then return s end
-	
-	s = yifindExternSymbol(m, name, {})
+	s = yifindExternSymbol( m, name, {} )
 	assert(s)
 	return s
 	-- error('todo extern symbol:'..name)
 end
 
-function yiloadNode(d)
-	d.resolveState='done'
-
-	local tag=d.tag
-	if tag=='funcdecl' or tag=='methoddecl' then
+function yiloadNode( d )
+	if d.resolveState == 'done' then return end
+	local tag = d.tag
+	if tag == 'funcdecl' or tag == 'methoddecl' then
 		yiloadFunc(d)
-	elseif tag=='var' then
+	elseif tag == 'var' then
 		yiloadVar(d)
-	elseif tag=='classdecl' then
+	elseif tag == 'classdecl' then
 		yiloadClass(d)
-	elseif tag=='enumdecl' then
+	elseif tag == 'enumdecl' then
 		yiloadEnum(d)
-	elseif tag=='import' then
+	elseif tag == 'import' then
 		yiloadImport(d)
 	end
+	d.resolveState = 'done'
 end
 
-function yiloadFunc(f)
+function yiloadFunc( f )
 	f.type=yiloadType(f.module, f.type)
 end
 
-function yiloadClass(c)
-
+function yiloadClass( c )
 	for k, d in pairs(c.scope) do
-		d.module=c.module
+		d.module = c.module
 		yiloadNode(d)
 	end 
-	c.valuetype=true
-	c.type=classMetaType
+	c.valuetype = true
+	c.type      = classMetaType
 	if c.superclass then
-		c.superclass=yifindSymbol(c.module, c.superclass)
+		c.superclass = yifindSymbol(c.module, c.superclass)
 	end
-	c.resolveState='done'
 end
 
-function yiloadEnum(e)
-	e.valuetype=true
-	e.type=enumMetaType
-	local scope=e.scope --convert to resolver acceptable format	
+function yiloadEnum( e )
+	e.valuetype = true
+	e.type      = enumMetaType
+	local scope = e.scope --convert to resolver acceptable format	
 	for k,v in pairs(scope) do
-		scope[k]={
-			tag='enumitem',
-			resolveState='done',
-			name=k,
-			value=makeNumberConst(v),
-			type=e
+		scope[k] = {
+			tag          = 'enumitem',
+			name         = k,
+			value        = makeNumberConst(v),
+			type         = e,
+			resolveState = 'done',
 		}
 	end
 	e.items=newitems
@@ -387,113 +392,120 @@ function yiloadImport( i )
 	i.type = moduleMetaType
 end
 
-function yiloadVar(v)
+function yiloadVar( v )
 	v.type=yiloadType(v.module, v.type)
 end
 
-function yiloadType(m, t)
-	local tt=type(t)
+function yiloadType( m, t )
+	local tt = type(t)
 
-	if tt=='string' then 
+	if tt == 'string' then 
 		return yifindSymbol(m, t)
-	elseif tt=='table' then
+
+	elseif tt == 'table' then
 		local tag=t.tag
-		if tag=='functype' then
-			t.resolveState='done'
-			t.valuetype=true
-			t.type=funcMetaType
+
+		if tag == 'functype' then
+			t.resolveState = 'done'
+			t.valuetype    = true
+			t.type         = funcMetaType
 			
 			local args=t.args
 			for i, arg in ipairs(args) do
-				arg.tag='arg'
-				arg.type=yiloadType(m, arg.type)
+				arg.tag  = 'arg'
+				arg.type = yiloadType( m, arg.type )
 				if arg.value then
-					local v=arg.value[1]
-					local tt= type(v)
-					if tt=='nil' then
-						arg.value=nilConst
-					elseif tt=='number' then
-						arg.value=makeNumberConst(v)
-					elseif tt=='string' then
-						arg.value=makeStringConst(v)
-					elseif tt=='boolean' then
-						arg.value=v and trueConst or falseConst
+					local v = arg.value[1]
+					local  argType = arg.type
+					if     argType == nilType     then  arg.value = nilConst
+					elseif argType == numberType  then  arg.value = makeNumberConst(v)
+					elseif argType == stringType  then  arg.value = makeStringConst(v)
+					elseif argType == booleanType then  arg.value = makeBooleanConst(v)
+					elseif argType.tag == 'enumdecl' then
+						if argType.resolveState ~= 'done' then
+							yiloadNode( argType )
+						end
+						local item = argType.scope[ arg.item ]
+						assert( type(item) == 'table' )
+						arg.value = item
 					else
-						error("FATAL:unsupported arg value type:"..tt)
+						error("FATAL:unsupported arg value type:" .. argType.name)
 					end
 				end
 			end
 
 			local ret=t.rettype
-			local converted={}
+			local converted = {}
 			for i, rt in ipairs(ret) do
-				converted[i]=yiloadType(m,rt.type)
+				converted[i] = yiloadType( m, rt.type )
 			end
 			if #converted>1 then
-				t.rettype={
-					tag='mulrettype',
-					types=converted
+				t.rettype = {
+					tag   = 'mulrettype',
+					types = converted
 				}
 			else
-				t.rettype=converted[1]
+				t.rettype = converted[1]
 			end
+			return t
 
+		elseif tag == 'tabletype' then
+			t.valuetype    = true
+			t.type         = tableMetaType
+			t.ktype        = yiloadType( m, t.ktype )
+			t.etype        = yiloadType( m, t.etype )
+			t.resolveState = 'done'
 			return t
-		elseif tag=='tabletype' then
-			t.resolveState='done'
-			t.valuetype=true
-			t.type=tableMetaType
-			t.ktype=yiloadType(m,t.ktype)
-			t.etype=yiloadType(m,t.etype)
-			return t
+
 		elseif tag=='vararg' then
-			t.resolveState='done'
-			t.valuetype=false
-			t.type=yiloadType(m, t.type)
+			t.valuetype    = false
+			t.type         = yiloadType( m, t.type )
+			t.resolveState = 'done'
 			return t
-		else
 
+		else
 			error("???")
+
 		end
 	end
 
 end
 
 
-local function fixpath(p)
-	p=string.gsub(p,'\\','/')
+local function fixpath( p )
+	p = string.gsub(p,'\\','/')
 	return p
 end
 
-local function stripExt(p)
-	p=fixpath(p)
-	p=string.gsub(p,'%..*$','')
+local function stripExt( p )
+	p = fixpath(p)
+	p = string.gsub(p,'%..*$','')
 	return p
 end
 
-function loadInterface(data, imports, namedExternModule)
+function loadInterface( data, imports, namedExternModule )
 	local m={}
-	m.file=data.file
-	m.path=data.file
-	m.name=data.name
-	m.modpath=stripExt(m.path)
+	m.file    = data.file
+	m.path    = data.file
+	m.name    = data.name
+	m.modpath = stripExt(m.path)
 	
-	local externModules={}
+	local externModules = {}
 	for im, mod in pairs(imports) do
-		externModules[mod.path]=mod
+		externModules[mod.path] = mod
 	end
 
-	m.externModules=externModules
-	m.namedExternModule=namedExternModule
+	m.externModules     = externModules
+	m.namedExternModule = namedExternModule
 
-	m.lineOffset=data.line_offset
-	m.scope=data.scope
-	m.module=m
+	m.lineOffset        = data.line_offset
+	m.scope             = data.scope
+	m.module            = m
 
 	for k, d in pairs(m.scope) do
-		d.module=m
+		d.module = m
 		yiloadNode(d)
 	end
-	m.resolveState='done'
+	m.resolveState = 'done'
 	return m
 end
