@@ -16,14 +16,14 @@ Runtime:
     ☐ string
     ☐ table
   reflection:
-    ☐ Function Type
+    ✔ Function Type @done (13-07-16 13:43)
     ☐ Method Invocation
     ☐ Static Member TypeInfo
   Lua commnuication:
     ☐ reflection access
 
  Debugging:
-   ☐ lua error -> Yu error conversion
+   ✔ lua error -> Yu error conversion @done (13-07-16 13:43)
    ☐ Modify Lua debugger to accept yu debug info (clidebugger)
 
  Bootstrap:

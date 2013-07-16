@@ -422,12 +422,16 @@ function yiloadType( m, t )
 					elseif argType == stringType  then  arg.value = makeStringConst(v)
 					elseif argType == booleanType then  arg.value = makeBooleanConst(v)
 					elseif argType.tag == 'enumdecl' then
-						if argType.resolveState ~= 'done' then
-							yiloadNode( argType )
+						if v == nil then
+							arg.value = nilConst
+						else
+							if argType.resolveState ~= 'done' then
+								yiloadNode( argType )
+							end
+							local item = argType.scope[ arg.item ]
+							assert( type(item) == 'table', type(item) )
+							arg.value = item
 						end
-						local item = argType.scope[ arg.item ]
-						assert( type(item) == 'table' )
-						arg.value = item
 					else
 						error("FATAL:unsupported arg value type:" .. argType.name)
 					end
