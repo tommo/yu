@@ -5,5 +5,8 @@ end
 local x  = 1
 local fx = func() = func() print( 'x =', &x ) end
 local f = fx()
-f()
 
+for i = 1, 10 do
+	x += 1
+	f()
+end

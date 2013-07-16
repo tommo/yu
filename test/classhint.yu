@@ -5,29 +5,35 @@ end
 class Person
 	field name$
 	field age#
-end
 
-func greet(p:Person)
-	print('hello', p.name)
-end
-
-greet({name='John'})
-
-local lucy:Person
-lucy={name='Lucy'}
-greet(lucy)
-
-class Vec
-	field x,y#
-	method __new(nx,ny#)
-		x,y=nx,ny
+	method greet()
+		print('hello', name)
 	end
 
-	method add(v1:Vec) = Vec{x=x+v1.x,y=y+v1.y}
+end
+
+
+local lucy:Person
+lucy = { name = 'Lucy' }
+lucy.greet()
+
+class Vec
+	field x, y#
+	
+	method __new( nx, ny# )
+		x, y = nx, ny
+	end
+
+	method add(v1:Vec) = 
+		Vec{
+			x = x + v1.x, 
+			y = y + v1.y
+		}
+
 	method tostring()  = '('..x..','..y..')'
 end
 
-print(Vec(1,1).add(Vec(2,5)).tostring())
+print( Vec( 1, 1 ).add( Vec( 2, 5 ) ).tostring() )
 
 local v:Vec={
 		x=1,

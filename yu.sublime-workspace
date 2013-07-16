@@ -571,7 +571,7 @@
 			"file": "test.lua",
 			"settings":
 			{
-				"buffer_size": 1136,
+				"buffer_size": 1138,
 				"line_ending": "Windows"
 			}
 		},
@@ -616,7 +616,7 @@
 			}
 		},
 		{
-			"contents": "---------------build time elapsed-----------\n	loading:   	12.28\n	parse:     	0.00\n	decl:      	0.00\n	resolve:   	0.00\n	totalbuild:	2.32\n	codegen:   	0.00\n-------------------------------------------\nmember:	method	innerMethod1	false\nmember:	field	x	false\nmember:	field	z	false\nmember:	field	y	false\nmember:	method	method2	false\nmember:	field	name	false\nmember:	method	__init	false\nCritical Test\nAnother Test\nProperty\n10\nZZZ	1\nXXX	0\nOK	-3\nDONE	-1\n\n[Finished in 0.1s]\n",
+			"contents": "---------------build time elapsed-----------\n	loading:   	10.35\n	parse:     	0.00\n	decl:      	0.00\n	resolve:   	0.00\n	totalbuild:	2.30\n	codegen:   	0.00\n-------------------------------------------\nmember:	method	innerMethod1	false\nmember:	field	x	false\nmember:	field	z	false\nmember:	field	y	false\nmember:	method	method2	false\nmember:	field	name	false\nmember:	method	__init	false\nCritical Test\nAnother Test\nProperty\n10\nZZZ	1\nXXX	0\nOK	-3\nDONE	-1\n\n[Finished in 0.1s]\n",
 			"file": "BUILD_RESULT",
 			"file_size": 452,
 			"file_write_time": 1371974414000000,
@@ -1352,23 +1352,23 @@
 					"file": "test.lua",
 					"settings":
 					{
-						"buffer_size": 1136,
+						"buffer_size": 1138,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								453,
-								453
+								390,
+								390
 							]
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
+							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
 							"syntax": "Packages/Lua/Lua.tmLanguage"
 						},
-						"translation.x": 10.0,
+						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
@@ -1392,18 +1392,18 @@
 						"selection":
 						[
 							[
-								313,
-								313
+								2138,
+								2138
 							]
 						],
 						"settings":
 						{
-							"color_scheme": "Packages/Color Scheme - Default/tommo.tmTheme",
+							"color_scheme": "Packages/Color Scheme - Default/tommo_inactive.tmTheme",
 							"syntax": "Packages/yua/Yua.tmLanguage",
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1510.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1538,8 +1538,8 @@
 						"selection":
 						[
 							[
-								465,
-								465
+								326,
+								326
 							]
 						],
 						"settings":
@@ -1551,7 +1551,7 @@
 							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 51.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -2175,16 +2175,16 @@
 		"selected_items":
 		[
 			[
+				"mock",
+				"/Users/tommo/prj/moai/mock/mock.sublime-project"
+			],
+			[
 				"mo",
 				"/Users/tommo/prj/moai/mock/mock.sublime-project"
 			],
 			[
 				"pymo",
 				"/Users/tommo/prj/moai/pythonhost/pymoai.sublime-project"
-			],
-			[
-				"mock",
-				"/Users/tommo/prj/moai/mock/mock.sublime-project"
 			],
 			[
 				"mdd",

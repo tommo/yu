@@ -1,30 +1,31 @@
 extern
 	func print(...*)
+	func 'io.write' as write( s$ )
 end
 
 
 
 
 func assignTest1()
-	local lists={
+	local lists = {
 		{1,2,3},
 		{3,4,5},
 		{5,6,7}
 	}
 
-	local a=2
-	lists[a+1][a+1]+=1
+	local a = 2
+	lists[ a + 1 ][ a + 0 ] += 1
 
-	for i,l in lists do
-		print "------"
-		for i,v in l do
-			print(i,v)		
+	print '--------'
+	for i, l in lists do
+		for i, v in l do
+			write( ' ' )
+			write( v as string )
 		end
+		write'\n'
 	end
-
+	print '--------'
 end
 
 
-func assignTest()
-	print('shit x')
-end
+assignTest1()

@@ -67,6 +67,11 @@ function findLine(lineOffset,pos)
 	return l0,pos-off0
 end
 
+function getLineOffsetString( lineOffset, pos )
+	local l, off = findLine( lineOffset, pos )
+	return "<"..l..":"..off..">"
+end
+
 function getTokenPosString(token,currentModule)
 	local pos=token.p0 or 0
 	local m=token.module or currentModule
@@ -74,9 +79,9 @@ function getTokenPosString(token,currentModule)
 		table.foreach(token,print)
 		error('fatal')
 	end
-	local line,lpos=findLine(m.lineOffset,pos)
-	local line2,lpos2=findLine(m.lineOffset,token.p1)
-	return "@"..m.file.."<"..line..":"..lpos..">".."-<"..line2..":"..lpos2..">"
+	local s1 = getLineOffsetString( m.lineOffset, pos )
+	local s2 = getLineOffsetString( m.lineOffset, token.p1 )
+	return "@"..m.file..s1..'-'..s2
 end
 local function printerr(msg)
 	io.stderr:write(tostring(msg)..'\n')

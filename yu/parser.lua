@@ -8,52 +8,56 @@ if not rawget(_G,'lpeg')then
 end
 require "yu.type"
 
-local ipairs,pairs=ipairs,pairs
-local io,type=io,type
-local print,error,assert=print,error,assert
-local setmetatable=setmetatable
-local L=lpeg
+local ipairs, pairs = ipairs, pairs
+local io,type = io,type
+local print,error,assert = print,error,assert
+local setmetatable = setmetatable
 
+local L = lpeg
+--------------------------------------------------------------------
 module ("yu" ,package.seeall)
 setmetatable(_M,{__index=function(t,k) error("undefined symbol:"..k,2) end}) --strict mode
-
+--------------------------------------------------------------------
 local p,s,r,b,lpegv =L.P,L.S,L.R,L.B,L.V
 local c,carg,cb,cc,cp,cs,ct,cg,cmt,cf= L.C,L.Carg,L.Cb,L.Cc,L.Cp,L.Cs,L.Ct,L.Cg,L.Cmt,L.Cf
 
 local v=setmetatable({},{__index=function(t,k) return lpegv(k) end})
 
 ---CONTEXT
-local currentParsedSource=false
-local currentLine=1
-local currentLineOffset=0
-local currentOffsetTable={0}
-local lineOffset={}
-local currentFilePath=''
-local errors = {}
+local currentFilePath     = ''
+
+local currentParsedSource = false
+local currentLine         = 1
+local currentLineOffset   = 0
+local currentOffsetTable  = {0}
+local lineOffset          = {}
+
+local errors              = {}
+
 local function newline(off) 
-	currentLine=currentLine+1
-	currentLineOffset=off
-	lineOffset[currentLine]=off
-	currentOffsetTable[currentLine]=off
+	currentLine                     = currentLine+1
+	currentLineOffset               = off
+	lineOffset[currentLine]         = off
+	currentOffsetTable[currentLine] = off
 end
 
 local function resetContext()
-	currentLine=1
-	currentLineOffset=0
-	currentOffsetTable={0}
-	lineOffset={}
-	errors={}
+	currentLine        = 1
+	currentLineOffset  = 0
+	currentOffsetTable = {0}
+	lineOffset         = {}
+	errors             = {}
 end
 
 local function checkConst(t)
-	local tag=t and t.tag
+	local tag = t and t.tag
 	return tag and tag=='number' or tag=='boolean' or tag=='string' or tag=='nil'
 end
 
 local function parseErr(msg,pos)
-	local lpos=pos-currentLineOffset
-	local m=currentFilePath.."<"..currentLine..":"..lpos..">:"..msg
-	errors[#errors+1]=m
+	local lpos = pos - currentLineOffset
+	local m = currentFilePath.."<"..currentLine..":"..lpos..">:"..msg
+	errors[#errors+1] = m
 end
 	--cmt(p(1),f
 
@@ -381,13 +385,15 @@ local function getModuleMatch()
 
 	local pdepth,pstack=0,{}
 
-	POpen=	w(POPEN)*cp()/function(pos) 
-		pdepth=pdepth+1
-		pstack[pdepth]=pos
+	POpen =	w(POPEN)*cp()/function(pos) 
+		pdepth = pdepth+1
+		pstack[pdepth] = pos
 	end
 
-	PClose=	cnot(w(PCLOSE),function(pos0,pos1)
-		parseErr("unclosed parenthesis ->"..pstack[pdepth],pos1)
+	PClose =	cnot(w(PCLOSE),function(pos0,pos1)
+		local ppos = pstack[pdepth]
+		local s = getLineOffsetString( lineOffset, ppos )
+		parseErr( "unclosed parenthesis ->".. s, pos1 )
 	end)
 
 	--GRAMMAR
