@@ -1,13 +1,19 @@
-func f1(a$,b=3,c=1)
+extern
+	func print( ...* )
 end
 
+func f1(a$,b=3,c=1)
+	print( a,b,c )
+end
 
 func getLoc(world=false)
+	print( world )
 end
 
 func setLoc(x,y,z#, world=false)
-	if world then
-		return setWorldLoc(x,y,z)
-	end
+	print( x,y,z, world )
 end
 
+f1( 'good' )
+getLoc()
+setLoc( 1,2,3 )

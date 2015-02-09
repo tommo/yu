@@ -3,7 +3,8 @@ extern
 end
 
 local a,b=1,2
-func double(a,b#)=>a*2,b*2
+func double( a, b# ) = a*2, b*2
+
 local t1={double(a,b)}
 
 for i,v in t1 do

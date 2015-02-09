@@ -2,42 +2,28 @@ extern
 	func print(...*)
 end
 
-class Vec
-	field x,y#
-end
-
-class Sprite
-	field parent:Sprite
-	field pos:Vec
-
-	method showPos()
-		print('i am at',pos.x,pos.y)
-		if parent then
-			print('>my parent says:')
-			parent.showPos()
-		end
-	end
-
-end
-
-class Scene
-	field sprites:Sprite[]={}
-	
-	method showSpritePos()
-		for i,s in sprites do
-			s.showPos()
-		end
-	end
-
-end
-
-
-local scene=Scene{
-	sprites={
-		{	pos={x=1,y=2}	},
-		{	pos={x=3,y=4}	},
-		{	pos={x=8,y=6}	},
-	}
+enum HTTPActionType {
+	GET,
+	POST
 }
 
-scene.showSpritePos()
+class HTTPAction
+	field type:HTTPActionType
+	field url:string
+	field onFinish:func( action:HTTPAction, response:string ) 
+
+	method run()
+		print( 'action!' )
+		print( 'done!' )
+		self.onFinish( self, 'ok' )
+	end
+end
+
+local action = HTTPAction()
+action.onFinish = function( action:HTTPAction, response:string )
+	print( 'response from', action.url, response )
+end
+
+action.url='google.com'
+action.run()
+

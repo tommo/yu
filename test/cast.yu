@@ -1,8 +1,6 @@
 extern
 	func print(...*)
 end
-local hex='0x25' as number
-print(hex)
 
 class Fruit
 end
@@ -14,19 +12,23 @@ class Banana extends Fruit
 end
 
 local b=Banana() as Fruit
-print(b is Fruit)
-print(b is Banana)
-print(b is Apple)
+assert( b is Fruit )
+assert( b is Banana )
+assert( not b is Apple )
 
-local a=b as Apple
-print(a)
+local a = b as Apple
+assert( a == nil )
 
 local c=Apple()
-b=c as Fruit
-print(b is Fruit, b is Apple)
+b = c as Fruit
+assert( b is Fruit )
+assert( b is Apple )
 
 local x:Apple
 x = nil
-print( x is Apple )
-print( x == nil )
+assert( not x is Apple )
+assert( x == nil )
 
+local hex = '0x25' as number
+assert( hex is number )
+assert( hex == 37 )

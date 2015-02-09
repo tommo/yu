@@ -45,7 +45,7 @@ if f.state == OK then
 end
 
 select f.state
-	case OK then
+	case OK do
 		print("ok")
 end
 

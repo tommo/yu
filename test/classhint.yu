@@ -53,6 +53,7 @@ end
 
 func uploadSprite(s:Sprite)
 	local x#
+	print( 'uploading sprite', s.pos.x, s.pos.y )
 end
 
 local s1=Sprite{

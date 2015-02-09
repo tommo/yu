@@ -142,7 +142,7 @@ func radiance(r:Ray, depth#) -> Vec
 	local nl=(n.dot(r.d) < 0) and n or ( n.__mul(-1) )
 	
 	select obj.refl
-		case diff then
+		case diff do
 			local r1=2*math.pi*rand()
 			local r2=rand()
 			local r2s=math.sqrt(r2)
@@ -157,10 +157,10 @@ func radiance(r:Ray, depth#) -> Vec
 					  w.__mul( math.sqrt(1-r2) ) ).norm()
 			return obj.e.__add( f.mult(radiance(Ray(x, d), newDepth)) )
 			
-		case spec then
+		case spec do
 			return obj.e + f.mult(radiance( Ray(x, r.d - n * 2 * n.dot(r.d)), newDepth))
 			
-		case refr then
+		case refr do
 			local reflRay = Ray(x, r.d - n*(2*n.dot(r.d)))
 			local into = n.dot(nl) > 0
 			local nc, nt = 1, 1.5

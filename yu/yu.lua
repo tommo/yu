@@ -7,22 +7,22 @@ require "yu.yigen"
 
 module("yu")
 
-local builder={}
-totalDeclTime=0
-totalResolveTime=0
-totalGenerateTime=0
-
+totalDeclTime     = 0
+totalResolveTime  = 0
+totalGenerateTime = 0
 local _fileBuildTime={}
-local allowDepBuild=true
+
+local builder = {}
+local allowDepBuild = true
 local function getFileBuildTime(path)
 	if not allowDepBuild then return 0 end
 	if not rawget(_G,'lfs') then
 		return 0
 	end
-	local t0=_fileBuildTime[path] or 0
-	local t1=lfs.attributes(path,'modification') or 0
+	local t0 = _fileBuildTime[path] or 0
+	local t1 = lfs.attributes(path,'modification') or 0
 	if t1>t0 then
-		_fileBuildTime[path]=t1 
+		_fileBuildTime[path] = t1 
 		return t1
 	else
 		return t0
@@ -58,30 +58,30 @@ local function fileExists(f)
 	return false
 end
 
-local function fixpath(p)
-	p=string.gsub(p,'\\','/')
+local function fixPath(p)
+	p = string.gsub(p,'\\','/')
 	return p
 end
 
 local function stripExt(p)
-	p=fixpath(p)
-	p=string.gsub(p,'%..*$','')
+	p = fixPath(p)
+	p = string.gsub(p,'%..*$','')
 	return p
 end
 
 local function extractDir(p)
-	p=fixpath(p)
+	p = fixPath(p)
 	return string.match(p, ".*/") or ''
 end
  
 local function extractFileName(p)
-	p=fixpath(p)
+	p = fixPath(p)
 	return string.match(p, "[%w_.%%]+$")
 end
  
 local function extractModName(p)
-	p=extractFileName(p)
-	p=string.gsub(p,'%..*$','')
+	p = extractFileName(p)
+	p = string.gsub(p,'%..*$','')
 	return string.gsub(p,'%.','_')
 end
 
@@ -199,10 +199,11 @@ function builder:buildModule(path)
 			print(tostring(e))
 		end
 	end
-	m.externModules={}
-	m.path=path
-	m.modpath=stripExt(path)
-	m.name=extractModName(path)
+	m.externModules = {}
+	m.path          = path
+	m.modpath       = stripExt(path)
+	m.name          = extractModName(path)
+
 	self.moduleTable[path]=m
 	
 	local heads=m.heads
@@ -235,16 +236,16 @@ function builder:buildModule(path)
 end
  
 function builder:addBuildingModule(m)
-	local b=self.buildingModules
+	local b = self.buildingModules
 	for i,v in ipairs(b) do
-		if v==m then return end
+		if v == m then return end
 	end
-	b[#b+1]=m
+	b[#b+1] = m
 end
 
 function builder:checkNeedBuild(path)
-	local yi=getYIPath(path)
-	local yo=getYOPath(path)
+	local yi = getYIPath(path)
+	local yo = getYOPath(path)
 
 	local needBuild = 
 						(not	fileExists(yo)) or
@@ -256,8 +257,8 @@ function builder:checkNeedBuild(path)
 end
 
 function builder:requireModule(path, from)
-	path=fixpath(path)
-	local m=self.moduleTable[path]
+	path = fixPath(path)
+	local m = self.moduleTable[path]
 	if m then return m end
 
 	local needBuild=self:checkNeedBuild(path)
@@ -276,13 +277,13 @@ end
 
 function builder:loadCompiledModule(path)
 	-- print('loadYi',path)
-	local yi=getYIPath(path)
+	local yi = getYIPath(path)
 	inheritFileBuildTime(path, yi)
 
-	local data=dofile(yi)
-	local needBuild=false
-	local req={}
-	local named={}
+	local data      = dofile(yi)
+	local needBuild = false
+	local req       = {}
+	local named     = {}
 
 	for i, im in ipairs(data.import) do
 		local r=self:requireModule(im.path, path)

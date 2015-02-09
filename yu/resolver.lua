@@ -330,7 +330,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 			local key,val=pnode.key,pnode.value
 
 			if ttype and ttype.tag=='tabletype' then
-				table.foreach(ttype,print)
+				-- table.foreach(ttype,print)
 				if key==v then
 					target=ttype.etype
 				else
@@ -1078,14 +1078,14 @@ local	function findHintType(vi,node,parentLevel,keep)
 		
 		for k,d0 in pairs(scope0) do			
 			if k~='private'	then
-				if d0.tag=='var' and d0.vtype=='field' and d0.value and d0.value.tag~='nil' then
+				if d0.tag == 'var' and d0.vtype=='field' and d0.value and d0.value.tag~='nil' then
 					defaultValuesCount=defaultValuesCount+1
 					defaultValues[defaultValuesCount]={
-						tag='assignstmt',
+						tag = 'assignstmt',
 
-						genHint='defaultvalue',
+						genHint = 'defaultvalue',
 
-						vars={
+						vars = {
 							{tag='member',
 							mtype='member',decl=d0,id=d0.name,
 							p0=d0.p0,
@@ -1416,7 +1416,7 @@ local	function findHintType(vi,node,parentLevel,keep)
 		local lt = self:getType( c.l )
 		
 		resolveCall( lt, c, self )
-		
+
 		if lt.tag == 'signalmeta' then
 			local sender = nil
 			local signal = f
@@ -1435,7 +1435,9 @@ local	function findHintType(vi,node,parentLevel,keep)
 				constructor = c.constructor
 			}
 		elseif f.tag == 'member' and f.mtype == 'member' then
-			f.mtype = 'methodcall'
+			if lt.method then
+				f.mtype = 'methodcall'
+			end
 		end
 		
 		return true

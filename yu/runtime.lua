@@ -14,7 +14,7 @@ module( "yu.runtime", package.seeall )
 --------------------------------------------------------------------
 local classMT={}
 
-local function newClass( name, classDecl ,superClass, body) --needed by builtin class
+local function newClass( name, classDecl ,superClass, body ) --needed by builtin class
 	if superClass then setmetatable(body,superClass) end
 	--todo: cache method for class?
 	classDecl.__type  = 'class'
@@ -138,7 +138,7 @@ function getType(v)
 	local t= type(v)
 	if t == "number" or t == "boolean" or t == "nil" or t == "string" then return t end
 	if t == "table" then --table/ object
-		local c=getmetatable(v)
+		local c = getmetatable(v)
 		if c then return c end
 	elseif t == "function" then --closure/function
 		return t		

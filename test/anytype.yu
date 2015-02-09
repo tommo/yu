@@ -5,3 +5,5 @@ local a:anyfunc
 a=print
 local aa=a as func(...*)
 aa('hello')
+local v = a as func( ...* )
+v( 'shit' )

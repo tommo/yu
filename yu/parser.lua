@@ -566,7 +566,7 @@ local function getModuleMatch()
 					
 		SwitchStmt=	SELECT *__ * cassert(v.Expr,"condition expression expected") *
 					ct((CASE * __ * cassert(v.ExprList,"case condition expressions expected") *
-						cassert(THEN*__,"'then' expected for 'case'") * 
+						cassert(DO*__,"'then' expected for 'case'") * 
 							v.Block/t2('case','conds','block')
 						)^0) *
 					(DEFAULT *__ * v.Block) ^-1 *

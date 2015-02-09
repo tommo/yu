@@ -11,7 +11,7 @@ class Apple extends Fruit
 end
 
 class Banana extends Fruit
-	final override name$() = 'banana'
+	override name$() = 'banana'
 end
 
 class Fruit extends Colorful
@@ -19,7 +19,7 @@ class Fruit extends Colorful
 end
 
 class TropicalFruit extends Banana
-	-- override name$()=>'Tropical'
+	override name()='Tropical Fruit'
 end
 
 class Vec

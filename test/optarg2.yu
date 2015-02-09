@@ -1,8 +1,0 @@
-import 'optarg.yu'
-
-openFile('test', ReadWrite, true)
-
-func double(a,b#) = a*2, b*2
-func mulret() -> #,#
-	return 1,1,
-end

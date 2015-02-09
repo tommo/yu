@@ -3,8 +3,8 @@ extern
 end
 
 local x  = 1
-local fx = func() = func() print( 'x =', &x ) end
-local f = fx()
+local fx = func(xx#) = func() print( 'x =', &x ) end
+local f = fx(1)
 
 for i = 1, 10 do
 	x += 1

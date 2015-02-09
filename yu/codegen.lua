@@ -1101,13 +1101,13 @@ function generators.call(gen,c)
 		gen')'
 	elseif tag=='member' then
 		local mtype=c.l.mtype
-
 		if mtype=='methodcall' then
 			codegen(gen,c.l)
 			gen'(' 
 				gen:mark(c)
 				codegenList(gen,c.args)
 			gen')'
+
 		elseif mtype=='super' then --static call
 			gen(getDeclName(c.l.decl))
 			gen'( self' 
@@ -1116,18 +1116,27 @@ function generators.call(gen,c)
 				codegenList(gen,c.args)
 				gen')'
 			gen:refer(c.l.decl)
+
+		elseif mtype == 'member' then
+			codegen(gen,c.l)
+			gen'(' 
+				codegenList(gen,c.args)
+			gen')'
+
 		elseif mtype=='static' then
-			--gen(getDeclName(c.l.decl))
 			codegen(gen,c.l)
 			gen'('
 				gen:mark(c)
 				codegenList(gen,c.args)
 			gen')'
 			gen:refer(c.l.decl)
+
 		else
 			table.foreach( c.l, print )
 			error('wtf?'..tostring(mtype))
+
 		end
+
 	else
 		gen(getDeclName(c.l.decl))
 		gen'('

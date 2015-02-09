@@ -54,8 +54,8 @@ end
 ----CODE INFO
 --------------------------------------------------------------------
 function findLine(lineOffset,pos)
-	local off0=0
-	local l0=0
+	local off0 = 0
+	local l0   = 0
 	
 	for l,off in ipairs(lineOffset) do
 		if pos>=off0 and pos<off then 
@@ -90,7 +90,7 @@ end
 function compileErr(msg,token,currentModule)
 	local errmsg=(token and getTokenPosString(token,currentModule) or "")..":"..msg
 	printerr('[COMPILE ERROR]')
-	printerr(errmsg)
+	printerr( errmsg )
 	return error('compile error', 2)
 end
 

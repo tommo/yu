@@ -22,7 +22,7 @@ local v=Vec{ x=1, y=20 }
 local i=1
 while true do
 	if v.x>100 then break end
-	v=v.mul(2)
+	v = v.mul(2)
 	if v.x<20 then continue end
 	print(v.tostring())
 end
