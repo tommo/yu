@@ -77,11 +77,19 @@ class Property
 	global String=Property{type='string'}
 
 	field type$
+	field id#
+
+	method __init()
+		global _id = 11
+		self.id = _id
+		_id += 1
+	end
+
 end
 
 local properties={
-	['Number']=Property{type='number'},
-	['Object']=Property{type='object'},
+	['Number'] = Property{type='number'},
+	['Object'] = Property{type='object'},
 }
 
 -- function Property__() = Property(1)
@@ -121,6 +129,8 @@ for i, a in m.getAnnotationList() do
 		if a1 then
 			print(a1.name)
 		end
+	elseif a is Property then
+		print( (a as Property).id )
 	else
 		print(TypeInfo.getByValue(a).getName())
 	end
